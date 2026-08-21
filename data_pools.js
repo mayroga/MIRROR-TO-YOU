@@ -31,7 +31,7 @@ const RAW_RIDDLES_DATABASE = [
         ans_en: "Rest"
     },
     {
-        id: "ADV-005", // 🚨 CRÍTICA: Utilizada por el script en el Reto del Minuto 1
+        id: "ADV-005", // 🚨 REQUISITO CRÍTICO: Utilizada por el script en el Reto del Minuto 1
         id_ref: "RESPIRACION_CONSOLIDACION",
         es: "Invisible al ojo, vital para el alma, si me dejas ir te devuelvo la calma. Me muevo en tu pecho sin prisa ni daño, y rompo el estrés de todo tu año. ¿Qué soy?",
         en: "Invisible to eyes, vital to the soul, if you let me flow I make your mind whole. I move in your chest with absolute grace, breaking the patterns of your routine's race. What am I?",
@@ -103,6 +103,21 @@ const RESPIRATION_COUNSELING_SCRIPTS = {
             "Pause... Your autonomous system calibrates to its optimal state."
         ]
     },
+    MIDDAY: {
+        pattern: "4-4-4-4",
+        frases_es: [
+            "Inhala profundamente estabilizando el ritmo cardíaco...",
+            "Retén el aire, suspendiendo las cargas y el ruido externo...",
+            "Exhala liberando la tensión acumulada en tus hombros...",
+            "Pausa en vacío, permitiendo que tu enfoque recupere claridad."
+        ],
+        frases_en: [
+            "Inhale deeply, stabilizing your heart rate rhythm...",
+            "Hold the breath, suspending external noise and burdens...",
+            "Exhale, releasing accumulated tension from your shoulders...",
+            "Pause in stillness, allowing your focus to regain absolute clarity."
+        ]
+    },
     NOCTURNO: {
         pattern: "4-7-8",
         frases_es: [
@@ -113,7 +128,7 @@ const RESPIRATION_COUNSELING_SCRIPTS = {
         ],
         frases_en: [
             "Inhale deeply, shutting down your brain's alert pathways...",
-            "Hold the breath... Let profound stillness replace your pending tasks.",
+            "Hold the breath... Let profound stilleness replace pending tasks.",
             "Exhale slowly, completely emptying all digital saturation...",
             "Feel your entire body melting into a state of total disconnection."
         ]
