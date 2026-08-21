@@ -7,7 +7,7 @@
     <!-- ANALÍTICA ANÓNIMA Y PRIVADA (PLAUSIBLE) -->
     <script defer data-domain="tu-dominio-mayroga.com" src="https://plausible.io"></script>
     <script>
-        window.plausible = window.plausible || function() { (window.plausible.q = window.plausible.q || []).push(arguments) }
+        window.plausible = window.plausible || function() { (window.plausible.q = window.plausible.q || []).push(arguments) };
     </script>
     <style>
         :root {
@@ -64,6 +64,7 @@
             text-transform: uppercase;
             font-family: "Times New Roman", Times, serif;
             margin: 0;
+            cursor: pointer;
         }
         .lang-container-giant {
             display: flex;
@@ -72,7 +73,7 @@
         }
         .giant-lang-btn {
             flex: 1;
-            background: rgba(255,255,255,0.01);
+            background: rgba(255, 255, 255, 0.01);
             border: 2px solid var(--gold-champagne);
             color: var(--gold-champagne);
             padding: 20px;
@@ -127,8 +128,8 @@
         }
         .triple-option-btn {
             width: 100%;
-            background: rgba(255,255,255,0.02);
-            border: 1px solid rgba(255,255,255,0.08);
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.08);
             color: var(--white-ivory);
             padding: 16px 20px;
             border-radius: 14px;
@@ -180,7 +181,7 @@
             width: 170px;
             height: 150px;
             position: relative;
-            border-bottom: 2px solid rgba(255,255,255,0.05);
+            border-bottom: 2px solid rgba(255, 255, 255, 0.05);
         }
         .vertex-node {
             width: 10px;
@@ -189,11 +190,26 @@
             position: absolute;
             filter: blur(1px);
         }
-        .v-top { top: -5px; left: 80px; background-color: var(--alert-crimson); box-shadow: 0 0 15px var(--alert-crimson); }
-        .v-left { bottom: -5px; left: -5px; background-color: var(--relax-blue); box-shadow: 0 0 15px var(--relax-blue); }
-        .v-right { bottom: -5px; right: -5px; background-color: var(--text-muted); box-shadow: 0 0 15px var(--text-muted); }
-        
-        .triangle-canvas::before, .triangle-canvas::after {
+        .v-top {
+            top: -5px;
+            left: 80px;
+            background-color: var(--alert-crimson);
+            box-shadow: 0 0 15px var(--alert-crimson);
+        }
+        .v-left {
+            bottom: -5px;
+            left: -5px;
+            background-color: var(--relax-blue);
+            box-shadow: 0 0 15px var(--relax-blue);
+        }
+        .v-right {
+            bottom: -5px;
+            right: -5px;
+            background-color: var(--text-muted);
+            box-shadow: 0 0 15px var(--text-muted);
+        }
+        .triangle-canvas::before,
+        .triangle-canvas::after {
             content: '';
             position: absolute;
             top: 0;
@@ -202,9 +218,14 @@
             background: linear-gradient(180deg, var(--gold-champagne), rgba(197, 160, 89, 0.02));
             transform-origin: top;
         }
-        .triangle-canvas::before { left: 85px; transform: rotate(28.5deg); }
-        .triangle-canvas::after { left: 85px; transform: rotate(-28.5deg); }
-        
+        .triangle-canvas::before {
+            left: 85px;
+            transform: rotate(28.5deg);
+        }
+        .triangle-canvas::after {
+            left: 85px;
+            transform: rotate(-28.5deg);
+        }
         .energy-beam {
             width: 3px;
             height: 0;
@@ -215,8 +236,10 @@
             opacity: 0;
             transition: all 1.5s ease-in-out;
         }
-        .beam-active { height: 150px; opacity: 0.7; }
-        
+        .beam-active {
+            height: 150px;
+            opacity: 0.7;
+        }
         .breathe-canvas-pane {
             width: 100%;
             min-height: 180px;
@@ -239,119 +262,102 @@
             width: 130px;
             height: 130px;
             background: radial-gradient(circle, #1C3D5A 0%, #0B1D33 100%) !important;
-            box-shadow: 0 0 50px rgba(28,61,90,0.8) !important;
+            box-shadow: 0 0 50px rgba(28, 61, 90, 0.8) !important;
         }
         .lung-exhale {
             width: 50px;
             height: 50px;
             background: radial-gradient(circle, #E04F4F 0%, #992222 100%) !important;
-            box-shadow: 0 0 25px rgba(224,79,79,0.5) !important;
+            box-shadow: 0 0 25px rgba(224, 79, 79, 0.5) !important;
         }
-        .silhouette-display-box {
-            width: 130px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
+        .explanation-card {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(197, 160, 89, 0.2);
+            padding: 16px;
+            border-radius: 12px;
+            margin-top: 14px;
+            margin-bottom: 14px;
+            font-size: 13.5px;
+            line-height: 1.6;
+            text-align: left;
+            color: var(--gold-champagne);
+            display: none;
         }
-        .avatar-silhouette {
-            width: 44px;
-            height: 115px;
-            background: linear-gradient(180deg, #16161a 0%, #08080a 100%);
-            border: 1px solid rgba(255,255,255,0.06);
-            border-radius: 20px;
-            position: relative;
-            transition: all 1.5s ease;
+        .luxury-checkout-dock {
+            animation: premiumFade 0.8s cubic-bezier(0.215, 0.61, 0.355, 1) forwards;
+            text-align: center;
         }
-        .satisfactory-node {
-            width: 14px;
-            height: 14px;
-            border-radius: 3px;
-            background-color: #222;
-            border: 1px solid #333;
+        .tier-card-elite {
+            border: 1px solid var(--gold-champagne) !important;
+            background: linear-gradient(180deg, rgba(197, 160, 89, 0.05) 0%, rgba(0, 0, 0, 0.8) 100%) !important;
+            box-shadow: 0 15px 40px rgba(197, 160, 89, 0.1) !important;
+        }
+        .premium-portal-panel {
+            border: 1px solid var(--alert-crimson);
+            background: rgba(0, 0, 0, 0.8);
+            padding: 15px;
+            border-radius: 12px;
             margin-top: 10px;
-            transition: all 0.8s ease;
         }
-        .node-success {
-            background-color: var(--wellness-green) !important;
-            box-shadow: 0 0 15px var(--wellness-green) !important;
-            border-color: var(--wellness-green) !important;
+        .badge-red-alert {
+            background: var(--alert-crimson);
+            color: #fff;
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: bold;
         }
-.explanation-card {
-    background: rgba(255, 255, 255, 0.02);
-    border: 1px solid rgba(197, 160, 89, 0.2);
-    padding: 16px;
-    border-radius: 12px;
-    margin-top: 14px;
-    margin-bottom: 14px;
-    font-size: 13.5px;
-    line-height: 1.6;
-    text-align: left;
-    color: var(--gold-champagne);
-    display: none;
-}
+        .portal-mini-btn {
+            background: rgba(224, 79, 79, 0.15);
+            border: 1px solid var(--alert-crimson);
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 11px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            color: #fff;
+        }
+        .portal-mini-btn:hover {
+            background: var(--alert-crimson);
+            box-shadow: 0 0 10px rgba(224, 79, 79, 0.4);
+        }
+        @keyframes premiumFade {
+            from {
+                opacity: 0;
+                transform: translateY(12px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-window" id="open-than-go-root">
+        <header><h1 id="brandTitleField">MAY ROGA</h1></header>
+        
+        <div class="lang-container-giant" id="giantLangBox">
+            <button class="giant-lang-btn active-lang" id="btnLangES" onclick="window.KERNEL.setLanguage('ES')">ESPAÑOL</button>
+            <button class="giant-lang-btn" id="btnLangEN" onclick="window.KERNEL.setLanguage('EN')">ENGLISH</button>
+        </div>
 
-.ecosystem-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 14px;
-    margin-top: 25px;
-}
+        <div id="panelLegal" style="display:none; text-align:center;">
+            <h2 id="lblLegalTitle">Tu espacio privado de sintonía</h2>
+            <button class="gold-btn" id="btnUnlock" onclick="window.KERNEL.init()">INICIAR</button>
+        </div>
 
-.grid-tile {
-    background: rgba(255, 255, 255, 0.02);
-    border: 1px solid rgba(255, 255, 255, 0.04);
-    padding: 18px;
-    border-radius: 16px;
-    text-decoration: none;
-    color: var(--white-ivory);
-    font-size: 13px;
-    font-weight: 500;
-    letter-spacing: 1px;
-    text-transform: uppercase;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 6px;
-    transition: all 0.3s ease;
-    text-align: center;
-}
+        <div id="panelService" style="display:none;">
+            <div class="timeline-bar">
+                <div id="clockDisplay" class="timer-display">15:00</div>
+                <div id="lblTaskTitle" style="font-size:13px; color:var(--gold-champagne); font-weight:600; letter-spacing:1px; text-transform:uppercase;">Evaluación</div>
+            </div>
+            
+            <div id="interactiveStack"></div>
+            <div id="lblExplanationBox" class="explanation-card"></div>
+            <button class="gold-btn" id="btnNext" style="display:none; margin-top:15px;" onclick="window.KERNEL.avanzarRetoContinuo()">Continuar Trayecto</button>
+        </div>
 
-.grid-tile:hover {
-    background: rgba(197, 160, 89, 0.06);
-    border-color: var(--gold-champagne);
-    transform: translateY(-3px);
-}
-
-.tile-subtext {
-    font-size: 10px;
-    color: var(--text-muted);
-    text-transform: none;
-}
-
-/* ESTILOS DE PASARELA Y TRASLUCIDEZ DE ALTO VALOR EXCLUSIVOS */
-.luxury-checkout-dock {
-    animation: premiumFade 0.8s cubic-bezier(0.215, 0.61, 0.355, 1) forwards;
-    text-align: center;
-}
-
-.tier-card-elite {
-    border: 1px solid var(--gold-champagne) !important;
-    background: linear-gradient(180deg, rgba(197, 160, 89, 0.05) 0%, rgba(0, 0, 0, 0.8) 100%) !important;
-    box-shadow: 0 15px 40px rgba(197, 160, 89, 0.1) !important;
-}
-
-@keyframes premiumFade {
-    from {
-        opacity: 0;
-        transform: translateY(12px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-        <!-- EL MOTOR VISUAL TEATRAL SENSORIAL (3 FIJOS Y 2 ALEATORIOS = 5 APARICIONES EN TOTAL) -->
         <div class="graphics-container" id="engineWrapper" style="display:none;">
             <div class="triangle-canvas">
                 <div class="vertex-node v-top"></div>
@@ -361,352 +367,417 @@
             </div>
             <div class="center-wellness-circle" id="lungCircle"></div>
         </div>
+    </div>
 
     <script>
-    let detectedMood = "tranquilidad";
+        // 1. Initialize KERNEL on window immediately so button onclick handlers never fail
+        window.KERNEL = {
+            setLanguage: function(lang) {
+                currentLang = lang;
+                const btnES = document.getElementById('btnLangES');
+                const btnEN = document.getElementById('btnLangEN');
+                if (btnES) btnES.className = lang === "ES" ? "giant-lang-btn active-lang" : "giant-lang-btn";
+                if (btnEN) btnEN.className = lang === "EN" ? "giant-lang-btn active-lang" : "giant-lang-btn";
 
-    // BASE DE DATOS DE MENOR A MAYOR COMPLEJIDAD - PREGUNTAS FILTRADORAS NATIVAS
-    const POOL_EJERCICIOS = [
-        { 
-            id: 0, tipo: "PREGUNTA", q_es: "En este preciso instante de tu día, ¿qué es lo que más le urge experimentar a tu atención?", q_en: "At this exact moment of your day, what does your attention urgently seek to experience?", 
-            opts_es: [
-                {t:"A. Tranquilidad total, desconexión y silencio absoluto.",p:25,c:true,ex:"Procesando vector de Paz... Adaptando frecuencias del acompañante.",mood:"tranquilidad"}, 
-                {t:"B. Romper la monotonía, explorar nuevos entornos vibrantes.",p:15,c:false,ex:"Procesando vector de Estímulo... Activando retos de agilidad cognitiva.",mood:"estresado"}, 
-                {t:"C. Descanso físico tras una jornada de agotamiento acumulado.",p:5,c:false,ex:"Procesando vector de Recuperación... Calibrando pulmón biológico.",mood:"agotado"}
-            ], 
-            opts_en: [
-                {t:"A. Absolute tranquility, disconnection, and perfect silence.",p:25,c:true,ex:"Processing Peace vector... Adapting companion audio frequencies.",mood:"tranquilidad"}, 
-                {t:"B. Breaking monotony, exploring new vibrant enclaves.",p:15,c:false,ex:"Processing Stimulus vector... Invoking cognitive speed challenges.",mood:"estresado"}, 
-                {t:"C. Physical rest following accumulated fatigue loops.",p:5,c:false,ex:"Processing Recovery vector... Adjusting biological lung rhythms.",mood:"agotado"}
-            ] 
-        },
-        { 
-            id: 1, tipo: "PREGUNTA", q_es: "Frente al flujo de decisiones diarias en tu negocio, ¿cómo opera tu enfoque mental?", q_en: "Facing daily business choices, how does your strategic focus operate?", 
-            opts_es: [
-                {t:"A. Fluye con total claridad, manteniendo el orden de las prioridades.",p:25,c:true,ex:"Excelente. El orden natural sostiene la lucidez."}, 
-                {t:"B. Avanzo de forma constante, pero el ritmo se acelera bajo presión.",p:15,c:false,ex:"Atención: la aceleración continua genera un desgaste de energía invisible."}, 
-                {t:"C. Siento la inercia de la rutina antes de iniciar mis actividades.",p:5,c:false,ex:"Alerta: tu mente ejecuta cargas secundarias antes de tiempo en piloto automático."}
-            ], 
-            opts_en: [
-                {t:"A. It flows with absolute clarity, keeping core priorities in command.",p:25,c:true,ex:"Splendid. Natural order sustains executive baseline lucidity."}, 
-                {t:"B. I move steadily, but workflow speed accelerates under pressure.",p:15,c:false,ex:"Caution: endless high-speed operational loops drain underlying energy."}, 
-                {t:"C. I experience routine fatigue before even initializing tasks.",p:5,c:false,ex:"Overload warning: your brain runs background tasks prematurely."}
-            ] 
-        },
-        { 
-            id: 2, tipo: "MATEMATICA", q_es: "Un reto numérico divertido: Si una aeronave privada vuela a 600 mph, ¿cuántas millas cruza en 15 minutos exactos?", q_en: "A quick logical challenge: If a private jet cruise speeds at 600 mph, how many miles does it cross in exactly 15 minutes?", 
-            opts_es: [
-                {t:"A. Avanza exactamente 100 millas.",p:0,c:false,ex:"Incorrecto. Evalúa el cuadrante del tiempo: 15 minutos es un cuarto de hora perfecta."}, 
-                {t:"B. Avanza exactamente 150 millas.",p:25,c:true,ex:"¡Extraordinario! 150 millas. Tu agilidad lógica permanece impecable y despierta."}, 
-                {t:"C. Avanza exactamente 200 millas.",p:0,c:false,ex:"Incorrecto. Vuelve a calibrar dividiendo la velocidad entre cuatro bloques de tiempo."}
-            ], 
-            opts_en: [
-                {t:"A. It covers exactly 100 miles.",p:0,c:false,ex:"Incorrecto. Look closely at the temporal quadrant: 15 minutes is a perfect quarter."}, 
-                {t:"B. It covers exactly 150 miles.",p:25,c:true,ex:"Brilliant! 150 miles. Your logical processing speed remains pristine and alert."}, 
-                {t:"C. It covers exactly 200 miles.",p:0,c:false,ex:"Incorrecto. Re-calibrate by dividing full speed into four quarters."}
-            ] 
-        }
-    ];
-    // DICCIONARIOS DE FRASES DINÁMICAS BILINGÜES PARA EL CUADRO ESCRITO (CADA 15s)
-    const VOCABULARIO_MUTANTE = { 
-        es: { 
-            tranquilidad: ["Disfruta el momento.", "Suelta la prisa.", "El silencio es poder.", "Paz profunda.", "Estás a salvo aquí.", "Respira el presente.", "La calma repara tu centro."], 
-            estresado: ["Enfoque limpio.", "Agilidad mental.", "Claridad estratégica.", "Control absoluto.", "Calibra tus decisiones.", "Visualiza el éxito.", "Fuerza interna."], 
-            agotado: ["Descansa profundamente.", "Recupera tu energía.", "Suelta el peso de la rutina.", "Relaja los hombros hoy.", "Renovación de fondo."] 
-        }, 
-        en: { 
-            tranquilidad: ["Enjoy the moment.", "Release the rush.", "Silence is absolute leverage.", "Deep peace.", "You are safe within this space.", "Breathe the present.", "Stillness restores your core."], 
-            estresado: ["Sharp focus.", "Mental clarity.", "Strategic bandwidth.", "Absolute command.", "Calibrate your perspective.", "Visualize results.", "Internal resilience."], 
-            agotado: ["Rest fully.", "Restore your base energy.", "Release routine fatigue.", "Relax your shoulders today.", "Underlying tranquility."] 
-        } 
-    }; 
+                const legalTitle = document.getElementById('lblLegalTitle');
+                if (legalTitle) legalTitle.innerText = currentLang === "ES" ? "Tu espacio privado de sintonía" : "Your private tuning residency";
 
-    const VOCABULARIO_SABIDURIA = { 
-        es: ["La verdadera riqueza es el control absoluto sobre tu tiempo.", "Un líder en armonía toma decisiones con un margen de ganancia infinito.", "El descanso no es una pérdida de tracción; es la arquitectura del siguiente paso."], 
-        en: ["True wealth is possessing complete sovereignty over your attention.", "A leader anchored in calm commands an unshakeable premium margin.", "Rest is not a lack of momentum; it is the structural blueprint of your next move."] 
-    }; 
+                const btnUnlock = document.getElementById('btnUnlock');
+                if (btnUnlock) btnUnlock.innerText = (typeof TEXTOS_INTERFAZ !== "undefined" && TEXTOS_INTERFAZ[currentLang.toLowerCase()])
+                    ? TEXTOS_INTERFAZ[currentLang.toLowerCase()].unlock_ready
+                    : "INICIAR";
 
-    // INVENTARIOS DE PROPIEDADES CONECTADOS DIRECTAMENTE AL PROTOCOLO DE TU HOST AGENCY
-    const BASE_SANTUARIOS = [ 
-        { id: "H1", tier: "ELITE", name_es: "Eden Roc Cap Cana (Punta Cana)", name_en: "Eden Roc Cap Cana (Dominican Republic)", desc_es: "Bungalows de ultra-lujo con alberca propia y club de playa privado.", desc_en: "Ultra-luxury standalone bungalows featuring private pools and beach clubs.", maps: "google.com", yt: "youtube.com" }, 
-        { id: "H2", tier: "ELITE", name_es: "Amanera Resort (Playa Grande)", name_en: "Amanera Resort (Playa Grande)", desc_es: "Casitas de cristal y ebanistería minimalista suspendidas sobre acantilados masivos.", desc_en: "Minimalist glass casitas perched on massive ocean cliffs.", maps: "google.com", yt: "youtube.com" }, 
-        { id: "H3", tier: "PREMIUM", name_es: "Grand Velas Riviera Maya (México)", name_en: "Grand Velas Riviera Maya (Mexico)", desc_es: "Suites de alta gama acompañadas de un circuito hidrotermal de spa guiado.", desc_en: "Upscale beachfront suites paired with an immersive guided hydrothermal spa circuit.", maps: "google.com", yt: "youtube.com" } 
-    ]; 
+                const panelLegal = document.getElementById('panelLegal');
+                if (panelLegal) panelLegal.style.display = 'block';
 
-    const BASE_PASILLOS = { 
-        "ELITE": { 
-            es: { air: "Gulfstream G650 Chárter Privado directo sin filas desde la terminal VIP FBO de Miami.", sea: "The Ritz-Carlton Yacht Collection Suite de popa con terraza privada sobre el océano." }, 
-            en: { air: "Gulfstream G650 Private Charter direct from Miami's VIP FBO terminal with zero lines.", sea: "The Ritz-Carlton Yacht Collection premium suite with a private ocean-facing terrace." } 
-        }, 
-        "PREMIUM": { 
-            es: { air: "Clase Ejecutiva Flagship Suite con asientos Lie-Flat totalmente reclinables en vuelo directo.", sea: "Celebrity Cruises (The Retreat Enclave) con solárium y restaurante de autor VIP." }, 
-            en: { air: "Flagship Business Class Suite featuring fully reclinable lie-flat non-stop seating.", sea: "Celebrity Cruises (The Retreat Enclave) granting VIP sundeck access and upscale dining." } 
-        } 
-    }; 
-
-    // TRADUCCIONES NATIVAS DE TU INTERFAZ BILINGÜE
-    const TEXTOS_INTERFAZ = { 
-        es: { 
-            unlock_ready: "INICIAR", phase_silence: "Reto de Silencio Absoluto", skip_btn: "Saltar Ejercicio de Silencio", next_btn: "Continuar Trayecto", stay_lbl: "🏨 Estancia:", air_lbl: "✈️ Logística Aérea:", sea_lbl: "⚓ Canales de Mar:", pdf_btn: "Descargar libreta de viaje (PDF)", eco_title: "Ecosistema de Salida Directa", results_title: "Tu Destino Curado de Compensación", results_desc: "Procesamos tus canales de forma anónima y local. Nuestro system prescribe las siguientes coordinaciones:", action_active: "Calma Activa", action_sat: "Saturación Crítica", action_arm: "Armonía Lograda" 
-        }, 
-        en: { 
-            unlock_ready: "INICIAR", phase_silence: "Absolute Silence Ritual", skip_btn: "Skip Silence Exercise", next_btn: "Continue Itinerary", stay_lbl: "🏨 Curated Oasis:", air_lbl: "✈️ Premium Air Logistics:", sea_lbl: "⚓ Maritime Cruise Corridor:", pdf_btn: "Download My Travel Passport (PDF)", eco_title: "Direct Gateway Ecosystem", results_title: "Your Curated Travel Prescription", results_desc: "We have processed your focus vectors locally. Our system compiles the following parameters:", action_active: "Active Calibration", action_sat: "Critical Overload", action_arm: "Harmony Achieved" 
-        } 
-    };
-    // LOGICA PRINCIPAL DE CONTROL DE TIEMPO Y RUTINAS ADAPTATIVAS
-    let serviceTimer = null, voiceInterval = null, breatheInterval = null, currentQuestionIndex = 0, timeRemaining = 15 * 60; 
-    let userAnswers = [], currentTier = "ELITE", sessionData = null, currentLang = "ES", silenceTimeout = null; 
-    let randomMoment1 = Math.floor(Math.random() * (13 * 60 - 9 * 60) + 9 * 60); 
-    let randomMoment2 = Math.floor(Math.random() * (6 * 60 - 2 * 60) + 2 * 60); 
-
-    window.KERNEL = { 
-        setLanguage: function(lang) { 
-            currentLang = lang; 
-            document.getElementById('btnLangES').className = lang === "ES" ? "giant-lang-btn active-lang" : "giant-lang-btn"; 
-            document.getElementById('btnLangEN').className = lang === "EN" ? "giant-lang-btn active-lang" : "giant-lang-btn"; 
-            let map = TEXTOS_INTERFAZ[currentLang.toLowerCase()]; 
-            document.getElementById('lblLegalTitle').innerText = currentLang === "ES" ? "Tu espacio privado de sintonía" : "Your private tuning residency"; 
-            document.getElementById('btnUnlock').innerText = map.unlock_ready; 
-            this.hablar(); 
-        }, 
-
-        init: function() { 
-            document.getElementById('giantLangBox').style.display = 'none'; 
-            document.getElementById('panelLegal').style.display = 'none'; 
-            document.getElementById('panelService').style.display = 'block'; 
-            let engine = document.getElementById('engineWrapper'); 
-            if(engine) engine.style.display = 'flex'; 
-            setTimeout(() => { 
-                if(engine) engine.style.display = 'none'; 
-            }, 20000); 
-            
-            this.hablar(); 
-            this.iniciarPulmonVisual(); 
-            this.cargarFlujoSiguienteLocalStorage(); 
-
-            serviceTimer = window.setInterval(() => { 
-                timeRemaining--; 
-                let mins = Math.floor(timeRemaining / 60).toString().padStart(2, '0'); 
-                let secs = (timeRemaining % 60).toString().padStart(2, '0'); 
-                
-                // Mapeo directo sobre tu reloj de pantalla nativo
-                const clockDisp = document.getElementById('clockDisplay');
-                if (clockDisp) clockDisp.innerText = `${mins}:${secs}`; 
-
-                if(timeRemaining === (7 * 60 + 30) || timeRemaining === randomMoment1 || timeRemaining === randomMoment2) { 
-                    if(engine) engine.style.display = 'flex'; 
-                    setTimeout(() => { 
-                        if(engine) engine.style.display = 'none'; 
-                    }, 20000); 
-                } 
-
-                // 🚨 INTERCEPTACIÓN DEL MINUTO 4 (240 segundos restantes): Portal Dinámico
-                if (timeRemaining === 240) {
-                    window.KERNEL.inyectarPortalInteractivodeEscape();
+                if (typeof this.hablar === "function") {
+                    this.hablar();
                 }
-
-                // Disparador del minuto final original modificado para el cierre comercial de 15 minutos
-                if(timeRemaining <= 0) { 
-                    if(engine) engine.style.display = 'flex'; 
-                    this.finalizarAcompanamientoCRM(); 
-                } 
-            }, 1000); 
-        }, 
-
-        hablar: function() { 
-            if(voiceInterval) window.clearInterval(voiceInterval); 
-            let count = 0; 
-            const emitirVozOasis = () => { 
-                if ('speechSynthesis' in window) { 
-                    let frase = ""; 
-                    count++; 
-                    if(count % 3 === 0) { 
-                        let poolS = VOCABULARIO_SABIDURIA[currentLang.toLowerCase()]; 
-                        frase = poolS[Math.floor(Math.random() * poolS.length)]; 
-                    } else { 
-                        let poolM = VOCABULARIO_MUTANTE[currentLang.toLowerCase()][detectedMood]; 
-                        frase = poolM[Math.floor(Math.random() * poolM.length)]; 
-                    } 
-                    let utterance = new SpeechSynthesisUtterance(frase); 
-                    utterance.lang = currentLang === "ES" ? "es-US" : "en-US"; 
-                    window.speechSynthesis.speak(utterance); 
-                } 
-            }; 
-            emitirVozOasis(); 
-            voiceInterval = window.setInterval(emitirVozOasis, 15000); 
-        }, 
-
-        iniciarPulmonVisual: function() { 
-            if(breatheInterval) window.clearInterval(breatheInterval); 
-            let alternarLung = true; 
-            breatheInterval = window.setInterval(() => { 
-                let circle = document.getElementById('lungCircle'); 
-                if(!circle) return; 
-                circle.className = alternarLung ? "center-wellness-circle lung-inhale" : "center-wellness-circle lung-exhale"; 
-                alternarLung = !alternarLung; 
-            }, 4000); 
-        }, 
-
-        cargarFlujoSiguienteLocalStorage: function() { 
-            if(!localStorage.getItem('mayroga_last_idx')) localStorage.setItem('mayroga_last_idx', "0"); 
-            let lastIdx = parseInt(localStorage.getItem('mayroga_last_idx')); 
-            if(lastIdx >= POOL_EJERCICIOS.length || userAnswers.length >= 3) return; 
-            if(lastIdx === 1) this.inyectarRetoSilencioEscalonado(); 
-            else this.inyectarPreguntaDom(POOL_EJERCICIOS[lastIdx]); 
-        }, 
-
-        inyectarPreguntaDom: function(nodo) { 
-            let stack = document.getElementById('interactiveStack'); 
-            document.getElementById('lblTaskTitle').innerText = currentLang === "ES" ? nodo.q_es : nodo.q_en; 
-            let html = ""; 
-            let opts = currentLang === "ES" ? nodo.opts_es : nodo.opts_en; 
-            opts.forEach((o, i) => { 
-                html += `<button class="triple-option-btn" onclick="window.KERNEL.evaluarSeleccion(${o.p}, ${o.c}, '${o.ex}', ${i}, '${o.mood || ''}')">${o.t}</button>`; 
-            }); 
-            stack.innerHTML = html; 
-        }, 
-
-        evaluarSeleccion: function(puntos, esCorrecto, explicacion, indexBtn, moodElegido) { 
-            let box = document.getElementById('lblExplanationBox'); 
-            if(moodElegido) { 
-                detectedMood = moodElegido; 
-                this.hablar(); 
-            } 
-            userAnswers.push(puntos); 
-            if(box) { 
-                box.innerText = explicacion; 
-                box.style.display = 'block'; 
-            } 
-            document.getElementById('btnNext').style.display = 'block'; 
-        }, 
-
-        inyectarRetoSilencioEscalonado: function() { 
-            let duracionSilen = parseInt(localStorage.getItem('mayroga_silence_dur') || "40"); 
-            document.getElementById('lblTaskTitle').innerText = TEXTOS_INTERFAZ[currentLang.toLowerCase()].phase_silence; 
-            document.getElementById('interactiveStack').innerHTML = `<p>${duracionSilen}s</p>`; 
-            silenceTimeout = setTimeout(() => { 
-                userAnswers.push(25); 
-                this.avanzarRetoContinuo(); 
-            }, duracionSilen * 1000); 
-        }, 
-
-        avanzarRetoContinuo: function() { 
-            let idx = parseInt(localStorage.getItem('mayroga_last_idx')) + 1; 
-            localStorage.setItem('mayroga_last_idx', idx.toString()); 
-            this.cargarFlujoSiguienteLocalStorage(); 
-        },
-
-        // 🚨 PROTOTIPO DE INYECCIÓN DEL PORTAL ROJO EN EL MINUTO 4 INDEPENDIENTE
-        inyectarPortalInteractivodeEscape: function() {
-            const trayDock = document.getElementById('interactiveStack');
-            if (trayDock) {
-                trayDock.innerHTML = `
-                    <div class="premium-portal-panel" style="border:1px solid #E04F4F; background:rgba(0,0,0,0.8); padding:15px; border-radius:12px; margin-top:10px;">
-                        <span class="badge-red-alert" style="background:#E04F4F; color:#fff; font-size:10px; padding:2px 6px; border-radius:4px; font-weight:bold;">DESINTOXICACIÓN ACTIVA</span>
-                        <p style="font-size:12px; margin:8px 0; color:#fff;">Tu respiración ha generado sintonía cardíaca. Presiona tu pasillo de escape:</p>
-                        <div style="display:flex; gap:8px; justify-content:center;">
-                            <span class="portal-mini-btn" style="background:rgba(224,79,79,0.2); border:1px solid #E04F4F; padding:6px 12px; border-radius:6px; font-size:11px; cursor:pointer;" onclick="localStorage.setItem('mayroga_intent','CAFE')">☕ Café</span>
-                            <span class="portal-mini-btn" style="background:rgba(224,79,79,0.2); border:1px solid #E04F4F; padding:6px 12px; border-radius:6px; font-size:11px; cursor:pointer;" onclick="localStorage.setItem('mayroga_intent','PLAYA')">🏖️ Playa</span>
-                            <span class="portal-mini-btn" style="background:rgba(224,79,79,0.2); border:1px solid #E04F4F; padding:6px 12px; border-radius:6px; font-size:11px; cursor:pointer;" onclick="localStorage.setItem('mayroga_intent','HOTEL')">🏨 Hotel</span>
-                        </div>
-                    </div>
-                `;
             }
-        },
+        };
 
-        /**
-         * 🚨 CIERRA CORPORATIVO SOBERANO INTEGRADO DE ALTA GAMA (STRIPE EMBEDDED)
-         */
-        finalizarAcompanamientoCRM: function() { 
-            window.clearInterval(serviceTimer); 
-            window.clearInterval(voiceInterval);
-            if(breatheInterval) window.clearInterval(breatheInterval);
-            
-            const uuid = "MR-" + Math.floor(100000 + Math.random() * 900000);
-            localStorage.setItem("mayroga_last_folio", uuid);
-            
-            // Reemplazamos el contenedor raíz original por tu pasarela VIP de cobro de alta sociedad
-            const targetRoot = document.getElementById('open-than-go-root');
-            if(targetRoot) {
-                targetRoot.innerHTML = `
-                    <div class="luxury-checkout-dock" style="width:100%; color:#fff; padding:20px 0;">
-        // Reemplazamos el contenedor raíz original por tu pasarela VIP de cobro de alta sociedad 
-        const targetRoot = document.getElementById('open-than-go-root'); 
-        if(targetRoot) { 
-            targetRoot.innerHTML = ` 
-                <div class="luxury-checkout-dock" style="width:100%; color:#fff; padding:20px 0; text-align:center;"> 
-                    <h1 style="font-family:'Times New Roman',serif; letter-spacing:6px; font-size:30px; margin-bottom:4px; color:#C5A059; text-transform:uppercase;">MAY ROGA</h1>
-                    <div style="font-size:10px; color:#8E8E93; letter-spacing:3px; text-transform:uppercase; margin-bottom:24px;">WELLNESS TRAVEL ARCHITECTURE</div>
-                    
-                    <div style="border:1px solid rgba(255,255,255,0.08); background:rgba(255,255,255,0.01); padding:8px 12px; display:inline-block; border-radius:20px; font-size:11px; margin-bottom:20px; font-weight:600;">
-                        INTERVENCIÓN AUTÓNOMA DE 15 MINUTOS COMPLETADA
-                    </div>
-                    
-                    <p style="font-size:13.5px; line-height:1.6; text-align:justify; margin-bottom:12px; color:#E1E1E1;">
-                        Tu pasaporte de desintoxicación digital ha sido compilado localmente de forma privada en el Folio <b>${uuid}</b>. Para romper definitivamente el bucle operativo de la rutina diaria, el sistema prescribe el aislamiento físico inmediato en un santuario premium de nuestra Host Agency.
-                    </p>
-                    <p style="font-size:11.5px; line-height:1.6; text-align:justify; margin-bottom:30px; color:#8E8E93; font-weight:300;">
-                        Your private digital detox passport has been locally compiled under Folio <b>${uuid}</b>. To break the operational loop of daily routine, the system prescribes immediate physical isolation within our premium Host Agency sanctuaries.
-                    </p>
-                    
-                    <div style="display: flex; flex-direction: column; gap: 16px; margin-bottom: 30px;">
-                        <!-- ENLACE OPERATIVO SINGLE RESET ($200) -->
-                        <div onclick="window.KERNEL.procesarPagoStripe('SINGLE_200', '${uuid}')" style="border:1px solid rgba(255,255,255,0.1); padding:20px; border-radius:14px; text-align:left; cursor:pointer; background:rgba(255,255,255,0.02); transition: all 0.3s ease;">
-                            <div style="font-size:11px; color:#8E8E93; letter-spacing:1px; text-transform:uppercase;">SINGLE RESET</div>
-                            <div style="font-size:32px; font-weight:200; margin:4px 0; color:#fff;">$200</div>
-                            <p style="font-size:11.5px; line-height:1.4; color:#8E8E93; margin:0;">Acceso por 48h a herramientas de respiración + 1 Propuesta de Santuario Físico vía BNT IATA Partner.</p>
-                        </div>
-                        
-                        <!-- ENLACE OPERATIVO CONCIERGE 24/7 ($399) -->
-                        <div class="tier-card-elite" onclick="window.KERNEL.procesarPagoStripe('ELITE_399', '${uuid}')" style="border:1px solid #C5A059; padding:20px; border-radius:14px; text-align:left; cursor:pointer; background:rgba(197,160,89,0.02); position:relative; transition: all 0.3s ease;">
-                            <div style="position:absolute; top:-10px; left:16px; background:#C5A059; color:#030305; font-size:9px; padding:2px 8px; border-radius:10px; font-weight:bold; letter-spacing:1px;">RECOMENDADO</div>
-                            <div style="font-size:11px; color:#C5A059; letter-spacing:1px; text-transform:uppercase; margin-top:4px;">CONCIERGE 24/7</div>
-                            <div style="font-size:32px; font-weight:200; margin:4px 0; color:#fff;">$399<span style="font-size:13px; color:#8E8E93;">/mes</span></div>
-                            <p style="font-size:11.5px; line-height:1.4; color:#E1E1E1; margin:0;">Soporte de desintoxicación y pausas activas 24 horas + Conserjería Ilimitada de Viajes de Ultra-Lujo con beneficios automáticos de créditos de cortesía Virtuoso ($100 USD).</p>
-                        </div>
-                    </div>
-                    
-                    <div style="font-size:9px; color:rgba(255,255,255,0.15); letter-spacing:1px; text-transform:uppercase;">
-                        🔒 DISEÑO PROTEGIDO BAJO PRIVACIDAD EXTREMA - MAY ROGA LLC GLOBAL COMPLIANCE
-                    </div>
-                </div>
-            `; 
-        }
-    }, 
+        // 2. Global state definitions
+        let currentLang = "ES";
+        let serviceTimer = null;
+        let voiceInterval = null;
+        let breatheInterval = null;
+        let currentQuestionIndex = 0;
+        let timeRemaining = 15 * 60;
+        let userAnswers = [];
+        let currentTier = "ELITE";
+        let sessionData = null;
+        let silenceTimeout = null;
+        let detectedMood = "tranquilidad";
+        let devClickCount = 0;
 
-    /** 
-     * DISPARADOR DE CHECKOUT DE STRIPE INTEGRADO CON TU APP.PY DE RENDER 
-     */ 
-    procesarPagoStripe: function(tier, folio) { 
-        document.body.style.cursor = "wait"; 
-        
-        fetch("/create-checkout-session", { 
-            method: "POST", 
-            headers: { 
-                "Content-Type": "application/json" 
+        let randomMoment1 = Math.floor(Math.random() * (13 * 60 - 9 * 60) + 9 * 60);
+        let randomMoment2 = Math.floor(Math.random() * (6 * 60 - 2 * 60) + 2 * 60);
+
+        // 3. Matriz y Dictionaries
+        const POOL_EJERCICIOS = [
+            { 
+                id: 0, tipo: "PREGUNTA", q_es: "En este preciso instante de tu día, ¿qué es lo que más le urge experimentar a tu atención?", q_en: "At this exact moment of your day, what does your attention urgently seek to experience?", 
+                opts_es: [
+                    {t:"A. Tranquilidad total, desconexión y silencio absoluto.",p:25,c:true,ex:"Procesando vector de Paz... Adaptando frecuencias del acompañante.",mood:"tranquilidad"}, 
+                    {t:"B. Romper la monotonía, explorar nuevos entornos vibrantes.",p:15,c:false,ex:"Procesando vector de Estímulo... Activando retos de agilidad cognitiva.",mood:"estresado"}, 
+                    {t:"C. Descanso físico tras una jornada de agotamiento acumulado.",p:5,c:false,ex:"Procesando vector de Recuperación... Calibrando pulmón biológico.",mood:"agotado"}
+                ], 
+                opts_en: [
+                    {t:"A. Absolute tranquility, disconnection, and perfect silence.",p:25,c:true,ex:"Processing Peace vector... Adapting companion audio frequencies.",mood:"tranquilidad"}, 
+                    {t:"B. Breaking monotony, exploring new vibrant enclaves.",p:15,c:false,ex:"Processing Stimulus vector... Invoking cognitive speed challenges.",mood:"estresado"}, 
+                    {t:"C. Physical rest following accumulated fatigue loops.",p:5,c:false,ex:"Processing Recovery vector... Adjusting biological lung rhythms.",mood:"agotado"}
+                ] 
+            },
+            { 
+                id: 1, tipo: "PREGUNTA", q_es: "Frente al flujo de decisiones diarias en tu negocio, ¿cómo opera tu enfoque mental?", q_en: "Facing daily business choices, how does your strategic focus operate?", 
+                opts_es: [
+                    {t:"A. Fluye con total claridad, manteniendo el orden de las prioridades.",p:25,c:true,ex:"Excelente. El orden natural sostiene la lucidez."}, 
+                    {t:"B. Avanzo de forma constante, pero el ritmo se acelera bajo presión.",p:15,c:false,ex:"Atención: la aceleración continua genera un desgaste de energía invisible."}, 
+                    {t:"C. Siento la inercia de la rutina antes de iniciar mis actividades.",p:5,c:false,ex:"Alerta: tu mente ejecuta cargas secundarias antes de tiempo en piloto automático."}
+                ], 
+                opts_en: [
+                    {t:"A. It flows with absolute clarity, keeping core priorities in command.",p:25,c:true,ex:"Splendid. Natural order sustains executive baseline lucidity."}, 
+                    {t:"B. I move steadily, but workflow speed accelerates under pressure.",p:15,c:false,ex:"Caution: endless high-speed operational loops drain underlying energy."}, 
+                    {t:"C. I experience routine fatigue before even initializing tasks.",p:5,c:false,ex:"Overload warning: your brain runs background tasks prematurely."}
+                ] 
+            },
+            { 
+                id: 2, tipo: "MATEMATICA", q_es: "Un reto numérico divertido: Si una aeronave privada vuela a 600 mph, ¿cuántas millas cruza en 15 minutos exactos?", q_en: "A quick logical challenge: If a private jet cruise speeds at 600 mph, how many miles does it cross in exactly 15 minutes?", 
+                opts_es: [
+                    {t:"A. Avanza exactamente 100 millas.",p:0,c:false,ex:"Incorrecto. Evalúa el cuadrante del tiempo: 15 minutos es un cuarto de hora perfecta."}, 
+                    {t:"B. Avanza exactamente 150 millas.",p:25,c:true,ex:"¡Extraordinario! 150 millas. Tu agilidad lógica permanece impecable y despierta."}, 
+                    {t:"C. Avanza exactamente 200 millas.",p:0,c:false,ex:"Incorrecto. Vuelve a calibrar dividiendo la velocidad entre cuatro bloques de tiempo."}
+                ], 
+                opts_en: [
+                    {t:"A. It covers exactly 100 miles.",p:0,c:false,ex:"Incorrecto. Look closely at the temporal quadrant: 15 minutes is a perfect quarter."}, 
+                    {t:"B. It covers exactly 150 miles.",p:25,c:true,ex:"Brilliant! 150 miles. Your logical processing speed remains pristine and alert."}, 
+                    {t:"C. It covers exactly 200 miles.",p:0,c:false,ex:"Incorrecto. Re-calibrate by dividing full speed into four quarters."}
+                ] 
+            }
+        ];
+
+        const VOCABULARIO_MUTANTE = { 
+            es: { 
+                tranquilidad: ["Disfruta el momento.", "Suelta la prisa.", "El silencio es poder.", "Paz profunda.", "Estás a salvo aquí.", "Respira el presente.", "La calma repara tu centro."], 
+                estresado: ["Enfoque limpio.", "Agilidad mental.", "Claridad estratégica.", "Control absoluto.", "Calibra tus decisiones.", "Visualiza el éxito.", "Fuerza interna."], 
+                agotado: ["Descansa profundamente.", "Recupera tu energía.", "Suelta el peso de la rutina.", "Relaja los hombros hoy.", "Renovación de fondo."] 
             }, 
-            body: JSON.stringify({ 
-                tier: tier, 
-                folio: folio 
-            }) 
-        }) 
-        .then(response => { 
-            if (!response.ok) throw new Error("Falla del backend."); 
-            return response.json(); 
-        }) 
-        .then(data => { 
-            if (data.checkout_url) { 
-                window.location.href = data.checkout_url; 
-            } else { 
-                document.body.style.cursor = "default"; 
-                alert("Error al inicializar la pasarela."); 
+            en: { 
+                tranquilidad: ["Enjoy the moment.", "Release the rush.", "Silence is absolute leverage.", "Deep peace.", "You are safe within this space.", "Breathe the present.", "Stillness restores your core."], 
+                estresado: ["Sharp focus.", "Mental clarity.", "Strategic bandwidth.", "Absolute command.", "Calibrate your perspective.", "Visualize results.", "Internal resilience."], 
+                agotado: ["Rest fully.", "Restore your base energy.", "Release routine fatigue.", "Relax your shoulders today.", "Underlying tranquility."] 
             } 
-        }) 
-        .catch(error => { 
-            document.body.style.cursor = "default"; 
-            console.error("[Stripe Error]:", error); 
-            alert("Error de conexión con los servidores de pago."); 
-        }); 
-    } 
-};
-      
+        };
+
+        const VOCABULARIO_SABIDURIA = { 
+            es: ["La verdadera riqueza es el control absoluto sobre tu tiempo.", "Un líder en armonía toma decisiones con un margen de ganancia infinito.", "El descanso no es una pérdida de tracción; es la arquitectura del siguiente paso."], 
+            en: ["True wealth is possessing complete sovereignty over your attention.", "A leader anchored in calm commands an unshakeable premium margin.", "Rest is not a lack of momentum; it is the structural blueprint of your next move."] 
+        };
+
+        const TEXTOS_INTERFAZ = { 
+            es: { unlock_ready: "INICIAR", phase_silence: "Reto de Silencio Absoluto" }, 
+            en: { unlock_ready: "INICIAR", phase_silence: "Absolute Silence Ritual" } 
+        };
+
+        // 4. Attach methods to window.KERNEL
+        Object.assign(window.KERNEL, {
+            init: function() {
+                const giantBox = document.getElementById('giantLangBox');
+                if (giantBox) giantBox.style.display = 'none';
+
+                const panelLegal = document.getElementById('panelLegal');
+                if (panelLegal) panelLegal.style.display = 'none';
+
+                const panelService = document.getElementById('panelService');
+                if (panelService) panelService.style.display = 'block';
+
+                let engine = document.getElementById('engineWrapper');
+                if (engine) engine.style.display = 'flex';
+                setTimeout(() => { if (engine) engine.style.display = 'none'; }, 20000);
+
+                this.hablar();
+                this.iniciarPulmonVisual();
+                this.cargarFlujoSiguienteLocalStorage();
+
+                serviceTimer = window.setInterval(() => {
+                    timeRemaining--;
+                    let mins = Math.floor(timeRemaining / 60).toString().padStart(2, '0');
+                    let secs = (timeRemaining % 60).toString().padStart(2, '0');
+                    const clock = document.getElementById('clockDisplay');
+                    if (clock) clock.innerText = `${mins}:${secs}`;
+
+                    if (timeRemaining === (7 * 60 + 30) || timeRemaining === randomMoment1 || timeRemaining === randomMoment2) {
+                        if (engine) engine.style.display = 'flex';
+                        setTimeout(() => { if (engine) engine.style.display = 'none'; }, 20000);
+                    }
+
+                    if (timeRemaining === 240) {
+                        this.inyectarPortalInteractivodeEscape();
+                    }
+
+                    if (timeRemaining <= 0) {
+                        this.finalizarAcompanamientoCRM();
+                    }
+                }, 1000);
+            },
+
+            hablar: function() { 
+                if (voiceInterval) window.clearInterval(voiceInterval); 
+                let count = 0; 
+                const emitirVozOasis = () => { 
+                    if ('speechSynthesis' in window) { 
+                        let frase = ""; 
+                        count++; 
+                        if (count % 3 === 0) { 
+                            let poolS = VOCABULARIO_SABIDURIA[currentLang.toLowerCase()]; 
+                            frase = poolS[Math.floor(Math.random() * poolS.length)]; 
+                        } else { 
+                            let poolM = VOCABULARIO_MUTANTE[currentLang.toLowerCase()][detectedMood]; 
+                            frase = poolM[Math.floor(Math.random() * poolM.length)]; 
+                        } 
+                        let utterance = new SpeechSynthesisUtterance(frase); 
+                        utterance.lang = currentLang === "ES" ? "es-US" : "en-US"; 
+                        window.speechSynthesis.speak(utterance); 
+                    } 
+                }; 
+                emitirVozOasis(); 
+                voiceInterval = window.setInterval(emitirVozOasis, 15000); 
+            }, 
+
+            iniciarPulmonVisual: function() { 
+                if (breatheInterval) window.clearInterval(breatheInterval); 
+                let alternarLung = true; 
+                breatheInterval = window.setInterval(() => { 
+                    let circle = document.getElementById('lungCircle'); 
+                    if (!circle) return; 
+                    circle.className = alternarLung ? "center-wellness-circle lung-inhale" : "center-wellness-circle lung-exhale"; 
+                    alternarLung = !alternarLung; 
+                }, 4000); 
+            },
+
+            cargarFlujoSiguienteLocalStorage: function() { 
+                if (!localStorage.getItem('mayroga_last_idx')) localStorage.setItem('mayroga_last_idx', "0"); 
+                let lastIdx = parseInt(localStorage.getItem('mayroga_last_idx')); 
+                if (lastIdx >= POOL_EJERCICIOS.length || userAnswers.length >= 3) {
+                    const stack = document.getElementById('interactiveStack');
+                    if (stack) stack.innerHTML = `<p style="color:#C5A059; text-align:center;">Intervención en progreso. Sigue la respiración.</p>`;
+                    return;
+                }
+                if (lastIdx === 1) this.inyectarRetoSilencioEscalonado(); 
+                else this.inyectarPreguntaDom(POOL_EJERCICIOS[lastIdx]); 
+            }, 
+
+            inyectarPreguntaDom: function(nodo) { 
+                let stack = document.getElementById('interactiveStack'); 
+                const taskTitle = document.getElementById('lblTaskTitle');
+                if (taskTitle) taskTitle.innerText = currentLang === "ES" ? nodo.q_es : nodo.q_en; 
+                let html = ""; 
+                let opts = currentLang === "ES" ? nodo.opts_es : nodo.opts_en; 
+                opts.forEach((o, i) => { 
+                    html += `<button class="triple-option-btn" onclick="window.KERNEL.evaluarSeleccion(${o.p}, ${o.c}, '${o.ex}', ${i}, '${o.mood || ''}')">${o.t}</button>`; 
+                }); 
+                if (stack) stack.innerHTML = html; 
+            }, 
+
+            evaluarSeleccion: function(puntos, esCorrecto, explicacion, indexBtn, moodElegido) { 
+                let box = document.getElementById('lblExplanationBox'); 
+                if (moodElegido) { detectedMood = moodElegido; this.hablar(); } 
+                userAnswers.push(puntos); 
+                if (box) { box.innerText = explicacion; box.style.display = 'block'; } 
+                const btnNext = document.getElementById('btnNext');
+                if (btnNext) btnNext.style.display = 'block'; 
+            }, 
+
+            inyectarRetoSilencioEscalonado: function() { 
+                let duracionSilen = parseInt(localStorage.getItem('mayroga_silence_dur') || "10"); 
+                const taskTitle = document.getElementById('lblTaskTitle');
+                if (taskTitle) taskTitle.innerText = TEXTOS_INTERFAZ[currentLang.toLowerCase()].phase_silence; 
+                const stack = document.getElementById('interactiveStack');
+                if (stack) stack.innerHTML = `<p style="font-size:24px; color:#C5A059; text-align:center;">${duracionSilen}s</p>`; 
+                silenceTimeout = setTimeout(() => { userAnswers.push(25); this.avanzarRetoContinuo(); }, duracionSilen * 1000); 
+            }, 
+
+            avanzarRetoContinuo: function() { 
+                const box = document.getElementById('lblExplanationBox');
+                if (box) box.style.display = 'none';
+                const btnNext = document.getElementById('btnNext');
+                if (btnNext) btnNext.style.display = 'none';
+                let idx = parseInt(localStorage.getItem('mayroga_last_idx')) + 1; 
+                localStorage.setItem('mayroga_last_idx', idx.toString()); 
+                this.cargarFlujoSiguienteLocalStorage(); 
+            },
+
+            inyectarPortalInteractivodeEscape: function() {
+                const trayDock = document.getElementById('interactiveStack');
+                if (trayDock) {
+                    trayDock.innerHTML = `
+                        <div class="premium-portal-panel" style="border:1px solid #E04F4F; background:rgba(0,0,0,0.8); padding:15px; border-radius:12px; margin-top:10px;">
+                            <span class="badge-red-alert" style="background:#E04F4F; color:#fff; font-size:10px; padding:2px 6px; border-radius:4px; font-weight:bold;">DESINTOXICACIÓN ACTIVA</span>
+                            <p style="font-size:12px; margin:8px 0; color:#fff; text-align:center;">Tu respiración ha generado sintonía cardíaca. Presiona tu pasillo de escape:</p>
+                            <div style="display:flex; gap:8px; justify-content:center;">
+                                <span class="portal-mini-btn" onclick="localStorage.setItem('mayroga_intent','H1')">☕ Café</span>
+                                <span class="portal-mini-btn" onclick="localStorage.setItem('mayroga_intent','H2')">🏖️ Playa</span>
+                                <span class="portal-mini-btn" onclick="localStorage.setItem('mayroga_intent','H3')">🏨 Hotel</span>
+                            </div>
+                        </div>
+                    `;
+                }
+            },
+
+            finalizarAcompanamientoCRM: function() { 
+                window.clearInterval(serviceTimer); 
+                window.clearInterval(voiceInterval);
+                if (breatheInterval) window.clearInterval(breatheInterval);
+                
+                const uuid = "MR-" + Math.floor(100000 + Math.random() * 900000);
+                localStorage.setItem("mayroga_last_folio", uuid);
+                
+                const targetRoot = document.getElementById('open-than-go-root');
+                if (targetRoot) {
+                    targetRoot.innerHTML = `
+                        <div class="luxury-checkout-dock" style="width:100%; color:#fff; padding:20px 0; text-align:center;">
+                            <h1 style="font-family:'Times New Roman',serif; letter-spacing:6px; font-size:30px; margin-bottom:4px; color:#C5A059; text-transform:uppercase;">MAY ROGA</h1>
+                            <div style="font-size:10px; color:#8E8E93; letter-spacing:3px; text-transform:uppercase; margin-bottom:24px;">WELLNESS TRAVEL ARCHITECTURE</div>
+                            
+                            <div style="border:1px solid rgba(255,255,255,0.08); background:rgba(255,255,255,0.01); padding:8px 12px; display:inline-block; border-radius:20px; font-size:11px; margin-bottom:20px; font-weight:600;">
+                                INTERVENCIÓN AUTÓNOMA DE 15 MINUTOS COMPLETADA
+                            </div>
+                            
+                            <p style="font-size:13.5px; line-height:1.6; text-align:justify; margin-bottom:12px; color:#E1E1E1;">
+                                Tu pasaporte de desintoxicación digital ha sido compilado localmente de forma privada en el Folio <b>${uuid}</b>. Para romper definitivamente el bucle operativo de la rutina diaria, el sistema prescribe el aislamiento físico inmediato en un santuario premium de nuestra Host Agency.
+                            </p>
+                            <p style="font-size:11.5px; line-height:1.6; text-align:justify; margin-bottom:30px; color:#8E8E93; font-weight:300;">
+                                Your private digital detox passport has been locally compiled under Folio <b>${uuid}</b>. To break the operational loop of daily routine, the system prescribes immediate physical isolation within our premium Host Agency sanctuaries.
+                            </p>
+                            
+                            <div style="display: flex; flex-direction: column; gap: 16px; margin-bottom: 30px;">
+                                <div onclick="window.KERNEL.procesarPagoStripe('SINGLE_200', '${uuid}')" style="border:1px solid rgba(255,255,255,0.1); padding:20px; border-radius:14px; text-align:left; cursor:pointer; background:rgba(255,255,255,0.02); transition: all 0.3s ease;">
+                                    <div style="font-size:11px; color:#8E8E93; letter-spacing:1px; text-transform:uppercase;">SINGLE RESET</div>
+                                    <div style="font-size:32px; font-weight:200; margin:4px 0; color:#fff;">$200</div>
+                                    <p style="font-size:11.5px; line-height:1.4; color:#8E8E93; margin:0;">Acceso por 48h a herramientas de respiración + 1 Propuesta de Santuario Físico vía BNT IATA Partner.</p>
+                                </div>
+                                
+                                <div class="tier-card-elite" onclick="window.KERNEL.procesarPagoStripe('ELITE_399', '${uuid}')" style="border:1px solid #C5A059; padding:20px; border-radius:14px; text-align:left; cursor:pointer; background:rgba(197,160,89,0.02); position:relative; transition: all 0.3s ease;">
+                                    <div style="position:absolute; top:-10px; left:16px; background:#C5A059; color:#030305; font-size:9px; padding:2px 8px; border-radius:10px; font-weight:bold; letter-spacing:1px;">RECOMENDADO</div>
+                                    <div style="font-size:11px; color:#C5A059; letter-spacing:1px; text-transform:uppercase; margin-top:4px;">CONCIERGE 24/7</div>
+                                    <div style="font-size:32px; font-weight:200; margin:4px 0; color:#fff;">$399<span style="font-size:13px; color:#8E8E93;">/mes</span></div>
+                                    <p style="font-size:11.5px; line-height:1.4; color:#E1E1E1; margin:0;">Soporte de desintoxicación y pausas activas 24 horas + Conserjería Ilimitada de Viajes de Ultra-Lujo con beneficios automáticos de créditos de cortesía Virtuoso ($100 USD).</p>
+                                </div>
+                            </div>
+                            
+                            <div style="font-size:9px; color:rgba(255,255,255,0.15); letter-spacing:1px; text-transform:uppercase;">
+                                🔒 DISEÑO PROTEGIDO BAJO PRIVACIDAD EXTREMA - MAY ROGA LLC GLOBAL COMPLIANCE
+                            </div>
+                        </div>
+                    `;
+                }
+            },
+
+            procesarPagoStripe: function(tier, folio) { 
+                document.body.style.cursor = "wait"; 
+                fetch("/create-checkout-session", { 
+                    method: "POST", 
+                    headers: { "Content-Type": "application/json" }, 
+                    body: JSON.stringify({ tier: tier, folio: folio }) 
+                }) 
+                .then(response => { if (!response.ok) throw new Error("Falla del backend."); return response.json(); }) 
+                .then(data => { 
+                    if (data.checkout_url) { 
+                        window.location.href = data.checkout_url; 
+                    } else { 
+                        document.body.style.cursor = "default"; 
+                        alert("Error al inicializar la pasarela."); 
+                    } 
+                }) 
+                .catch(error => { 
+                    document.body.style.cursor = "default"; 
+                    console.error("[Stripe Error]:", error); 
+                    alert("Error de conexión con los servidores de pago."); 
+                }); 
+            },
+
+            descargarPasaportePDF: function(folio) { 
+                document.body.style.cursor = "wait"; 
+                const selectedHotel = localStorage.getItem('mayroga_intent') || "H1"; 
+                fetch("/generate-pdf", { 
+                    method: "POST", 
+                    headers: { "Content-Type": "application/json" }, 
+                    body: JSON.stringify({ 
+                        servicio_id: folio, 
+                        lang: currentLang, 
+                        score_inicial: 45.0, 
+                        score_actual: 70.0, 
+                        respiracion_score: 100.0, 
+                        adivinanzas_score: 100.0, 
+                        iev: 85.0, 
+                        variante: "ELITE_RECONEXION", 
+                        destino_id: selectedHotel 
+                    }) 
+                }) 
+                .then(response => { if (!response.ok) throw new Error("Falla al armar PDF."); return response.blob(); }) 
+                .then(blob => { 
+                    document.body.style.cursor = "default"; 
+                    const url = window.URL.createObjectURL(blob); 
+                    const a = document.createElement('a'); 
+                    a.href = url; 
+                    a.download = `MayRoga_Passport_${folio}.pdf`; 
+                    document.body.appendChild(a); 
+                    a.click(); 
+                    a.remove(); 
+                }) 
+                .catch(err => { 
+                    document.body.style.cursor = "default"; 
+                    console.error(err); 
+                    alert("Error al despachar tu libreta."); 
+                }); 
+            }
+        });
+
+        // DOM Ready Listener
+        document.addEventListener("DOMContentLoaded", () => {
+            const brandField = document.getElementById("brandTitleField");
+            if (brandField) {
+                brandField.addEventListener("click", () => {
+                    devClickCount++;
+                    if (devClickCount === 3) {
+                        devClickCount = 0;
+                        const u = prompt("Developer Username:");
+                        const p = prompt("Developer Password:");
+                        fetch("/verify-dev-access", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ user: u, dev_pass: p })
+                        })
+                        .then(res => res.json())
+                        .then(data => {
+                            if (data.authenticated) {
+                                const mockFolio = "DEV-" + Math.floor(100000 + Math.random() * 900000);
+                                window.location.href = `https://wellness-travel.onrender.com${mockFolio}&devMode=true`;
+                            } else { 
+                                alert("Acceso denegado."); 
+                            }
+                        })
+                        .catch(() => alert("Error de comunicación de credenciales."));
+                    }
+                });
+            }
+
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('status') === 'success') {
+                const paidFolio = urlParams.get('folio') || "MR-CONFIRMED";
+                const targetRoot = document.getElementById('open-than-go-root');
+                if (targetRoot) {
+                    targetRoot.innerHTML = `
+                        <div class="luxury-checkout-dock" style="width:100%; color:#fff; padding:20px 0; text-align:center;">
+                            <h1 style="font-family:'Times New Roman',serif; letter-spacing:6px; font-size:30px; margin-bottom:4px; color:#C5A059; text-transform:uppercase;">MAY ROGA</h1>
+                            <div style="font-size:10px; color:#8E8E93; letter-spacing:3px; text-transform:uppercase; margin-bottom:20px;">PASAPORTE ADQUIRIDO</div>
+                            <p style="font-size:14px; margin-bottom:30px; color:#E1E1E1;">Pago verificado para el Folio: <b>${paidFolio}</b>. Tu pasaporte digital de alta gama está listo para descargar.</p>
+                            <button class="gold-btn" id="btnDownloadPDF" style="max-width:320px; margin:0 auto;" onclick="window.KERNEL.descargarPasaportePDF('${paidFolio}')">Descargar Pasaporte (PDF)</button>
+                        </div>
+                    `;
+                }
+            }
+        });
+    </script>
+</body>
+</html>
