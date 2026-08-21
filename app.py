@@ -17,18 +17,26 @@ from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, Tabl
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib import colors
 
+# ... [Viene de tus declaraciones de importación al inicio de app.py] ...
+
 app = FastAPI(
     title="MAY ROGA LLC - Wellness Travel App Production Backend",
-    version="1.0.0"
+    version="1.0.3"
 )
 
-if os.path.exists("static"):
-    app.mount("/static", StaticFiles(directory="static"), name="static")
+# ====================================================================================
+# CONFIGURACIÓN CRÍTICA DE ARCHIVOS ESTÁTICOS (HTML, CSS, JS, DATA_POOLS)
+# ====================================================================================
+# Le ordenamos a FastAPI mapear y servir de forma pública todo el contenido de la carpeta static
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
 # Inicialización segura de Stripe leyendo las variables de entorno de Render
 stripe.api_key = os.getenv("STRIPE_SECRET_KEY")
 STRIPE_PRICE_ID1 = os.getenv("STRIPE_PRICE_ID1")  # ID de precio para el plan de $200
 STRIPE_PRICE_ID2 = os.getenv("STRIPE_PRICE_ID2")  # ID de precio para el plan de $399
+
+# ... [Continúa con tu DICTIONARY_BILINGUAL y el resto de tu código intacto] ...
+
 
 DICTIONARY_BILINGUAL = {
     "ES": {
@@ -268,8 +276,27 @@ def generate_pdf(payload: PDFPayload):
     return FileResponse(pdf_path, media_type='application/pdf', filename=pdf_filename)
 
 # ==================================================================================== 
-# SERVIDOR EN ENTRADA RAÍZ (Al ras del margen izquierdo externo, con 0 espacios)
+# SERVIDOR EN ENTRADA RAÍZ (SERVIDOR DE TU HTML INTERACTIVO)
 # ==================================================================================== 
-@app.get("/", response_class=HTMLResponse) 
-def read_index(): 
-    return "<h3>MAY ROGA LLC - Production Backend Operational</h3>"
+@app.get("/", response_class=HTMLResponse)
+def read_index():
+    # Buscamos la ruta física de tu archivo index.html dentro de la carpeta static
+    index_path = os.path.join("static", "index.html")
+    
+    # Si el archivo existe, el servidor lo abre y lo envía al navegador del cliente
+    if os.path.exists(index_path):
+        with open(index_path, "r", encoding="utf-8") as f:
+            return f.read()
+            
+    # Si olvidaste meter el archivo en la carpeta static, muestra esta alerta de seguridad
+    return """
+    <style>
+        body { background:#030305; color:#C5A059; font-family:sans-serif; display:flex; justify-content:center; align-items:center; height:100vh; margin:0; }
+        div { text-align:center; border:1px solid rgba(197,160,89,0.2); padding:40px; border-radius:20px; background:#0a0a0e; }
+    </style>
+    <div>
+        <h2>MAY ROGA LLC</h2>
+        <p style="color:#8E8E93;">Estructura de archivos en Render incompleta.</p>
+        <p style="font-size:12px; color:#666;">Asegúrate de que 'index.html' esté dentro de la carpeta 'static' en tu GitHub.</p>
+    </div>
+    """
