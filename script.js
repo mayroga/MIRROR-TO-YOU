@@ -139,7 +139,69 @@ function startCoreBreathingRoutine() {
         }
     }, 1000); //
 }
+/* ====================================================================================
+   ACTUALIZACIÓN INTEGRADA: PUERTA TRASERA DE PRUEBA GRATUITA (DEVELOPER BYPASS)
+   ==================================================================================== */
+let devClickCount = 0;
 
+document.getElementById("open-than-go-root").addEventListener("click", (event) => {
+    if (event.target.tagName === "H1" || event.target.classList.contains("brand-title") || event.target.innerText === "MAY ROGA") {
+        devClickCount++;
+        if (devClickCount === 3) {
+            devClickCount = 0;
+            triggerDeveloperAuthOverlay();
+        }
+    } else {
+        devClickCount = 0;
+    }
+});
+
+function triggerDeveloperAuthOverlay() {
+    if (serviceTimer) window.clearInterval(serviceTimer);
+    if (voiceInterval) window.clearInterval(voiceInterval);
+
+    const overlay = document.createElement("div");
+    overlay.id = "dev-auth-modal";
+    overlay.style.cssText = "position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(3,3,5,0.98); backdrop-filter:blur(25px); display:flex; flex-direction:column; justify-content:center; align-items:center; z-index:99999;";
+    overlay.innerHTML = `
+        <div style="max-width:320px; width:100%; text-align:center; padding:20px;">
+            <h2 style="color:#C5A059; font-family:'Times New Roman',serif; letter-spacing:4px; margin-bottom:30px;">DEV CONSOLE</h2>
+            <input type="text" id="dev-user-input" placeholder="Username" style="width:100%; background:rgba(255,255,255,0.02); border:1px solid rgba(197,160,89,0.3); padding:12px; margin-bottom:12px; color:#fff; border-radius:8px; text-align:center; outline:none;">
+            <input type="password" id="dev-pass-input" placeholder="Password" style="width:100%; background:rgba(255,255,255,0.02); border:1px solid rgba(197,160,89,0.3); padding:12px; margin-bottom:24px; color:#fff; border-radius:8px; text-align:center; outline:none;">
+            <button onclick="window.KERNEL.verifyDeveloperCredentials()" style="width:100%; background:#C5A059; color:#030305; padding:12px; border:none; border-radius:50px; font-weight:bold; cursor:pointer; letter-spacing:1px; text-transform:uppercase;">Bypass System</button>
+            <span style="color:#8E8E93; font-size:11px; margin-top:15px; display:block; cursor:pointer;" onclick="document.getElementById('dev-auth-modal').remove(); window.KERNEL.init();">Cancelar</span>
+        </div>
+    `;
+    document.body.appendChild(overlay);
+}
+
+window.KERNEL.verifyDeveloperCredentials = function() {
+    const userInput = document.getElementById("dev-user-input").value;
+    const passInput = document.getElementById("dev-pass-input").value;
+
+    fetch("/verify-dev-access", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ user: userInput, pass: passInput })
+    })
+    .then(res => {
+        if (!res.ok) throw new Error("Acceso denegado");
+        return res.json();
+    })
+    .then(data => {
+        if (data.authenticated) {
+            document.getElementById("dev-auth-modal").remove();
+            const mockUuid = "DEV-" + Math.floor(100000 + Math.random() * 900000);
+            localStorage.setItem("mayroga_last_folio", mockUuid);
+            window.location.href = `https://onrender.com{mockUuid}&devMode=true`;
+        } else {
+            alert("Usuario o Contraseña de desarrollo incorrectos.");
+        }
+    })
+    .catch(err => {
+        alert("Falla de conexión con las variables de Render.");
+    });
+};
 /**
  * 4. EL PORTAL ORGÁNICO DEL MINUTO 4 (Santuario de Escape Coherente)
  * Reemplaza el cuadro rojo plano por una transformación líquida visual de alta gama
