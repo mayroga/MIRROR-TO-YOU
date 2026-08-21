@@ -429,39 +429,107 @@ function resolveUltimateChallenge(isCorrect, answer) {
 }
 
 /**
-APAGADO AUTOMÁTICO Y DESPLIEGUE DEL INFORME HIGH-TICKET (Cierre Comercial)
-*/
+ * ====================================================================================================
+ *                                           MAY ROGA LLC
+ *                                 CERRADO Y PASARELA DE STRIPE PREMIUM
+ * ====================================================================================================
+ */
+
+/**
+ * 6. APAGADO AUTOMÁTICO Y DESPLIEGUE DEL INFORME HIGH-TICKET (Cierre Comercial)
+ * Modificado quirúrgicamente para inyectar eventos de checkout interactivos.
+ */
 function terminateSessionAndDeployGate() {
     console.log("[MAY ROGA LLC] Ejecutando apagado de seguridad autónomo...");
     triggerNeuralAudioPulse(0); // Silencio acústico completo
     const root = document.getElementById("open-than-go-root");
+    
     // Calculamos las métricas finales cruzando el estado del CRM local
     WellnessEngine.userMetrics.score_inicial = calculateBaselineFromWizard();
     WellnessEngine.userMetrics.score_actual = Math.min(100, WellnessEngine.userMetrics.score_inicial + 25);
     const uuid = "MR-" + Math.floor(100000 + Math.random() * 900000);
     localStorage.setItem("mayroga_last_folio", uuid);
-    
+
     if (root) {
         root.innerHTML = `
-            MAY ROGA
-            WELLNESS TRAVEL ARCHITECTURE
-
-            INTERVENCIÓN AUTÓNOMA DE 15 MINUTOS COMPLETADA
-
-            Tu pasaporte de desintoxicación digital ha sido compilado localmente de forma privada en el Folio ${uuid}. Para romper definitivamente el bucle operativo de la rutina diaria, el sistema prescribe el aislamiento físico inmediato en un santuario premium de nuestra Host Agency.
-
-            Your private digital detox passport has been locally compiled under Folio ${uuid}. To break the operational loop of daily routine, the system prescribes immediate physical isolation within our premium Host Agency sanctuaries.
-            SINGLE RESET
-            $200
-            Acceso por 48h a herramientas de respiración + 1 Propuesta de Santuario Físico vía BNT IATA Partner.
-            MIEMBRO ÉLITE
-            CONCIERGE 24/7
-            $399/mes
-            Soporte de desintoxicación y pausas activas 24 horas + Conserjería Ilimitada de Viajes de Ultra-Lujo con beneficios automáticos de créditos de cortesía Virtuoso ($100 USD).
-
-            🔒 DISEÑO PROTEGIDO BAJO PRIVACIDAD EXTREMA - MAY ROGA LLC GLOBAL COMPLIANCE
+            <div class="luxury-gate-container fade-in-premium" style="text-align: center; padding: 40px; color: #fff;">
+                <h1 class="brand-header-lock" style="letter-spacing: 4px; font-size: 32px; margin-bottom: 5px;">MAY ROGA</h1>
+                <div class="lock-subtitle" style="font-size: 11px; color: #A3704C; letter-spacing: 2px; margin-bottom: 20px;">WELLNESS TRAVEL ARCHITECTURE</div>
+                <div class="lock-status-panel" style="margin-bottom: 20px; font-size: 12px; font-weight: bold; border: 1px solid rgba(255,255,255,0.1); padding: 5px 15px; display: inline-block; border-radius: 20px;">
+                    INTERVENCIÓN AUTÓNOMA DE 15 MINUTOS COMPLETADA
+                </div>
+                <p class="gate-description-es" style="font-size: 14px; line-height: 1.6; max-width: 600px; margin: 0 auto 15px auto; text-align: justify;">
+                    Tu pasaporte de desintoxicación digital ha sido compilado localmente de forma privada en el Folio <b>${uuid}</b>. Para romper definitivamente el bucle operativo de la rutina diaria, el sistema prescribe el aislamiento físico inmediato en un santuario premium de nuestra Host Agency.
+                </p>
+                <p class="gate-description-en" style="font-size: 12px; color: #888; line-height: 1.6; max-width: 600px; margin: 0 auto 30px auto; text-align: justify;">
+                    Your private digital detox passport has been locally compiled under Folio <b>${uuid}</b>. To break the operational loop of daily routine, the system prescribes immediate physical isolation within our premium Host Agency sanctuaries.
+                </p>
+                
+                <div class="premium-pricing-deck" style="display: flex; gap: 20px; justify-content: center; max-width: 700px; margin: 0 auto 30px auto;">
+                    
+                    <!-- ENLACE OPERATIVO SINGLE RESET ($200) -->
+                    <div class="luxury-card-price" onclick="triggerStripeCheckout('SINGLE_200', '${uuid}')" style="flex: 1; border: 1px solid rgba(255,255,255,0.1); padding: 25px 15px; border-radius: 8px; cursor: pointer; text-align: left; background: rgba(255,255,255,0.02); transition: all 0.3s ease;">
+                        <div class="card-tier-name" style="font-size: 11px; color: #888; letter-spacing: 1px;">SINGLE RESET</div>
+                        <div class="card-amount" style="font-size: 36px; font-weight: bold; margin: 10px 0;">$200</div>
+                        <p class="card-perks" style="font-size: 11px; line-height: 1.4; color: #ccc; margin: 0;">Acceso por 48h a herramientas de respiración + 1 Propuesta de Santuario Físico vía BNT IATA Partner.</p>
+                    </div>
+                    
+                    <!-- ENLACE OPERATIVO MIEMBRO ÉLITE ($399) -->
+                    <div class="luxury-card-price elite-featured" onclick="triggerStripeCheckout('ELITE_399', '${uuid}')" style="flex: 1; border: 1px solid #A3704C; padding: 25px 15px; border-radius: 8px; cursor: pointer; text-align: left; background: linear-gradient(180deg, rgba(163, 112, 76, 0.05) 0%, rgba(0,0,0,0.5) 100%); position: relative; transition: all 0.3s ease;">
+                        <div class="card-ribbon-gold" style="position: absolute; top: -10px; left: 15px; background: #A3704C; color: #fff; font-size: 9px; padding: 2px 8px; border-radius: 10px; font-weight: bold;">MIEMBRO ÉLITE</div>
+                        <div class="card-tier-name" style="font-size: 11px; color: #C5A084; letter-spacing: 1px; margin-top: 5px;">CONCIERGE 24/7</div>
+                        <div class="card-amount" style="font-size: 36px; font-weight: bold; margin: 10px 0;">$399<span style="font-size: 12px; color: #888;">/mes</span></div>
+                        <p class="card-perks" style="font-size: 11px; line-height: 1.4; color: #ccc; margin: 0;">Soporte de desintoxicación y pausas activas 24 horas + Conserjería Ilimitada de Viajes de Ultra-Lujo con beneficios automáticos de créditos de cortesía Virtuoso ($100 USD).</p>
+                    </div>
+                    
+                </div>
+                <div class="privacy-notice-footer" style="font-size: 9px; color: rgba(255,255,255,0.2); letter-spacing: 1px;">
+                    🔒 DISEÑO PROTEGIDO BAJO PRIVACIDAD EXTREMA - MAY ROGA LLC GLOBAL COMPLIANCE
+                </div>
+            </div>
         `;
     }
+}
+
+/**
+ * 7. DISPARADOR REAL DE STRIPE CON CONEXIÓN EN RENDER
+ * Esta función toma el mando al hacer clic en las tarjetas de precio, conectando con app.py de forma impenetrable.
+ */
+function triggerStripeCheckout(tier, folio) {
+    console.log(`[Stripe] Redirigiendo a pasarela para plan ${tier} en Folio ${folio}`);
+    
+    // Cambiamos el cursor visual a modo espera
+    document.body.style.cursor = "wait";
+    
+    // Solicitamos la sesión de Checkout segura a tu backend
+    fetch("/create-checkout-session", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            tier: tier,
+            folio: folio
+        })
+    })
+    .then(response => {
+        if (!response.ok) throw new Error("Error en la respuesta del backend de Render.");
+        return response.json();
+    })
+    .then(data => {
+        // Stripe nos devuelve la URL de pago blindada configurada con tu Price ID secreto
+        if (data.checkout_url) {
+            window.location.href = data.checkout_url;
+        } else {
+            document.body.style.cursor = "default";
+            alert("Error al procesar la sesión de pago Élite.");
+        }
+    })
+    .catch(error => {
+        document.body.style.cursor = "default";
+        console.error("[Stripe Integration Error]:", error);
+        alert("Falla de conexión con las pasarelas bancarias de MAY ROGA LLC.");
+    });
 }
 
 // Funciones auxiliares de simulación de Hardware y UI Premium para producción
@@ -475,4 +543,3 @@ function getUserRoutePreference() { return WellnessEngine.runtimeState.routePref
 function renderDynamicPsychometricWizard(q) { /* Manejo de pantallas de preguntas iniciales de 3 en 3 */ }
 function renderBreathingCanvasStructure() { /* Dibuja la estructura HTML limpia del círculo respiratorio */ }
 function triggerDynamicBilingualCounseling() { /* Lee las frases cada 15 segundos basadas en el bloque horario */ }
-function triggerStripeCheckout(tier, folio) { console.log(`[Stripe] Redirigiendo a pasarela para plan ${tier} en Folio ${folio}`); }
