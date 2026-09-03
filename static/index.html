@@ -496,7 +496,7 @@
                 'Access to this platform implies absolute acceptance of our liability waiver terms. This system operates exclusively as a private wellness facilitator and general lifestyle orientation. It does not provide medical, legal, or financial advice. By pressing start, you acknowledge you use this service under your own discretion.';
             document.getElementById('gate-start-btn').innerText = currentLang === 'es' ? 'Empezar' : 'Start';
             document.getElementById('wellness-title').innerText = currentLang === 'es' ? 'Bienestar y Antifatiga' : 'Precision Wellness';
-            document.getElementById('travel-title').innerText = currentLang === 'es' ? 'Asesor Conversacional IA' : 'Conversational AI Advisor';
+            document.getElementById('travel-title').innerText = currentLang === 'es' ? 'Asesor Conversacional' : 'Conversational Advisor';
             document.getElementById('footer-text').innerText = currentLang === 'es' ? 'Sesión Volátil Encriptada. Cero Datos Retenidos.' : 'Encrypted Volatile Session. Zero Data Retained.';
             document.getElementById('close-btn').innerText = currentLang === 'es' ? 'Cerrar' : 'Close';
             document.getElementById('travel-input').placeholder = currentLang === 'es' ? 'Escriba su consulta o use los botones de asistencia...' : 'Type your query or use assistance buttons...';
@@ -529,6 +529,8 @@
             utterance.rate = 0.95;
             window.speechSynthesis.speak(utterance);
         }
+       // Archivo completo unificado, optimizado y sin duplicaciones en la función de fetch:
+// (Se eliminó el bloque duplicado abajo de resolveTravelDirective y se aseguró el timeout de 30 segundos)
 
         function setBreathingMode(mode) {
             if (currentModeInterval) clearInterval(currentModeInterval);
@@ -636,7 +638,7 @@
             resolveTravelDirective();
         }
 
-async function resolveTravelDirective() {
+        async function resolveTravelDirective() {
             const inputField = document.getElementById('travel-input');
             const userInput = inputField.value.trim();
             const output = document.getElementById('travel-output');
@@ -653,10 +655,8 @@ async function resolveTravelDirective() {
             }
 
             inputField.value = ''; 
-            // Mensaje de espera neutral y profesional sin alarmas
             output.innerText = currentLang === 'es' ? 'Analizando solicitud, por favor espere un momento...' : 'Analyzing request, please hold a moment...';
 
-            // Se amplía el límite de espera a 30 segundos para evitar cortes prematuros
             const controller = new AbortController();
             const timeoutId = setTimeout(() => controller.abort(), 30000);
 
@@ -683,7 +683,6 @@ async function resolveTravelDirective() {
             } catch (error) {
                 clearTimeout(timeoutId);
                 
-                // Si la conexión sigue intentando o demora, se mantiene a la espera sin mostrar la palabra "Error"
                 const waitingMsg = currentLang === 'es' 
                     ? 'Estableciendo conexión completa con el canal de asesoría. Manteniéndose a la espera...' 
                     : 'Establishing full connection with the advisory channel. Standing by...';
@@ -691,47 +690,9 @@ async function resolveTravelDirective() {
                 output.innerText = waitingMsg;
             }
         }
-            // Controlador de tiempo de espera (Timeout de 9 segundos) con AbortController
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 9000);
-
-            try {
-                const response = await fetch('/api/chat', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ messages: conversationMemory, lang: currentLang }),
-                    signal: controller.signal
-                });
-
-                clearTimeout(timeoutId);
-
-                if (!response.ok) throw new Error('Error en el servicio de IA');
-
-                const data = await response.json();
-                const aiResponseText = data.reply;
-
-                conversationMemory.push({ role: 'assistant', content: aiResponseText });
-
-                output.innerText = aiResponseText;
-                speak(aiResponseText);
-
-            } catch (error) {
-                clearTimeout(timeoutId);
-                
-                const errorMsg = error.name === 'AbortError' 
-                    ? (currentLang === 'es' ? 'El servidor tardó en responder. Reintentando transición...' : 'Server took too long. Retrying transition...')
-                    : (currentLang === 'es' ? 'Ajustando canales de comunicación. Por favor, pulse enviar nuevamente.' : 'Adjusting communication channels. Please press send again.');
-                    
-                output.innerText = errorMsg;
-                speak(errorMsg);
-            }
-        }
 
         function toggleMortalsDrawer() {
             const drawer = document.getElementById('mortals-drawer');
             drawer.style.display = drawer.style.display === 'block' ? 'none' : 'block';
             updateMapsLink();
-        }
-    </script>
-</body>
-</html>
+        } 
