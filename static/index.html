@@ -212,7 +212,7 @@
             color: var(--text-main);
             white-space: pre-line;
             overflow-y: auto;
-            max-height: 200px;
+            max-height: 220px;
         }
         .mortals-corner {
             position: absolute;
@@ -357,7 +357,7 @@
                     <div style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 6px; text-align: center;" id="mortals-sub">Enlaces externos</div>
                     <div class="mortals-grid">
                         <a id="m-maps" href="#" target="_blank">Google Maps</a>
-                        <a href="https://www.aa.com" target="_blank">American Air</a>
+                        <a href="https://www.google.com/travel/flights" target="_blank">Google Fly</a>
                         <a href="https://www.jetblue.com" target="_blank">JetBlue</a>
                         <a href="https://www.uber.com" target="_blank">Uber</a>
                         <a href="https://www.lyft.com" target="_blank">Lyft</a>
@@ -371,7 +371,7 @@
                 </div>
             </div>
 
-            <h2 id="travel-title">Asesor Conversacional</h2>
+            <h2 id="travel-title">Asesor Conversacional IA</h2>
             <div class="input-group">
                 <textarea id="travel-input" rows="3" placeholder="Escriba su consulta o use los botones de asistencia..."></textarea>
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
@@ -380,7 +380,7 @@
                 </div>
                 <button onclick="resolveTravelDirective()" id="btn-send" style="background-color: var(--accent-color); color: var(--bg-color); font-weight: 600; margin-top: 4px;">Enviar Conversación</button>
             </div>
-            <div class="output-box" id="travel-output">Inicie una conversación o pulse un botón de asistencia guiada para recibir orientación general...</div>
+            <div class="output-box" id="travel-output">Inicie una conversación o pulse un botón de asistencia guiada para recibir orientación experta en tiempo real...</div>
         </div>
     </main>
 
@@ -396,6 +396,10 @@
         let phraseInterval = null;
         let sessionTimer = null;
         let timeLeft = 600;
+
+        // Memoria contextual oculta para mantener el hilo hasta 15 interacciones (preguntas y respuestas)
+        let conversationMemory = [];
+        const MAX_MEMORY_TURNS = 15;
 
         const randomMapsLinks = [
             "https://maps.google.com/?q=Central+Park+New+York",
@@ -492,7 +496,7 @@
                 'Access to this platform implies absolute acceptance of our liability waiver terms. This system operates exclusively as a private wellness facilitator and general lifestyle orientation. It does not provide medical, legal, or financial advice. By pressing start, you acknowledge you use this service under your own discretion.';
             document.getElementById('gate-start-btn').innerText = currentLang === 'es' ? 'Empezar' : 'Start';
             document.getElementById('wellness-title').innerText = currentLang === 'es' ? 'Bienestar y Antifatiga' : 'Precision Wellness';
-            document.getElementById('travel-title').innerText = currentLang === 'es' ? 'Asesor Conversacional' : 'Conversational Advisor';
+            document.getElementById('travel-title').innerText = currentLang === 'es' ? 'Asesor Conversacional IA' : 'Conversational AI Advisor';
             document.getElementById('footer-text').innerText = currentLang === 'es' ? 'Sesión Volátil Encriptada. Cero Datos Retenidos.' : 'Encrypted Volatile Session. Zero Data Retained.';
             document.getElementById('close-btn').innerText = currentLang === 'es' ? 'Cerrar' : 'Close';
             document.getElementById('travel-input').placeholder = currentLang === 'es' ? 'Escriba su consulta o use los botones de asistencia...' : 'Type your query or use assistance buttons...';
@@ -621,41 +625,64 @@
         }
 
         function handleNoIdea() {
-            const output = document.getElementById('travel-output');
-            const responseText = currentLang === 'es' ?
-                `• Conversación Asistida ("No sé"):\nEntiendo que no tengas un rumbo fijo. ¿Prefieres desconexión en la naturaleza, un entorno alpino reservado o un espacio costero privado? Dime una sola palabra.` :
-                `• Assisted Conversation ("No Idea"):\nI understand you lack a fixed direction. Do you prefer natural seclusion, an alpine chalet, or a private coastal space? Tell me one word.`;
-            output.innerText = responseText;
-            speak(responseText);
+            const inputField = document.getElementById('travel-input');
+            inputField.value = currentLang === 'es' ? "No tengo un rumbo fijo, necesito orientación general." : "I don't have a fixed direction, I need general guidance.";
+            resolveTravelDirective();
         }
 
         function handleHelpMe() {
-            const output = document.getElementById('travel-output');
-            const responseText = currentLang === 'es' ?
-                `• Conversación Asistida ("Ayúdame"):\nPara ofrecerte la opción más segura: ¿Buscas descanso personal o un cambio de aires familiar? Respóndeme y te ofrezco la solución directa.` :
-                `• Assisted Conversation ("Help Me"):\nTo offer the safest option: Are you seeking personal rest or a family change of scenery? Answer and I will offer the direct solution.`;
-            output.innerText = responseText;
-            speak(responseText);
+            const inputField = document.getElementById('travel-input');
+            inputField.value = currentLang === 'es' ? "Ayúdame a encontrar la mejor opción de bienestar y estabilidad." : "Help me find the best wellness and stability option.";
+            resolveTravelDirective();
         }
 
-        function resolveTravelDirective() {
-            const input = document.getElementById('travel-input').value.trim();
+        async function resolveTravelDirective() {
+            const inputField = document.getElementById('travel-input');
+            const userInput = inputField.value.trim();
             const output = document.getElementById('travel-output');
-            if (!input) {
+
+            if (!userInput) {
                 output.innerText = currentLang === 'es' ? 'Por favor, escribe tu mensaje o usa los botones de asistencia.' : 'Please type your message or use assistance buttons.';
                 return;
             }
 
-            output.innerText = currentLang === 'es' ? 'Procesando orientación general...' : 'Processing general guidance...';
-            speak(currentLang === 'es' ? 'Generando respuesta.' : 'Generating response.');
+            // Añadir pregunta actual al historial de memoria
+            conversationMemory.push({ role: 'user', content: userInput });
+            
+            // Mantener solo hasta 15 interacciones (30 mensajes: 15 usuario + 15 asistente) para limpiar la memoria vieja
+            if (conversationMemory.length > MAX_MEMORY_TURNS * 2) {
+                conversationMemory = conversationMemory.slice(-MAX_MEMORY_TURNS * 2);
+            }
 
-            setTimeout(() => {
-                let responseText = currentLang === 'es' ?
-                    `• Sugerencia General de Bienestar:\nPara tu tranquilidad y descanso óptimo, te sugiero considerar una escapada breve a un entorno natural aislado o un espacio de máxima privacidad. Esto aporta estabilidad sin complicaciones.\n• ¿Deseas explorar alguna alternativa adicional?` :
-                    `• General Wellness Suggestion:\nFor your peace of mind and optimal rest, I suggest considering a brief getaway to an isolated natural setting or a private sanctuary. This provides stability without complications.\n• Would you like to explore an alternative?`;
-                output.innerText = responseText;
-                speak(responseText);
-            }, 1000);
+            inputField.value = ''; 
+            output.innerText = currentLang === 'es' ? 'Conectando con la IA (Gemini / OpenAI)...' : 'Connecting to AI (Gemini / OpenAI)...';
+            speak(currentLang === 'es' ? 'Procesando asesoría.' : 'Processing advisory.');
+
+            try {
+                // Petición al servidor Backend que maneja las API Keys de Gemini y OpenAI
+                const response = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ messages: conversationMemory, lang: currentLang })
+                });
+
+                if (!response.ok) throw new Error('Error en el servicio de IA');
+
+                const data = await response.json();
+                const aiResponseText = data.reply;
+
+                // Guardar la respuesta de la IA en la memoria local
+                conversationMemory.push({ role: 'assistant', content: aiResponseText });
+
+                // LIMPIEZA VISUAL AUTOMÁTICA: La pantalla muestra limpiamente la respuesta actual manteniendo el hilo invisible
+                output.innerText = aiResponseText;
+                speak(aiResponseText);
+
+            } catch (error) {
+                output.innerText = currentLang === 'es' ? 
+                    'Error de conexión con la IA principal. Verifique sus credenciales de API.' : 
+                    'Connection error with primary AI. Check your API credentials.';
+            }
         }
 
         function toggleMortalsDrawer() {
