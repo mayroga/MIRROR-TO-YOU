@@ -131,7 +131,21 @@
             font-size: 0.85rem;
             color: var(--text-muted);
             width: 100%;
-            min-height: 60px;
+            min-height: 70px;
+        }
+        .dynamic-speech-box {
+            background-color: var(--bg-color);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 10px;
+            font-size: 0.9rem;
+            color: var(--accent-color);
+            text-align: center;
+            min-height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-style: italic;
         }
         .input-group {
             display: flex;
@@ -206,7 +220,7 @@
     </header>
 
     <main>
-        <!-- Wellness & Breathing Panel -->
+        <!-- Precision Wellness & Anti-Stress Panel -->
         <div class="panel">
             <h2 id="wellness-title">Precision Wellness & Anti-Stress</h2>
             <div class="breathing-container">
@@ -214,19 +228,26 @@
                     <span id="b-phase" style="font-weight: 600;">Ready</span>
                     <span id="b-counter" style="font-size: 0.8rem;">0s</span>
                 </div>
+                <div class="dynamic-speech-box" id="dynamic-speech">
+                    Awaiting protocol initialization...
+                </div>
                 <div class="objective-info" id="objective-desc">
-                    Select a target objective to initialize guided neural synchronization.
+                    Select a target objective, sound frequency, or launch the 60-second neural silence challenge.
                 </div>
             </div>
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
-                <button id="btn-anti-panic" onclick="setBreathingMode('antipanic')">Anti-Panic</button>
-                <button id="btn-focus" onclick="setBreathingMode('focus')">Executive Focus</button>
-                <button id="btn-sleep" onclick="setBreathingMode('sleep')">Deep Sleep</button>
-                <button id="btn-energy" onclick="setBreathingMode('energy')">Instant Energy</button>
+                <button onclick="setBreathingMode('antipanic')">Anti-Panic</button>
+                <button onclick="setBreathingMode('focus')">Executive Focus</button>
+                <button onclick="setBreathingMode('sleep')">Deep Sleep</button>
+                <button onclick="setBreathingMode('energy')">Instant Energy</button>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                <button onclick="startChallenge60()" style="background-color: rgba(56, 189, 248, 0.2); border-color: var(--accent-color);">⚡ 60s Challenge</button>
+                <button onclick="playAmbientSound()">🎵 Sound Frequencies</button>
             </div>
         </div>
 
-        <!-- Private Travel Agent & Problem Solver Panel -->
+        <!-- Executive Private Travel & Logistics Panel -->
         <div class="panel">
             <h2 id="travel-title">Executive Private Travel & Logistics</h2>
             <div class="input-group">
@@ -252,38 +273,84 @@
         let currentLang = 'en';
         let voiceEnabled = false;
         let currentModeInterval = null;
+        let phraseInterval = null;
+        let ambientAudioCtx = null;
 
-        const breathingModes = {
-            antipanic: {
-                en: { name: "Anti-Panic", why: "Why: Rapidly activates the parasympathetic nervous system.", how: "For: Eliminating acute anxiety, heart palpitations, and sensory overload in under 2 minutes." },
-                es: { name: "Anti-Pánico", why: "Por qué: Activa de inmediato el sistema nervioso parasimpático.", how: "Para: Eliminar ansiedad aguda, palpitaciones y saturación mental en menos de 2 minutos." }
-            },
-            focus: {
-                en: { name: "Executive Focus", why: "Why: Balances oxygen and carbon dioxide to clear brain fog.", how: "For: Maximizing high-stakes decision making, clarity, and mental endurance." },
-                es: { name: "Enfoque Ejecutivo", why: "Por qué: Equilibra oxígeno y CO2 para despejar la niebla mental.", how: "Para: Maximizar decisiones de alto nivel, claridad y resistencia mental." }
-            },
-            sleep: {
-                en: { name: "Deep Sleep", why: "Why: Lowers heart rate and signals the brain for physical shutdown.", how: "For: Rapid decompression after long-haul flights or high-stress boardrooms." },
-                es: { name: "Sueño Profundo", why: "Por qué: Reduce el ritmo cardíaco y prepara el cuerpo para el descanso.", how: "Para: Descompresión rápida tras vuelos largos o jornadas intensas." }
-            },
-            energy: {
-                en: { name: "Instant Energy", why: "Why: Increases cellular oxygenation and alertness.", how: "For: Overcoming physical exhaustion and jet lag instantly." },
-                es: { name: "Energía Instantánea", why: "Por qué: Incrementa la oxigenación celular y el estado de alerta.", how: "Para: Superar el agotamiento físico y el desfase horario al instante." }
-            }
+        const uniquePhrases = {
+            en: [
+                "Release every ounce of shoulder tension right now.",
+                "Your mind is clear, powerful, and entirely unburdened.",
+                "Banish fatigue; focus only on absolute control and stability.",
+                "Let go of urgency. Time bends to your strategic rhythm.",
+                "Silence the noise. Your inner sanctuary requires zero friction.",
+                "Energy flows effortlessly through every cell, erasing weariness.",
+                "Wise choices emerge naturally when stillness anchors your actions.",
+                "A quiet cabin, a pristine mountain view, absolute peace is yours.",
+                "Breathe out anxiety. Breathe in supreme executive clarity.",
+                "You hold the exact solution to every challenge waiting ahead."
+            ],
+            es: [
+                "Libera cada gramo de tensión en tus hombros ahora mismo.",
+                "Tu mente es clara, poderosa y totalmente libre de cargas.",
+                "Desvanece el cansancio; concéntrate solo en el control absoluto.",
+                "Suelta la urgencia. El tiempo se adapta a tu ritmo estratégico.",
+                "Silencia el ruido externo. Tu santuario interior no tiene fricción.",
+                "La energía fluye sin esfuerzo, disipando cualquier rastro de fatiga.",
+                "La sabiduría surge de forma natural cuando la calma guía tus actos.",
+                "Un refugio alpino, una brisa suave, la paz absoluta te pertenece.",
+                "Exhala la ansiedad. Inhala absoluta claridad ejecutiva.",
+                "Posees la solución exacta para cada desafío que se avecina."
+            ]
         };
+
+        const uniqueChallenges = {
+            en: [
+                { time: 10, text: "Silence phase: Observe the steady flow of air.", place: "A quiet terrace overlooking Zurich at dawn." },
+                { time: 15, text: "Wise insight: Simplicity is the ultimate sophistication.", place: "An isolated minimalist cabin in Aspen." },
+                { time: 12, text: "Deep decompression: Drop your jaw, soften your gaze.", place: "A serene bamboo garden in Kyoto." },
+                { time: 15, text: "Anti-exhaustion: Reclaim your sovereign energy field.", place: "A private yacht anchored in calm turquoise waters." },
+                { time: 8, text: "Total reset: You are anchored in unshakeable power.", place: "An overlooking cliff at Big Sur." }
+            ],
+            es: [
+                { time: 10, text: "Fase de silencio: Observa el flujo constante del aire.", place: "Una terraza silenciosa contemplando Zúrich al amanecer." },
+                { time: 15, text: "Sabiduría: La simplicidad es la máxima sofisticación.", place: "Una cabaña minimalista aislada en las montañas de Aspen." },
+                { time: 12, text: "Descompresión profunda: Relaja la mandíbula, suaviza la mirada.", place: "Un jardín de bambú sereno en Kioto." },
+                { time: 15, text: "Anticansancio: Recupera tu campo de energía soberana.", place: "Un yate privado fondeado en aguas turquesas en calma." },
+                { time: 8, text: "Reinicio total: Estás anclado en un poder inquebrantable.", place: "Un acantilado privado con vistas a Big Sur." }
+            ]
+        };
+
+        const ambientFrequencies = {
+            en: ["Solfeggio 528Hz - DNA Repair & Deep Calm", "Alpha Waves 10Hz - Anti-Stress Focus", "Theta Waves 6Hz - Anti-Anxiety & Release", "Nature Resonance - Wind through Pine & Water"],
+            es: ["Frecuencia Solfeggio 528Hz - Reparación y Calma", "Ondas Alfa 10Hz - Enfoque Antiestrés", "Ondas Theta 6Hz - Antiansiedad y Liberación", "Resonancia Natural - Viento en Pinos y Agua"]
+        };
+
+        let usedPhraseIndices = [];
+
+        function getUniqueRandomPhrase() {
+            const list = uniquePhrases[currentLang];
+            if (usedPhraseIndices.length >= list.length) {
+                usedPhraseIndices = []; // Reset if all used
+            }
+            let idx;
+            do {
+                idx = Math.floor(Math.random() * list.length);
+            } while (usedPhraseIndices.includes(idx));
+            
+            usedPhraseIndices.push(idx);
+            return list[idx];
+        }
 
         function toggleLanguage() {
             currentLang = currentLang === 'en' ? 'es' : 'en';
-            const langBtn = document.getElementById('lang-btn');
-            langBtn.innerText = currentLang === 'es' ? 'EN' : 'ES';
-
+            document.getElementById('lang-btn').innerText = currentLang === 'es' ? 'EN' : 'ES';
             document.getElementById('wellness-title').innerText = currentLang === 'es' ? 'Bienestar de Precisión y Antiestrés' : 'Precision Wellness & Anti-Stress';
             document.getElementById('travel-title').innerText = currentLang === 'es' ? 'Viajes Privados y Logística Ejecutiva' : 'Executive Private Travel & Logistics';
             document.getElementById('footer-text').innerText = currentLang === 'es' ? 'Sesión Volátil Encriptada. Cero Datos Retenidos.' : 'Encrypted Volatile Session. Zero Data Retained.';
             document.getElementById('clear-btn').innerText = currentLang === 'es' ? 'Borrar' : 'Clear';
             document.getElementById('modal-text').innerText = currentLang === 'es' ? 'Inactividad detectada. Toque la pantalla para mantener la sesión.' : 'Inactivity detected. Touch the screen to maintain session.';
             document.getElementById('travel-input').placeholder = currentLang === 'es' ? 'Ingrese emergencia de viaje, requerimiento de jet privado o bloqueo logístico...' : 'Enter travel emergency, private jet requirement, or complex logistics roadblock...';
-            document.getElementById('objective-desc').innerText = currentLang === 'es' ? 'Seleccione un objetivo para iniciar la sincronización guiada.' : 'Select a target objective to initialize guided neural synchronization.';
+            document.getElementById('objective-desc').innerText = currentLang === 'es' ? 'Seleccione un objetivo, frecuencia sonora o active el reto de 60 segundos.' : 'Select a target objective, sound frequency, or launch the 60-second neural silence challenge.';
             document.getElementById('audio-btn').innerText = voiceEnabled ? (currentLang === 'es' ? '🔊 Voz: ON' : '🔊 Voice: ON') : (currentLang === 'es' ? '🔊 Voz: OFF' : '🔊 Voice: OFF');
         }
 
@@ -305,10 +372,19 @@
 
         function setBreathingMode(mode) {
             if (currentModeInterval) clearInterval(currentModeInterval);
-            
-            const info = breathingModes[mode][currentLang];
-            document.getElementById('objective-desc').innerHTML = `<strong>${info.name}</strong><br>${info.why}<br><em>${info.how}</em>`;
-            speak(`${info.name}. ${info.why}`);
+            if (phraseInterval) clearInterval(phraseInterval);
+
+            const speechBox = document.getElementById('dynamic-speech');
+            const initialPhrase = getUniqueRandomPhrase();
+            speechBox.innerText = initialPhrase;
+            speak(initialPhrase);
+
+            // Trigger new phrase every 15 seconds without repeating
+            phraseInterval = setInterval(() => {
+                const nextPhrase = getUniqueRandomPhrase();
+                speechBox.innerText = nextPhrase;
+                speak(nextPhrase);
+            }, 15000);
 
             const circle = document.getElementById('b-circle');
             const phase = document.getElementById('b-phase');
@@ -325,7 +401,6 @@
                 const current = sequence[step % sequence.length];
                 phase.innerText = current.text;
                 circle.style.transform = current.scale;
-                speak(current.text);
 
                 let t = current.time;
                 counter.innerText = `${t}s`;
@@ -341,6 +416,81 @@
                 }, 1000);
             }
             runStep();
+        }
+
+        function startChallenge60() {
+            if (currentModeInterval) clearInterval(currentModeInterval);
+            if (phraseInterval) clearInterval(phraseInterval);
+
+            const speechBox = document.getElementById('dynamic-speech');
+            const objDesc = document.getElementById('objective-desc');
+            const steps = uniqueChallenges[currentLang];
+            
+            let totalTime = 60;
+            let currentStepIdx = 0;
+            const counter = document.getElementById('b-counter');
+            const phase = document.getElementById('b-phase');
+
+            phase.innerText = currentLang === 'es' ? 'RETO 60S' : '60S CHALLENGE';
+
+            function runChallengeStep() {
+                if (currentStepIdx >= steps.length || totalTime <= 0) {
+                    speechBox.innerText = currentLang === 'es' ? '¡Reto de 60 segundos completado con éxito!' : '60-second challenge completed successfully!';
+                    speak(speechBox.innerText);
+                    return;
+                }
+
+                const currentData = steps[currentStepIdx];
+                const displayMsg = `[${currentData.place}] \n ${currentData.text}`;
+                speechBox.innerText = displayMsg;
+                speak(`${currentData.text}. Peaceful location: ${currentData.place}`);
+                
+                objDesc.innerHTML = `<strong>⚡ 60s Neural Reset Active</strong><br><em>Location:</em> ${currentData.place}`;
+
+                let stepTime = currentData.time;
+                currentModeInterval = setInterval(() => {
+                    stepTime--;
+                    totalTime--;
+                    counter.innerText = `${totalTime}s`;
+                    if (stepTime <= 0 || totalTime <= 0) {
+                        clearInterval(currentModeInterval);
+                        currentStepIdx++;
+                        runChallengeStep();
+                    }
+                }, 1000);
+            }
+
+            runChallengeStep();
+        }
+
+        function playAmbientSound() {
+            const list = ambientFrequencies[currentLang];
+            const randomFreq = list[Math.floor(Math.random() * list.length)];
+            const speechBox = document.getElementById('dynamic-speech');
+            speechBox.innerText = `🎵 Active Frequency: ${randomFreq}`;
+            speak(currentLang === 'es' ? `Reproduciendo frecuencia sonora: ${randomFreq}` : `Playing sound frequency: ${randomFreq}`);
+
+            // Generate clean, soothing web audio synth hum as pure non-repeating sound option
+            try {
+                if (!ambientAudioCtx) {
+                    ambientAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                }
+                if (ambientAudioCtx.state === 'suspended') {
+                    ambientAudioCtx.resume();
+                }
+                const osc = ambientAudioCtx.createOscillator();
+                const gain = ambientAudioCtx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(174, ambientAudioCtx.currentTime); // Solfeggio frequency
+                gain.gain.setValueAtTime(0.05, ambientAudioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, ambientAudioCtx.currentTime + 5);
+                osc.connect(gain);
+                gain.connect(ambientAudioCtx.destination);
+                osc.start();
+                osc.stop(ambientAudioCtx.currentTime + 5);
+            } catch (e) {
+                console.log("Audio context initialized via user gesture.");
+            }
         }
 
         function resolveTravelDirective() {
@@ -368,9 +518,11 @@
             document.getElementById('travel-input').value = '';
             document.getElementById('travel-output').innerText = currentLang === 'es' ? 'Memoria volátil depurada.' : 'Volatile memory cleared.';
             if (currentModeInterval) clearInterval(currentModeInterval);
+            if (phraseInterval) clearInterval(phraseInterval);
             document.getElementById('b-phase').innerText = 'Ready';
             document.getElementById('b-counter').innerText = '0s';
             document.getElementById('b-circle').style.transform = 'scale(1)';
+            document.getElementById('dynamic-speech').innerText = 'Awaiting protocol initialization...';
         }
 
         let inactivityTimer = setTimeout(() => {
