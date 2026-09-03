@@ -1,16 +1,22 @@
 // static/app.js
+
 let memory = { core: {}, moment: {}, preferences: {}, dislikes: [], history: [], learning: {} };
 let currentLanguage = "es";
 let currentResult = null;
 let recognition = null;
 let listening = false;
 
+// Variables de control para el Círculo Respiratorio Profesional Variable
 let breathingTimer = null;
 let breathingSeconds = 240;
 let breathingActive = false;
 
 const $ = id => document.getElementById(id);
 
+/**
+ * Sincroniza los identificadores visuales bilingües basándose en la huella del dispositivo.
+ * Mantiene la interfaz limpia de textos fijos e independientes para control absoluto de la IA.
+ */
 function applyInitialState(lang) {
     currentLanguage = lang;
     if (lang === "es") {
@@ -48,6 +54,9 @@ function showDeck(id) {
     if (el) el.classList.add("active");
 }
 
+/**
+ * MODO 1: Control de Estado de Un Solo Toque (Interfaz Primaria para el Cliente)
+ */
 async function executeState(stateType) {
     document.querySelectorAll(".state-card").forEach(c => c.classList.remove("active"));
     let cmd = "";
@@ -64,6 +73,9 @@ async function executeState(stateType) {
     await requestEcosystemAPI(cmd);
 }
 
+/**
+ * MODO 2: Interfaz Secundaria de Chat de Respaldo y Validación Conversacional
+ */
 async function askMirror() {
     const input = $("messageInput");
     const text = input.value.trim();
@@ -72,12 +84,20 @@ async function askMirror() {
     await requestEcosystemAPI(text);
 }
 
+/**
+ * Despacho Unificado al Servidor FastAPI con la Huella del Dispositivo Encriptada
+ */
 async function requestEcosystemAPI(payloadText) {
     try {
         const response = await fetch("/api/mirror", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ message: payloadText, language: currentLanguage, device_id: localStorage.getItem("mirror_device_id") || "secure_vip_token", memory: memory })
+            body: JSON.stringify({ 
+                message: payloadText, 
+                language: currentLanguage, 
+                device_id: localStorage.getItem("mirror_device_id") || "secure_vip_token", 
+                memory: memory 
+            })
         });
         const data = await response.json();
         if (data.ok) {
@@ -88,16 +108,20 @@ async function requestEcosystemAPI(payloadText) {
             renderEcosystem(data);
         }
     } catch (e) {
-        console.error("Critical interface synchronization anomaly.");
+        console.error("Critical ecosystem connection anomaly.");
     }
 }
 
+/**
+ * Renderizado Puro controlado en su totalidad por las variables del Backend de la IA
+ */
 function renderEcosystem(data) {
     const plan = data.plan;
     const badge = $("statusBadge");
     const zone = plan.status_color_zone || "GREEN";
     badge.className = "status-badge";
     
+    // Zonas de color e identificación táctica de patrones de fatiga
     if (zone === "YELLOW") {
         badge.className = "status-badge zone-yellow";
         badge.textContent = currentLanguage === "es" ? "PATRÓN: ATENCIÓN" : "PATTERN: ATTENTION";
@@ -125,6 +149,7 @@ function renderEcosystem(data) {
     
     $("planArea").classList.remove("hidden");
 
+    // Configuración del Círculo Clínico de Respiración Variable (Pool 100+ de la IA)
     const breath = plan.breathing_exercise;
     if (breath && breath.active) {
         clearInterval(breathingTimer);
@@ -139,6 +164,7 @@ function renderEcosystem(data) {
         $("breathingArea").classList.add("hidden");
     }
 
+    // Visibilidad condicionada y enlace real a destinos premium filtrados
     $("mapsButton").classList.toggle("hidden", !plan.premium_destination_query);
     $("mapsButton").textContent = currentLanguage === "es" ? "✨ Dirección Destino" : "✨ Space Destination";
     
@@ -213,42 +239,38 @@ async function openPremiumMap() {
 async function playPremiumMusic() {
     if (!currentResult || !currentResult.premium_music_query) return;
     const res = await fetch(`/api/music?query=${encodeURIComponent(currentResult.premium_music_query)}`);
-    const data = await res.json();
-    if (data.url) window.open(data.url, "_blank", "noopener,noreferrer");
-}
+const data = await res.json();
+if (data.url) window.open(data.url, "_blank", "noopener,noreferrer");
 
 function formatTime(seconds) {
-    const m = Math.floor(seconds / 60);
-    const s = seconds % 60;
-    return `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+  const m = Math.floor(seconds / 60);
+  const s = seconds % 60;
+  return `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
 }
 
 function renderMemorySummary() {
-    const box = $("memorySummary");
-    box.innerHTML = "";
-    const items = [
-        ["Identidad de Dispositivo", memory.core?.name || "VIP User Profile"],
-        ["Enfoque de Ejecución", memory.moment?.intent || "CONCIERGE"],
-        ["Frecuencia de Reentradas Hoy", memory.history ? memory.history.length : 0]
-    ];
-    items.forEach(([k, v]) => {
-        const div = document.createElement("div");
-        div.className = "memory-item";
-        div.innerHTML = `<span>${k}</span><strong>${v}</strong>`;
-        box.appendChild(div);
-    });
+  const box = $("memorySummary");
+  box.innerHTML = "";
+  const items = [
+    ["Identidad de Dispositivo", memory.core?.name || "VIP User Profile"],
+    ["Enfoque de Ejecución", memory.moment?.intent || "CONCIERGE"],
+    ["Frecuencia de Reentradas Hoy", memory.history ? memory.history.length : 0]
+  ];
+  items.forEach(([k, v]) => {
+    const div = document.createElement("div");
+    div.className = "memory-item";
+    div.innerHTML = `<span>${k}</span><strong>${v}</strong>`;
+    box.appendChild(div);
+  });
 }
 
 function init() {
-    if (!localStorage.getItem("mirror_device_id")) {
-function init() {
-  // Generar ID único discreto si no existe
   if (!localStorage.getItem("mirror_device_id")) {
     localStorage.setItem("mirror_device_id", "vip_" + Math.random().toString(36).substring(2, 15));
   }
-
-  applyInitialState("es"); // Por defecto inicia de forma limpia en español
-
+  
+  applyInitialState("es");
+  
   $("langToggle").onclick = () => applyInitialState(currentLanguage === "en" ? "es" : "en");
   
   $("memoryButton").onclick = () => { 
@@ -263,32 +285,34 @@ function init() {
     const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SR) return;
     
-    if (listening) { 
-      recognition.stop(); 
-      listening = false; 
-      $("voiceButton").classList.remove("active-mic"); 
+    if (listening) {
+      try { recognition.stop(); } catch(e) {}
+      listening = false;
+      $("voiceButton").classList.remove("active-mic");
     } else {
-      recognition = new SR(); 
-      recognition.continuous = false; 
+      recognition = new SR();
+      recognition.continuous = false;
       recognition.interimResults = false;
       recognition.lang = currentLanguage === "es" ? "es-US" : "en-US";
       
-      recognition.onstart = () => { 
-        listening = true; 
-        $("voiceButton").classList.add("active-mic"); 
+      recognition.onstart = () => {
+        listening = true;
+        $("voiceButton").classList.add("active-mic");
       };
       
-      recognition.onresult = (e) => { 
-        $("messageInput").value = e.results[0][0].transcript; 
-        askMirror(); 
+      recognition.onresult = (e) => {
+        if (e.results && e.results[0] && e.results[0][0]) {
+          $("messageInput").value = e.results[0][0].transcript;
+          askMirror();
+        }
       };
       
-      recognition.onend = () => { 
-        listening = false; 
-        $("voiceButton").classList.remove("active-mic"); 
+      recognition.onend = () => {
+        listening = false;
+        $("voiceButton").classList.remove("active-mic");
       };
       
-      recognition.start();
+      try { recognition.start(); } catch(err) { listening = false; }
     }
   };
   
