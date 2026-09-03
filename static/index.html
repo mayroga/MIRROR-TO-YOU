@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AL CIELO</title>
+    <title>MIRROR TO YOU</title>
     <style>
         :root {
             --bg-color: #0b0f19;
@@ -29,11 +29,10 @@
             justify-content: space-between;
             padding: 20px;
         }
-        /* Legal Gate Overlay */
         #legal-gate {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(11, 15, 25, 0.95);
+            background: rgba(11, 15, 25, 0.98);
             display: flex;
             justify-content: center;
             align-items: center;
@@ -215,7 +214,6 @@
             overflow-y: auto;
             max-height: 200px;
         }
-        /* Mortals Corner Drawer */
         .mortals-corner {
             position: absolute;
             top: 15px;
@@ -273,87 +271,90 @@
             max-width: 1000px;
             width: 100%;
             margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
-        #warning-modal {
+        #shutdown-overlay {
             display: none;
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.8);
+            background: #0b0f19;
+            z-index: 3000;
             justify-content: center;
             align-items: center;
-            z-index: 1000;
-        }
-        .modal-content {
-            background: var(--card-bg);
-            padding: 30px;
-            border-radius: 12px;
-            border: 1px solid var(--border-color);
             text-align: center;
-            max-width: 400px;
-            width: 90%;
+            padding: 20px;
         }
     </style>
 </head>
 <body>
 
-    <!-- Mandatory Legal Protection Gate -->
     <div id="legal-gate">
         <div class="legal-box">
-            <h2 id="legal-title">AVISO LEGAL Y DE EXENCIÓN DE RESPONSABILIDAD</h2>
-            <div class="legal-text" id="legal-body">
-                El acceso y uso de esta plataforma implica la aceptación de los siguientes términos de protección. Este sistema proporciona exclusivamente orientación general, bienestar personal y sugerencias de estilo de vida basadas en recomendaciones generales. No constituye asesoría médica, legal, financiera ni gubernamental de ningún tipo. La plataforma opera como un facilitador de bienestar privado y declina cualquier responsabilidad civil o legal sobre las decisiones o acciones tomadas por el usuario final. Al continuar, usted reconoce y acepta que utiliza este servicio bajo su propia discreción y soberanía.
+            <h2 id="gate-title">AVISO LEGAL Y PROTECCIÓN</h2>
+            <div class="legal-text" id="gate-text">
+                El acceso a esta plataforma implica la aceptación absoluta de nuestros términos de exención de responsabilidad. Este sistema opera exclusivamente como un facilitador de bienestar privado y orientación general de estilo de vida. No proporciona asesoría médica, legal ni financiera. Al presionar el botón de inicio, usted reconoce que utiliza este servicio bajo su propia discreción y soberanía.
             </div>
-            <button onclick="acceptLegal()" style="background-color: var(--accent-color); color: var(--bg-color); font-weight: 600; padding: 10px;">Acepto y Entro</button>
+            <div style="display: flex; gap: 10px; justify-content: center; margin-top: 10px;">
+                <button onclick="switchGateLang()" id="gate-lang-btn" style="background: var(--bg-color);">EN / ES</button>
+                <button onclick="startSession()" id="gate-start-btn" style="background-color: var(--accent-color); color: var(--bg-color); font-weight: 600; flex: 1;">Empezar / Start</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="shutdown-overlay">
+        <div class="legal-box">
+            <h2 id="shut-title">Sesión Finalizada</h2>
+            <p id="shut-text" style="color: var(--text-muted); font-size: 0.9rem;">El tiempo límite de 10 minutos ha concluido. La sesión se ha cerrado por seguridad.</p>
+            <button onclick="location.reload()" id="shut-btn" style="background-color: var(--accent-color); color: var(--bg-color); font-weight: 600; margin-top: 10px;">Reiniciar Sesión</button>
         </div>
     </div>
 
     <header>
-        <div class="logo" id="app-title">AL CIELO</div>
+        <div class="logo" id="app-title">MIRROR TO YOU</div>
         <div class="controls">
             <button id="lang-btn" onclick="toggleLanguage()">ES</button>
-            <button id="audio-btn" onclick="toggleVoiceGuide()">🔊 Voice: OFF</button>
-            <button class="btn-danger" id="clear-btn" onclick="clearData()">Clear</button>
+            <button id="audio-btn" onclick="toggleVoiceGuide()">🔊 Voz: OFF</button>
+            <button class="btn-danger" id="close-btn" onclick="closeSession()">Cerrar</button>
         </div>
     </header>
 
     <main>
-        <!-- Anti-Stress & Multi-Variable Wellness Panel -->
         <div class="panel">
-            <h2 id="wellness-title">Precision Wellness</h2>
+            <h2 id="wellness-title">Bienestar y Antifatiga</h2>
             <div class="breathing-container">
                 <div class="breathing-circle" id="b-circle">
-                    <span id="b-phase" style="font-weight: 600;">Ready</span>
+                    <span id="b-phase" style="font-weight: 600;">Listo</span>
                     <span id="b-counter" style="font-size: 0.8rem;">0s</span>
                 </div>
                 <div class="dynamic-speech-box" id="dynamic-speech">
-                    Select a wellness objective to begin unrepeated neural alignment...
+                    Seleccione un objetivo de bienestar para iniciar la alineación...
                 </div>
                 <div class="objective-info" id="objective-desc">
-                    Over 30+ unrepeated cognitive options and verified audio streams.
+                    Opciones cognitivas sin repetición y streams de audio verificados.
                 </div>
             </div>
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
-                <button onclick="setBreathingMode('antipanic')">Anti-Panic Protocol</button>
-                <button onclick="setBreathingMode('focus')">Executive Focus</button>
-                <button onclick="setBreathingMode('sleep')">Deep Restoration</button>
-                <button onclick="setBreathingMode('energy')">Anti-Fatigue Boost</button>
+                <button onclick="setBreathingMode('antipanic')" id="btn-p1">Protocolo Antipánico</button>
+                <button onclick="setBreathingMode('focus')" id="btn-p2">Enfoque Ejecutivo</button>
+                <button onclick="setBreathingMode('sleep')" id="btn-p3">Restauración Profunda</button>
+                <button onclick="setBreathingMode('energy')" id="btn-p4">Impulso Antifatiga</button>
             </div>
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
-                <button onclick="startChallenge60()" style="background-color: rgba(56, 189, 248, 0.2); border-color: var(--accent-color);">⚡ 60s Vitality Challenge</button>
-                <button onclick="toggleMusicModal()">🎵 Anti-Stress Frequencies</button>
+                <button onclick="startChallenge60()" id="btn-p5" style="background-color: rgba(56, 189, 248, 0.2); border-color: var(--accent-color);">⚡ Reto Vital 60s</button>
+                <button onclick="toggleMusicModal()" id="btn-p6">🎵 Frecuencias Antiestrés</button>
             </div>
             <div id="yt-container" style="display:none; margin-top: 5px;">
                 <iframe id="yt-player" width="100%" height="60" src="" frameborder="0" allow="autoplay"></iframe>
             </div>
         </div>
 
-        <!-- Conversational Advisor Panel with Mortals Corner -->
         <div class="panel">
-            <!-- Mortals Corner (Corner Drawer) -->
             <div class="mortals-corner">
-                <button class="mortals-btn" onclick="toggleMortalsDrawer()">Uso para mortales</button>
+                <button class="mortals-btn" id="mortals-label" onclick="toggleMortalsDrawer()">Uso para mortales</button>
                 <div class="mortals-modal" id="mortals-drawer">
-                    <div style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 6px; text-align: center;">Accesos directos externos</div>
+                    <div style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 6px; text-align: center;" id="mortals-sub">Enlaces externos</div>
                     <div class="mortals-grid">
                         <a id="m-maps" href="#" target="_blank">Google Maps</a>
                         <a href="https://www.aa.com" target="_blank">American Air</a>
@@ -370,37 +371,32 @@
                 </div>
             </div>
 
-            <h2 id="travel-title">Conversational Advisor</h2>
+            <h2 id="travel-title">Asesor Conversacional</h2>
             <div class="input-group">
-                <textarea id="travel-input" rows="3" placeholder="Escriba su consulta o use los botones conversacionales..."></textarea>
+                <textarea id="travel-input" rows="3" placeholder="Escriba su consulta o use los botones de asistencia..."></textarea>
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
-                    <button onclick="handleNoIdea()" style="background-color: rgba(239, 68, 68, 0.15); border-color: rgba(239, 68, 68, 0.4);">❓ No sé</button>
-                    <button onclick="handleHelpMe()" style="background-color: rgba(56, 189, 248, 0.15); border-color: var(--accent-color);">🤝 Ayúdame</button>
+                    <button onclick="handleNoIdea()" id="btn-no" style="background-color: rgba(239, 68, 68, 0.15); border-color: rgba(239, 68, 68, 0.4);">❓ No sé</button>
+                    <button onclick="handleHelpMe()" id="btn-help" style="background-color: rgba(56, 189, 248, 0.15); border-color: var(--accent-color);">🤝 Ayúdame</button>
                 </div>
-                <button onclick="resolveTravelDirective()" style="background-color: var(--accent-color); color: var(--bg-color); font-weight: 600; margin-top: 4px;">Enviar Conversación</button>
+                <button onclick="resolveTravelDirective()" id="btn-send" style="background-color: var(--accent-color); color: var(--bg-color); font-weight: 600; margin-top: 4px;">Enviar Conversación</button>
             </div>
-            <div class="output-box" id="travel-output">Inicie una conversación o pulse un botón de asistencia guiada para recibir orientación general de bienestar...</div>
+            <div class="output-box" id="travel-output">Inicie una conversación o pulse un botón de asistencia guiada para recibir orientación general...</div>
         </div>
     </main>
 
     <footer>
-        <span id="footer-text">Encrypted Volatile Session. Zero Data Retained.</span>
+        <span id="footer-text">Sesión Volátil Encriptada. Cero Datos Retenidos.</span>
+        <span id="timer-display" style="font-family: monospace; color: var(--accent-color);">10:00</span>
     </footer>
 
-    <div id="warning-modal">
-        <div class="modal-content">
-            <p id="modal-text" style="margin-bottom: 20px;">Inactivity detected. Touch the screen to maintain session.</p>
-            <button onclick="dismissWarning()">Continue Session</button>
-        </div>
-    </div>
-
     <script>
-        let currentLang = 'en';
+        let currentLang = 'es';
         let voiceEnabled = false;
         let currentModeInterval = null;
         let phraseInterval = null;
+        let sessionTimer = null;
+        let timeLeft = 600;
 
-        // Dynamic Google Maps locations list for varied routing
         const randomMapsLinks = [
             "https://maps.google.com/?q=Central+Park+New+York",
             "https://maps.google.com/?q=Aspen+Mountain+Ski+Resort",
@@ -414,15 +410,36 @@
             document.getElementById('m-maps').href = randomUrl;
         }
 
-        function acceptLegal() {
-            document.getElementById('legal-gate').style.display = 'none';
-            updateMapsLink();
+        function switchGateLang() {
+            currentLang = currentLang === 'es' ? 'en' : 'es';
+            updateTexts();
         }
 
-        function toggleMortalsDrawer() {
-            const drawer = document.getElementById('mortals-drawer');
-            drawer.style.display = drawer.style.display === 'block' ? 'none' : 'block';
+        function startSession() {
+            document.getElementById('legal-gate').style.display = 'none';
             updateMapsLink();
+            startSessionTimer();
+            if (voiceEnabled) speak(currentLang === 'es' ? 'Sesión iniciada. Bienvenido.' : 'Session started. Welcome.');
+        }
+
+        function startSessionTimer() {
+            sessionTimer = setInterval(() => {
+                timeLeft--;
+                let m = Math.floor(timeLeft / 60);
+                let s = timeLeft % 60;
+                document.getElementById('timer-display').innerText = `${m}:${s < 10 ? '0' : ''}${s}`;
+                if (timeLeft <= 0) {
+                    clearInterval(sessionTimer);
+                    document.getElementById('shutdown-overlay').style.display = 'flex';
+                }
+            }, 1000);
+        }
+
+        function closeSession() {
+            if (sessionTimer) clearInterval(sessionTimer);
+            document.getElementById('shutdown-overlay').style.display = 'flex';
+            document.getElementById('shut-title').innerText = currentLang === 'es' ? 'Sesión Cerrada' : 'Session Closed';
+            document.getElementById('shut-text').innerText = currentLang === 'es' ? 'La sesión ha sido cerrada manualmente por el usuario.' : 'Session manually closed by user.';
         }
 
         const masterPhrases = {
@@ -431,31 +448,20 @@
                 "Your mind is clear, powerful, and entirely unburdened.",
                 "Banish fatigue; focus only on absolute control and stability.",
                 "Let go of urgency. Time bends to your strategic rhythm.",
-                "Silence the noise. Your inner sanctuary requires zero friction.",
-                "Energy flows effortlessly through every cell, erasing weariness.",
-                "Wise choices emerge naturally when stillness anchors your actions.",
-                "A quiet cabin, a pristine mountain view, absolute peace is yours.",
-                "Breathe out anxiety. Breathe in supreme executive clarity.",
-                "You hold the exact solution to every challenge waiting ahead."
+                "Silence the noise. Your inner sanctuary requires zero friction."
             ],
             es: [
                 "Libera cada gramo de tensión en tus hombros ahora mismo.",
                 "Tu mente es clara, poderosa y totalmente libre de cargas.",
                 "Desvanece el cansancio; concéntrate solo en el control absoluto.",
                 "Suelta la urgencia. El tiempo se adapta a tu ritmo estratégico.",
-                "Silencia el ruido externo. Tu santuario interior no tiene fricción.",
-                "La energía fluye sin esfuerzo, disipando cualquier rastro de fatiga.",
-                "La sabiduría surge de forma natural cuando la calma guía tus actos.",
-                "Un refugio alpino, una brisa suave, la paz absoluta te pertenece.",
-                "Exhala la ansiedad. Inhala absoluta claridad ejecutiva.",
-                "Posees la solución exacta para cada desafío que se avecina."
+                "Silencia el ruido externo. Tu santuario interior no tiene fricción."
             ]
         };
 
         const verifiedStreams = [
             "https://www.youtube.com/embed/1ZYbU82GVz4?autoplay=1",
-            "https://www.youtube.com/embed/WPni755-Krg?autoplay=1",
-            "https://www.youtube.com/embed/86MXiKwjhZ8?autoplay=1"
+            "https://www.youtube.com/embed/WPni755-Krg?autoplay=1"
         ];
 
         let usedIndices = [];
@@ -474,25 +480,40 @@
 
         function toggleLanguage() {
             currentLang = currentLang === 'en' ? 'es' : 'en';
-            document.getElementById('lang-btn').innerText = currentLang === 'es' ? 'EN' : 'ES';
+            updateTexts();
+        }
+
+        function updateTexts() {
+            document.getElementById('lang-btn').innerText = currentLang === 'es' ? 'ES' : 'EN';
+            document.getElementById('gate-lang-btn').innerText = currentLang === 'es' ? 'EN / ES' : 'ES / EN';
+            document.getElementById('gate-title').innerText = currentLang === 'es' ? 'AVISO LEGAL Y PROTECCIÓN' : 'LEGAL DISCLAIMER & PROTECTION';
+            document.getElementById('gate-text').innerText = currentLang === 'es' ? 
+                'El acceso a esta plataforma implica la aceptación absoluta de nuestros términos de exención de responsabilidad. Este sistema opera exclusivamente como un facilitador de bienestar privado y orientación general de estilo de vida. No proporciona asesoría médica, legal ni financiera. Al presionar el botón de inicio, usted reconoce que utiliza este servicio bajo su propia discreción y soberanía.' :
+                'Access to this platform implies absolute acceptance of our liability waiver terms. This system operates exclusively as a private wellness facilitator and general lifestyle orientation. It does not provide medical, legal, or financial advice. By pressing start, you acknowledge you use this service under your own discretion.';
+            document.getElementById('gate-start-btn').innerText = currentLang === 'es' ? 'Empezar' : 'Start';
             document.getElementById('wellness-title').innerText = currentLang === 'es' ? 'Bienestar y Antifatiga' : 'Precision Wellness';
             document.getElementById('travel-title').innerText = currentLang === 'es' ? 'Asesor Conversacional' : 'Conversational Advisor';
             document.getElementById('footer-text').innerText = currentLang === 'es' ? 'Sesión Volátil Encriptada. Cero Datos Retenidos.' : 'Encrypted Volatile Session. Zero Data Retained.';
-            document.getElementById('clear-btn').innerText = currentLang === 'es' ? 'Borrar' : 'Clear';
-            document.getElementById('modal-text').innerText = currentLang === 'es' ? 'Inactividad detectada. Toque la pantalla para mantener la sesión.' : 'Inactivity detected. Touch the screen to maintain session.';
-            document.getElementById('travel-input').placeholder = currentLang === 'es' ? 'Escriba su consulta o use los botones conversacionales...' : 'Type your query or use conversational buttons...';
+            document.getElementById('close-btn').innerText = currentLang === 'es' ? 'Cerrar' : 'Close';
+            document.getElementById('travel-input').placeholder = currentLang === 'es' ? 'Escriba su consulta o use los botones de asistencia...' : 'Type your query or use assistance buttons...';
             document.getElementById('objective-desc').innerText = currentLang === 'es' ? 'Opciones cognitivas sin repetición y streams verificados.' : 'Unrepeated cognitive options and verified streams.';
             document.getElementById('audio-btn').innerText = voiceEnabled ? (currentLang === 'es' ? '🔊 Voz: ON' : '🔊 Voice: ON') : (currentLang === 'es' ? '🔊 Voz: OFF' : '🔊 Voice: OFF');
-            document.getElementById('legal-title').innerText = currentLang === 'es' ? 'AVISO LEGAL Y DE EXENCIÓN DE RESPONSABILIDAD' : 'LEGAL DISCLAIMER & EXEMPTION';
-            document.getElementById('legal-body').innerText = currentLang === 'es' ? 
-                'El acceso y uso de esta plataforma implica la aceptación de los siguientes términos de protección. Este sistema proporciona exclusivamente orientación general, bienestar personal y sugerencias de estilo de vida basadas en recomendaciones generales. No constituye asesoría médica, legal, financiera ni gubernamental de ningún tipo. La plataforma opera como un facilitador de bienestar privado y declina cualquier responsabilidad civil o legal sobre las decisiones o acciones tomadas por el usuario final.' :
-                'Accessing and using this platform implies acceptance of these protection terms. This system provides solely general guidance, personal wellness, and lifestyle suggestions based on general recommendations. It does not constitute medical, legal, financial, or governmental advice of any kind. The platform operates as a private wellness facilitator and declines any civil or legal liability.';
+            document.getElementById('mortals-label').innerText = currentLang === 'es' ? 'Uso para mortales' : 'Standard Access';
+            document.getElementById('mortals-sub').innerText = currentLang === 'es' ? 'Enlaces externos' : 'External links';
+            document.getElementById('btn-p1').innerText = currentLang === 'es' ? 'Protocolo Antipánico' : 'Anti-Panic Protocol';
+            document.getElementById('btn-p2').innerText = currentLang === 'es' ? 'Enfoque Ejecutivo' : 'Executive Focus';
+            document.getElementById('btn-p3').innerText = currentLang === 'es' ? 'Restauración Profunda' : 'Deep Restoration';
+            document.getElementById('btn-p4').innerText = currentLang === 'es' ? 'Impulso Antifatiga' : 'Anti-Fatigue Boost';
+            document.getElementById('btn-p5').innerText = currentLang === 'es' ? '⚡ Reto Vital 60s' : '⚡ 60s Vitality Challenge';
+            document.getElementById('btn-p6').innerText = currentLang === 'es' ? '🎵 Frecuencias Antiestrés' : '🎵 Anti-Stress Frequencies';
+            document.getElementById('btn-no').innerText = currentLang === 'es' ? '❓ No sé' : '❓ No Idea';
+            document.getElementById('btn-help').innerText = currentLang === 'es' ? '🤝 Ayúdame' : '🤝 Help Me';
+            document.getElementById('btn-send').innerText = currentLang === 'es' ? 'Enviar Conversación' : 'Send Conversation';
         }
 
         function toggleVoiceGuide() {
             voiceEnabled = !voiceEnabled;
-            const btn = document.getElementById('audio-btn');
-            btn.innerText = voiceEnabled ? (currentLang === 'es' ? '🔊 Voz: ON' : '🔊 Voice: ON') : (currentLang === 'es' ? '🔊 Voz: OFF' : '🔊 Voice: OFF');
+            document.getElementById('audio-btn').innerText = voiceEnabled ? (currentLang === 'es' ? '🔊 Voz: ON' : '🔊 Voice: ON') : (currentLang === 'es' ? '🔊 Voz: OFF' : '🔊 Voice: OFF');
             if (voiceEnabled) speak(currentLang === 'es' ? 'Guía por voz activada.' : 'Voice guide activated.');
         }
 
@@ -559,13 +580,11 @@
             const challengeTexts = currentLang === 'es' ? [
                 "Silencio absoluto: Desconecta el ruido externo por 60 segundos.",
                 "Enfoque: Define con claridad tu próximo destino de paz.",
-                "Reinicio físico: Libera tensión acumulada en hombros y cuello.",
-                "Soberanía: Tu mente decide, el entorno familiar descansa."
+                "Reinicio físico: Libera tensión acumulada en hombros y cuello."
             ] : [
                 "Absolute silence: Disconnect from external noise for 60s.",
                 "Focus: Clearly define your next peaceful destination.",
-                "Physical reset: Release tension accumulated in shoulders.",
-                "Sovereignty: Your mind decides, your family rests."
+                "Physical reset: Release tension accumulated in shoulders."
             ];
             let textIdx = 0;
             speechBox.innerText = challengeTexts[textIdx];
@@ -574,7 +593,7 @@
             currentModeInterval = setInterval(() => {
                 totalTime--;
                 counter.innerText = `${totalTime}s`;
-                if (totalTime % 15 === 0 && textIdx < challengeTexts.length - 1) {
+                if (totalTime % 20 === 0 && textIdx < challengeTexts.length - 1) {
                     textIdx++;
                     speechBox.innerText = challengeTexts[textIdx];
                     speak(challengeTexts[textIdx]);
@@ -601,22 +620,20 @@
             }
         }
 
-        // Conversational "No sé" button mode
         function handleNoIdea() {
             const output = document.getElementById('travel-output');
             const responseText = currentLang === 'es' ?
-                `• Conversación Asistida ("No sé"):\nEntiendo que no tengas una dirección fija en mente. ¿Prefieres una pausa de desconexión en la naturaleza, un entorno alpino reservado o un espacio costero privado? Dime una sola palabra para guiarte.` :
-                `• Assisted Conversation ("No Idea"):\nI understand you lack a fixed destination right now. Do you prefer a natural retreat, an alpine chalet, or a private coastal space? Tell me one word to guide you.`;
+                `• Conversación Asistida ("No sé"):\nEntiendo que no tengas un rumbo fijo. ¿Prefieres desconexión en la naturaleza, un entorno alpino reservado o un espacio costero privado? Dime una sola palabra.` :
+                `• Assisted Conversation ("No Idea"):\nI understand you lack a fixed direction. Do you prefer natural seclusion, an alpine chalet, or a private coastal space? Tell me one word.`;
             output.innerText = responseText;
             speak(responseText);
         }
 
-        // Conversational "Ayúdame" button mode
         function handleHelpMe() {
             const output = document.getElementById('travel-output');
             const responseText = currentLang === 'es' ?
-                `• Conversación Asistida ("Ayúdame"):\nPara darte la opción más segura y adecuada a tu estilo: ¿Buscas descanso personal o un cambio de aires familiar? Respóndeme y te ofrezco la solución directa.` :
-                `• Assisted Conversation ("Help Me"):\nTo provide the safest option suited to your style: Are you seeking personal rest or a family change of scenery? Answer and I will offer the direct solution.`;
+                `• Conversación Asistida ("Ayúdame"):\nPara ofrecerte la opción más segura: ¿Buscas descanso personal o un cambio de aires familiar? Respóndeme y te ofrezco la solución directa.` :
+                `• Assisted Conversation ("Help Me"):\nTo offer the safest option: Are you seeking personal rest or a family change of scenery? Answer and I will offer the direct solution.`;
             output.innerText = responseText;
             speak(responseText);
         }
@@ -625,7 +642,7 @@
             const input = document.getElementById('travel-input').value.trim();
             const output = document.getElementById('travel-output');
             if (!input) {
-                output.innerText = currentLang === 'es' ? 'Por favor, escribe tu mensaje o usa los botones de asistencia conversacional.' : 'Please type your message or use conversational assistance buttons.';
+                output.innerText = currentLang === 'es' ? 'Por favor, escribe tu mensaje o usa los botones de asistencia.' : 'Please type your message or use assistance buttons.';
                 return;
             }
 
@@ -634,49 +651,18 @@
 
             setTimeout(() => {
                 let responseText = currentLang === 'es' ?
-                    `• Sugerencia General de Bienestar:\nPara tu tranquilidad y descanso óptimo, te sugiero considerar una escapada breve a un entorno natural aislado o un espacio de máxima privacidad. Esto aporta estabilidad sin complicaciones operativas.\n• ¿Deseas explorar alguna alternativa adicional?` :
-                    `• General Wellness Suggestion:\nFor your peace of mind and optimal rest, I suggest considering a brief getaway to an isolated natural setting or a private sanctuary. This provides stability without operational friction.\n• Would you like to explore an alternative?`;
+                    `• Sugerencia General de Bienestar:\nPara tu tranquilidad y descanso óptimo, te sugiero considerar una escapada breve a un entorno natural aislado o un espacio de máxima privacidad. Esto aporta estabilidad sin complicaciones.\n• ¿Deseas explorar alguna alternativa adicional?` :
+                    `• General Wellness Suggestion:\nFor your peace of mind and optimal rest, I suggest considering a brief getaway to an isolated natural setting or a private sanctuary. This provides stability without complications.\n• Would you like to explore an alternative?`;
                 output.innerText = responseText;
                 speak(responseText);
             }, 1000);
         }
 
-        function clearData() {
-            document.getElementById('travel-input').value = '';
-            document.getElementById('travel-output').innerText = currentLang === 'es' ? 'Conversación depurada.' : 'Conversation cleared.';
-            if (currentModeInterval) clearInterval(currentModeInterval);
-            if (phraseInterval) clearInterval(phraseInterval);
-            document.getElementById('b-phase').innerText = 'Ready';
-            document.getElementById('b-counter').innerText = '0s';
-            document.getElementById('b-circle').style.transform = 'scale(1)';
-            document.getElementById('dynamic-speech').innerText = 'Select a wellness objective to begin unrepeated neural alignment...';
-            document.getElementById('yt-container').style.display = 'none';
-            document.getElementById('yt-player').src = '';
+        function toggleMortalsDrawer() {
+            const drawer = document.getElementById('mortals-drawer');
+            drawer.style.display = drawer.style.display === 'block' ? 'none' : 'block';
+            updateMapsLink();
         }
-
-        let inactivityTimer = setTimeout(() => {
-            document.getElementById('warning-modal').style.display = 'flex';
-        }, 59000);
-
-        function resetTimer() {
-            clearTimeout(inactivityTimer);
-            const modal = document.getElementById('warning-modal');
-            if (modal) modal.style.display = 'none';
-            inactivityTimer = setTimeout(() => {
-                document.getElementById('warning-modal').style.display = 'flex';
-            }, 59000);
-        }
-
-        function dismissWarning() {
-            resetTimer();
-        }
-
-        window.onload = () => {
-            window.addEventListener('mousemove', resetTimer);
-            window.addEventListener('keypress', resetTimer);
-            window.addEventListener('touchstart', resetTimer);
-            resetTimer();
-        };
     </script>
 </body>
 </html>
