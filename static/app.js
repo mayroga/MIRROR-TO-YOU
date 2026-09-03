@@ -70,8 +70,41 @@ async function sendTravelRequest() {
     if (!input) return;
 
     const output = document.getElementById('travel-output');
-    output.innerText = currentLang === 'es' ? 'Procesando directiva con inteligencia artificial...' : 'Processing directive with artificial intelligence...';
+    output.innerText = currentLang === 'es' ? 'Procesando directiva con el asesor privado...' : 'Processing directive with private advisor...';
 
+    // Añadir mensaje del usuario a la memoria local
+    conversationMemory.push({ role: 'user', content: input });
+    
+    if (conversationMemory.length > MAX_MEMORY_TURNS * 2) {
+        conversationMemory = conversationMemory.slice(-MAX_MEMORY_TURNS * 2);
+    }
+
+    inputField.value = '';
+
+    try {
+        const response = await fetch('/api/chat', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                messages: conversationMemory,
+                lang: currentLang
+            })
+        });
+
+        const data = await response.json();
+
+        if (response.ok && data.reply) {
+            conversationMemory.push({ role: 'assistant', content: data.reply });
+            output.innerText = data.reply;
+        } else {
+            output.innerText = data.error || (currentLang === 'es' ? 'Error al procesar la directiva.' : 'Error processing directive.');
+        }
+    } catch (error) {
+        output.innerText = currentLang === 'es' ? 'Error temporal de enlace con el servidor de asesoría.' : 'Temporary advisory server link error.';
+    }
+}
     // Añadir mensaje del usuario a la memoria local
     conversationMemory.push({ role: 'user', content: input });
     
