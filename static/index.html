@@ -1,5 +1,6 @@
+static/index.html
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
@@ -9,7 +10,7 @@
 </head>
 <body>
     <div id="app">
-        <!-- Control bilingüe instantáneo y acceso a memoria sin fricción -->
+        <!-- Barra superior ultra-limpia sin textos corporativos explicativos -->
         <header class="luxury-header">
             <div class="mirror-logo" onclick="window.location.reload()">
                 <span class="logo-orb"></span>
@@ -22,64 +23,64 @@
         </header>
 
         <main class="luxury-main">
-            <!-- PANTALLA PRINCIPAL: Enfocada, limpia, directa -->
+            <!-- PANTALLA PRINCIPAL: Consola de control directa y fluida -->
             <section id="mainDeck" class="deck active">
                 <div class="hero-section">
-                    <h1 id="heroTitle">Streamlined Execution.</h1>
-                    <p id="heroSub">Your private ecosystem. Speak or input your requirements below.</p>
+                    <h1 id="heroTitle"></h1>
+                    <p id="heroSub"></p>
                 </div>
 
-                <!-- Objetivos Dinámicos del Cliente (Aparece fluidamente) -->
+                <!-- Panel de Objetivos Dinámicos: La IA controla y escribe todo aquí -->
                 <div id="planArea" class="plan-panel hidden">
                     <div class="panel-header">
-                        <span class="status-badge">LIVE DIRECTION</span>
-                        <h2 id="planTitle">Autonomous Coordination</h2>
+                        <span id="statusBadge" class="status-badge"></span>
+                        <h2 id="planTitle"></h2>
                     </div>
                     <p id="planReply" class="premium-reply"></p>
                     <div id="directions" class="premium-directions"></div>
                     
                     <div id="planActions" class="action-grid">
-                        <button id="mapsButton" class="luxury-action-btn" type="button">✨ Exclusive Maps</button>
-                        <button id="musicButton" class="luxury-action-btn" type="button">🎵 Acoustic Space</button>
-                        <button id="conciergeButton" class="luxury-action-btn primary-gold" type="button">✦ Request Concierge</button>
+                        <button id="mapsButton" class="luxury-action-btn hidden" type="button"></button>
+                        <button id="musicButton" class="luxury-action-btn hidden" type="button"></button>
+                        <button id="conciergeButton" class="luxury-action-btn primary-gold hidden" type="button"></button>
                     </div>
                 </div>
 
-                <!-- Círculo Respiratorio Profesional Integrado y Variable (No intrusivo) -->
+                <!-- Círculo Respiratorio Profesional: Sin textos fijos, los objetivos cambian dinámicamente -->
                 <div id="breathingArea" class="breathing-panel hidden">
                     <div class="orb-container">
                         <div id="breathingOrb" class="professional-orb">
                             <div class="orb-inner">
-                                <span id="breathingPhase">READY</span>
+                                <span id="breathingPhase"></span>
                                 <strong id="breathingTimer">04:00</strong>
                             </div>
                         </div>
                     </div>
                     <div class="orb-meta">
-                        <p id="breathingInstruction">Tap to sync your rhythm.</p>
-                        <button id="breathingControlBtn" class="control-pill" type="button">Begin</button>
+                        <p id="breathingInstruction"></p>
+                        <button id="breathingControlBtn" class="control-pill" type="button"></button>
                     </div>
                 </div>
             </section>
 
-            <!-- PANTALLA DE MEMORIA Y PREFERENCIAS -->
+            <!-- PANTALLA DE CONTEXTO SEGURO Y PREFERENCIAS -->
             <section id="memoryScreen" class="deck">
                 <div class="deck-header">
-                    <button id="closeMemory" class="close-btn" type="button">← Back</button>
-                    <h2>System Memory & Ecosystem</h2>
+                    <button id="closeMemory" class="close-btn" type="button"></button>
+                    <h2 id="memoryTitle"></h2>
                 </div>
                 <div id="memorySummary" class="memory-grid"></div>
                 <div class="memory-footer">
-                    <button id="clearMemoryButton" class="danger-pill" type="button">Purge Local Context</button>
+                    <button id="clearMemoryButton" class="danger-pill" type="button"></button>
                 </div>
             </section>
         </main>
 
-        <!-- COMPOSER BAR: La única barra permanente para control fluido por voz o texto -->
+        <!-- BARRA DE COMANDO PERMANENTE: Control absoluto por voz o escritura -->
         <footer class="luxury-footer">
             <div class="composer-container">
                 <button id="voiceButton" class="action-trigger mic-trigger" type="button" aria-label="Voice Command">●</button>
-                <textarea id="messageInput" rows="1" placeholder="Command your rhythm..." aria-label="Context entry"></textarea>
+                <textarea id="messageInput" rows="1" aria-label="Context entry"></textarea>
                 <button id="sendButton" class="action-trigger send-trigger" type="button" aria-label="Execute">↑</button>
             </div>
             <div id="voiceStatus" class="voice-status-bar hidden"></div>
