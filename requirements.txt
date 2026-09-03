@@ -1,7 +1,7 @@
 fastapi
 uvicorn
-reportlab
 pydantic
 jinja2
 reportlab
 stripe
+httpx
