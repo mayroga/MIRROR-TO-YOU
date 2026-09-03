@@ -42,7 +42,6 @@
         .glow-gold {
             box-shadow: 0 0 50px -15px rgba(197, 160, 89, 0.12);
         }
-        /* Breathing Circle Animations */
         @keyframes breathe {
             0%, 100% { transform: scale(1); border-color: rgba(197, 160, 89, 0.3); box-shadow: 0 0 20px rgba(197, 160, 89, 0.1); }
             40% { transform: scale(1.35); border-color: rgba(197, 160, 89, 0.9); box-shadow: 0 0 50px rgba(197, 160, 89, 0.4); }
@@ -130,7 +129,7 @@
                 </div>
             </div>
 
-            <!-- SECTION 2: Interactive Destination Matrix (Replacing Google Maps with Clean Luxury UI) -->
+            <!-- SECTION 2: Interactive Destination Matrix -->
             <div class="space-y-6">
                 <div class="flex items-center justify-between">
                     <h2 class="text-xs uppercase tracking-[0.2em] text-gold font-medium">Global Secure Destination Matrix</h2>
@@ -170,21 +169,19 @@
                 </div>
             </div>
 
-            <!-- SECTION 3: Private Sanctuary (Assisted Breathing Circle) -->
+            <!-- SECTION 3: Private Sanctuary (Dynamic & Breathing Circle) -->
             <div class="glass-panel p-8 rounded-none glow-gold flex flex-col items-center text-center space-y-6">
                 <div class="space-y-2">
                     <span class="text-[10px] uppercase tracking-[0.3em] text-gold font-medium block">Private Sanctuary</span>
-                    <h2 class="font-serif text-2xl text-white">Centered Composure</h2>
-                    <p class="text-xs text-platinum/50 max-w-md mx-auto font-light">
+                    <h2 id="sanctuaryTitle" class="font-serif text-2xl text-white">Centered Composure</h2>
+                    <p id="sanctuarySubtitle" class="text-xs text-platinum/50 max-w-md mx-auto font-light">
                         Follow the rhythmic expansion and contraction to harmonize focus before your next journey.
                     </p>
                 </div>
 
                 <!-- Well-Made Breathing Circle Container -->
                 <div class="relative w-48 h-48 flex items-center justify-center my-4">
-                    <!-- Outer pulsating ring -->
                     <div class="absolute inset-0 rounded-full border-2 border-gold/40 breathing-ring pointer-events-none"></div>
-                    <!-- Inner core circle -->
                     <div class="w-32 h-32 rounded-full bg-gradient-to-br from-gold/20 to-gold/5 border border-gold flex flex-col items-center justify-center shadow-lg">
                         <span id="breathInstruction" class="text-xs uppercase tracking-widest text-white font-medium">Inhale</span>
                         <span id="breathTimer" class="text-[10px] font-mono text-gold mt-1">4s</span>
@@ -205,6 +202,34 @@
     </footer>
 
     <script>
+        // Dynamic Sanctuary Variations (Changes on every load)
+        const sanctuaryVariations = [
+            {
+                title: "Centered Composure",
+                subtitle: "Harmonize focus and clarity before your next directive."
+            },
+            {
+                title: "Absolute Tranquility",
+                subtitle: "Allow time to slow down. Your requests are handled with absolute discretion."
+            },
+            {
+                title: "Executive Clarity",
+                subtitle: "Clear your thoughts. Precision begins with a quiet mind."
+            },
+            {
+                title: "Refined Perspective",
+                subtitle: "Take a brief pause. We take care of every detail behind the scenes."
+            }
+        ];
+
+        function initializeSanctuary() {
+            const randomChoice = sanctuaryVariations[Math.floor(Math.random() * sanctuaryVariations.length)];
+            document.getElementById('sanctuaryTitle').textContent = randomChoice.title;
+            document.getElementById('sanctuarySubtitle').textContent = randomChoice.subtitle;
+        }
+
+        initializeSanctuary();
+
         // Destination Matrix Selector
         function selectDestination(name, coords, meta) {
             document.getElementById('selectedDestName').textContent = name;
@@ -232,7 +257,6 @@
             step = (step + 1) % instructions.length;
         }
 
-        // Run interval every 4 seconds for a natural cadence (4s inhale, 4s hold, 4s exhale, 4s hold)
         breathInterval = setInterval(startBreathingCycle, 4000);
 
         function toggleBreathing() {
@@ -244,12 +268,12 @@
                 clearInterval(breathInterval);
                 btn.textContent = "Resume Sanctuary";
                 btn.classList.replace('text-gold', 'text-platinum/50');
-                ring.style.animationPlayState = 'paused';
+                if(ring) ring.style.animationPlayState = 'paused';
             } else {
                 breathInterval = setInterval(startBreathingCycle, 4000);
                 btn.textContent = "Pause Sanctuary";
                 btn.classList.replace('text-platinum/50', 'text-gold');
-                ring.style.animationPlayState = 'running';
+                if(ring) ring.style.animationPlayState = 'running';
             }
         }
     </script>
