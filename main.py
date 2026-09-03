@@ -35,11 +35,18 @@ class MirrorRequest(BaseModel):
 async def home():
     return FileResponse(STATIC / "index.html")
 
+# main.py (Fragmento corregido del endpoint /api/mirror)
+
 @app.post("/api/mirror")
 async def mirror(data: MirrorRequest):
+    message = data.message.strip()
+    if not message:
+        return JSONResponse({"ok": False, "error": "Empty contextual message."}, status_code=400)
+
     memory_dict = data.memory.model_dump()
     
-    ai_plan = process(data.message.strip(), memory_dict)
+    # Procesa de forma unificada comandos de botón o textos libres del chat
+    ai_plan = process(message, memory_dict)
     
     memory_dict["history"].append({
         "at": datetime.now().isoformat(),
@@ -49,17 +56,17 @@ async def mirror(data: MirrorRequest):
     memory_dict["moment"] = {
         "intent": ai_plan.get("intent"),
         "language": ai_plan.get("language"),
-        "destination": ai_plan.get("premium_destination_query"),
-        "status_color_zone": ai_plan.get("status_color_zone")
+        "destination": ai_plan.get("premium_destination_query")
     }
 
-return {
-    "ok": True,
-    "message": ai_plan.get("reply"), # Acceso directo y seguro mediante .get() al plano de la IA
-    "understanding": memory_dict["moment"], # Lectura sincronizada de la huella local actualizada
-    "plan": ai_plan,
-    "memory": memory_dict
-}
+    # Toda esta estructura debe llevar obligatoriamente 4 espacios de indentación hacia la derecha
+    return {
+        "ok": True,
+        "message": ai_plan.get("reply"),
+        "understanding": memory_dict["moment"],
+        "plan": ai_plan,
+        "memory": memory_dict
+    }
 
 @app.get("/api/maps")
 async def maps(destination: str = ""):
