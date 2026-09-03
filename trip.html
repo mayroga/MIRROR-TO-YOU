@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Journey Details — MIRROR TO YOU</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        obsidian: '#0a0a0a',
+                        surface: '#121212',
+                        card: '#18181b',
+                        gold: {
+                            light: '#e2c999',
+                            DEFAULT: '#c5a059',
+                            dark: '#9a7b38'
+                        },
+                        platinum: '#e5e7eb'
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        serif: ['Playfair Display', 'serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .font-serif { font-family: 'Playfair Display', serif; }
+        .glass-panel {
+            background: rgba(24, 24, 27, 0.7);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(197, 160, 89, 0.15);
+        }
+        .glow-gold {
+            box-shadow: 0 0 40px -10px rgba(197, 160, 89, 0.15);
+        }
+        .text-gradient {
+            background: linear-gradient(135deg, #ffffff 0%, #e2c999 50%, #c5a059 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+    </style>
+</head>
+<body class="bg-obsidian text-platinum antialiased min-h-screen flex flex-col justify-between selection:bg-gold selection:text-obsidian">
+
+    <!-- Header / Navigation -->
+    <header class="fixed top-0 left-0 right-0 z-50 glass-panel border-b border-white/5">
+        <div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+            <a href="index.html" class="flex items-center space-x-3 group">
+                <div class="w-8 h-8 rounded-full border border-gold/40 flex items-center justify-center transition-colors group-hover:border-gold">
+                    <div class="w-2 h-2 rounded-full bg-gold"></div>
+                </div>
+                <span class="font-serif tracking-[0.2em] text-lg text-platinum font-medium">MIRROR TO YOU</span>
+            </a>
+
+            <nav class="hidden md:flex items-center space-x-8 text-sm tracking-widest text-platinum/70 uppercase font-light">
+                <a href="dashboard.html" class="hover:text-gold transition-colors">Dashboard</a>
+                <a href="concierge.html" class="hover:text-gold transition-colors">Concierge</a>
+                <a href="travel.html" class="text-gold font-medium">Journeys</a>
+                <a href="profile.html" class="hover:text-gold transition-colors">My Profile</a>
+            </nav>
+
+            <div class="flex items-center space-x-4">
+                <span class="text-xs tracking-widest text-gold uppercase px-3 py-1 border border-gold/30 bg-gold/5 hidden sm:inline-block">Private Account</span>
+                <a href="settings.html" class="text-xs tracking-widest text-platinum/80 hover:text-gold uppercase px-3 py-2 transition-colors">Settings</a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-grow pt-28 pb-16 px-6">
+        <div class="max-w-5xl mx-auto">
+            
+            <!-- Breadcrumb / Back -->
+            <div class="mb-6">
+                <a href="travel.html" class="text-xs uppercase tracking-widest text-gold hover:underline flex items-center space-x-2">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 19l-7-7 7-7"></path></svg>
+                    <span>Back to Private Journeys</span>
+                </a>
+            </div>
+
+            <!-- Page Title Section -->
+            <div class="mb-10 border-b border-white/10 pb-6 flex flex-col md:flex-row md:items-end justify-between gap-4">
+                <div>
+                    <span class="text-xs uppercase tracking-[0.25em] text-gold font-medium block mb-2">DEMO Journey Specification</span>
+                    <h1 class="font-serif text-3xl sm:text-4xl text-white">Lake Como Private Villa Retreat</h1>
+                </div>
+                <div class="flex items-center space-x-3">
+                    <span class="text-[10px] uppercase tracking-widest bg-gold/10 text-gold px-3 py-1.5 border border-gold/30">Confirmed Logistics</span>
+                    <button onclick="handleTripAction('print')" class="bg-obsidian border border-white/20 text-xs tracking-widest uppercase px-4 py-2 hover:border-gold transition-colors text-platinum">Print / PDF</button>
+                </div>
+            </div>
+
+            <!-- Trip Overview Cards -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-8">
+                <div class="glass-panel p-6 rounded-none">
+                    <span class="text-[10px] uppercase tracking-widest text-platinum/40 block mb-1">Destination</span>
+                    <div class="text-lg font-serif text-white">Lake Como, Italy</div>
+                    <span class="text-xs text-gold uppercase tracking-wider">Villa d'Este Suite</span>
+                </div>
+                <div class="glass-panel p-6 rounded-none">
+                    <span class="text-[10px] uppercase tracking-widest text-platinum/40 block mb-1">Duration & Dates</span>
+                    <div class="text-lg font-serif text-white">5 Days / 4 Nights</div>
+                    <span class="text-xs text-platinum/60 uppercase tracking-wider">October 14 – October 18</span>
+                </div>
+                <div class="glass-panel p-6 rounded-none">
+                    <span class="text-[10px] uppercase tracking-widest text-platinum/40 block mb-1">Assigned Support</span>
+                    <div class="text-lg font-serif text-white">Desk Alpha & AI</div>
+                    <span class="text-xs text-gold uppercase tracking-wider">24/7 Dedicated Concierge</span>
+                </div>
+            </div>
+
+            <!-- Detailed Logistics Sections -->
+            <div class="space-y-6 mb-10">
+                
+                <!-- Flight & Transfer Logistics -->
+                <div class="glass-panel p-6 sm:p-8 rounded-none">
+                    <h2 class="font-serif text-xl text-white mb-4 border-b border-white/10 pb-3 flex items-center justify-between">
+                        <span>Flight & Air Transfer</span>
+                        <span class="text-xs text-gold uppercase tracking-widest">Private Charter / Zero Stops</span>
+                    </h2>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 text-xs text-platinum/80">
+                        <div>
+                            <span class="text-platinum/40 uppercase tracking-widest block mb-1">Departure Route</span>
+                            <p class="font-medium text-white mb-2">Private Aviation Terminal &rarr; Milan Malpensa (MXP)</p>
+                            <p class="text-platinum/60">Aircraft: Bombardier Global 7500. VIP handling and tarmac direct vehicle transfer pre-arranged.</p>
+                        </div>
+                        <div>
+                            <span class="text-platinum/40 uppercase tracking-widest block mb-1">Ground Transfer</span>
+                            <p class="font-medium text-white mb-2">Chauffeur-Driven Maybach S-Class</p>
+                            <p class="text-platinum/60">Direct escort from MXP tarmac to Villa d'Este private entrance (approx. 55 mins).</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Accommodation & Curation -->
+                <div class="glass-panel p-6 sm:p-8 rounded-none">
+                    <h2 class="font-serif text-xl text-white mb-4 border-b border-white/10 pb-3 flex items-center justify-between">
+                        <span>Accommodation & Experiences</span>
+                        <span class="text-xs text-gold uppercase tracking-widest">Confirmed Reservation</span>
+                    </h2>
+                    <div class="space-y-4 text-xs text-platinum/80">
+                        <div class="border-b border-white/5 pb-3">
+                            <span class="text-platinum/40 uppercase tracking-widest block mb-1">Primary Accommodation</span>
+                            <p class="font-medium text-white text-sm">Villa d'Este — Cardinal Suite with Private Lakefront Balcony</p>
+                            <p class="text-platinum/60 mt-1">Pre-stocked with preferred vintage champagne and customized organic amenities matching your profile preferences.</p>
+                        </div>
+                        <div>
+                            <span class="text-platinum/40 uppercase tracking-widest block mb-1">Curated Experiences Included</span>
+                            <ul class="list-disc list-inside space-y-1 text-platinum/70 mt-2">
+                                <li>Private Riva boat sunset cruise with closed-door sommelier tasting on the water.</li>
+                                <li>Closed-door private dining reservation at Michelin 3-star establishment (Bellagio private room).</li>
+                                <li>Private architectural tour of historical villas accompanied by authorized historian.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Action Feedback / FastAPI Ready Controls -->
+            <div class="flex items-center justify-between glass-panel p-6 rounded-none">
+                <span id="tripFeedback" class="text-xs text-gold uppercase tracking-widest hidden">Journey specifications updated via secure desk sync.</span>
+                <div class="flex items-center space-x-4 ml-auto">
+                    <a href="itinerary.html" class="bg-obsidian border border-white/20 text-xs tracking-widest uppercase px-6 py-3 hover:border-gold transition-colors text-platinum">View Day-by-Day Itinerary</a>
+                    <button onclick="handleTripAction('modify')" class="bg-gold text-obsidian text-xs tracking-widest uppercase px-6 py-3 font-medium hover:bg-gold-light transition-all">Request Modification</button>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="border-t border-white/5 py-8 text-center text-xs tracking-widest text-platinum/40 uppercase">
+        <div class="max-w-7xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <p>&copy; 2026 Mirror To You. Private Account Only.</p>
+            <div class="flex space-x-6">
+                <a href="dashboard.html" class="hover:text-gold transition-colors">Dashboard</a>
+                <a href="concierge.html" class="hover:text-gold transition-colors">Concierge Desk</a>
+                <a href="settings.html" class="hover:text-gold transition-colors">Security</a>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Frontend Demo Handler for Trip Action (Ready for FastAPI endpoint integration)
+        function handleTripAction(actionType) {
+            const feedback = document.getElementById('tripFeedback');
+            
+            const payload = {
+                trip_id: "DEMO_LAKE_COMO_01",
+                action: actionType,
+                timestamp: new Date().toISOString()
+            };
+
+            // In production, this will connect via fetch('/api/v1/trip/action', { method: 'POST', body: JSON.stringify(payload) })
+            console.log("DEMO FastAPI Trip Action Payload:", payload);
+
+            if(actionType === 'print') {
+                window.print();
+                return;
+            }
+
+            feedback.textContent = actionType === 'modify' 
+                ? "Modification request sent to your assigned concierge desk." 
+                : "Journey specifications synchronized successfully.";
+            
+            feedback.classList.remove('hidden');
+            setTimeout(() => {
+                feedback.classList.add('hidden');
+            }, 5000);
+        }
+    </script>
+</body>
+</html>
