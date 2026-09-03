@@ -696,39 +696,51 @@ function toggleMortalsDrawer() {
             updateMapsLink();
         }         
 
-        // Funciones para el Asesor de Viajes Privado
+        let localAdvisorLang = 'es';
+
         function toggleTravelAdvisorModal() {
             const modal = document.getElementById('travel-advisor-modal');
             modal.style.display = modal.style.display === 'flex' ? 'none' : 'flex';
         }
 
-        function updateAdvisorLanguage(lang) {
+        function toggleAdvisorLang() {
+            localAdvisorLang = localAdvisorLang === 'es' ? 'en' : 'es';
+            const langBtn = document.getElementById('advisor-lang-btn');
+            langBtn.innerText = localAdvisorLang.toUpperCase();
+
             const floatText = document.getElementById('float-btn-text');
             const advisorTitle = document.getElementById('modal-advisor-title');
             const advisorDesc = document.getElementById('modal-advisor-desc');
             const waLabel = document.getElementById('wa-btn-label');
             const emailLabel = document.getElementById('email-btn-label');
+            const waLink = document.getElementById('whatsapp-link');
 
-            if (lang === 'en') {
-                floatText.innerText = 'Private Travel Advisory';
+            if (localAdvisorLang === 'en') {
+                floatText.innerText = 'Private Travel Consulting';
                 advisorTitle.innerText = 'May Roga LLC - Luxury Travel';
-                advisorDesc.innerText = 'Connect directly with your certified private advisor to design custom itineraries and manage exclusive bookings.';
+                advisorDesc.innerText = 'Connect directly with your certified private advisor to design tailor-made itineraries and manage your exclusive reservations.';
                 waLabel.innerText = 'Direct WhatsApp Chat';
-                emailLabel.innerText = 'Send Email Inquiry';
+                emailLabel.innerText = 'Send Email';
+                waLink.href = 'https://wa.me/17866471371?text=Hello%20Maykel,%20I%20came%20from%20the%20app%20and%20want%20to%20quote%20a%20private%20trip%20or%20itinerary.';
             } else {
                 floatText.innerText = 'Asesoría de Viaje Privada';
                 advisorTitle.innerText = 'May Roga LLC - Viajes de Lujo';
                 advisorDesc.innerText = 'Conecta directamente con tu asesor privado certificado para diseñar itinerarios a la medida y gestionar tus reservas exclusivas.';
                 waLabel.innerText = 'Chat Directo por WhatsApp';
                 emailLabel.innerText = 'Enviar Correo Electrónico';
+                waLink.href = 'https://wa.me/17866471371?text=Hola%20Maykel,%20vengo%20de%20la%20aplicación%20y%20deseo%20cotizar%20un%20viaje%20o%20itinerario%20privado.';
             }
         }
     </script>
 
-    <!-- Botón Flotante y Modal de Asesoría de Viaje (Fuera del script pero dentro del body) -->
-    <div id="travel-advisor-float" style="position: fixed; bottom: 20px; right: 20px; z-index: 1500;">
+    <!-- Botón Flotante y Modal de Asesoría de Viaje con Selector de Idioma Transparente -->
+    <div id="travel-advisor-float" style="position: fixed; bottom: 20px; right: 20px; z-index: 1500; display: flex; align-items: center; gap: 8px;">
+        <button onclick="toggleAdvisorLang()" id="advisor-lang-btn" style="background: rgba(255, 255, 255, 0.15); backdrop-filter: blur(5px); border: 1px solid rgba(255, 255, 255, 0.3); color: var(--text-main, #ffffff); padding: 10px 12px; border-radius: 50%; font-weight: 600; font-size: 0.8rem; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.3); transition: background 0.2s ease;" title="Cambiar Idioma / Switch Language">
+            ES
+        </button>
+
         <button onclick="toggleTravelAdvisorModal()" style="background-color: var(--accent-color); color: var(--bg-color); border: none; padding: 12px 20px; border-radius: 30px; font-weight: 600; font-size: 0.9rem; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.5); display: flex; align-items: center; gap: 8px; transition: transform 0.2s ease;">
-            ✈️ <span id="float-btn-text">Private Travel Consulting</span>
+            ✈️ <span id="float-btn-text">Asesoría de Viaje Privada</span>
         </button>
     </div>
 
@@ -736,17 +748,17 @@ function toggleMortalsDrawer() {
         <div class="legal-box" style="position: relative; max-width: 450px;">
             <button onclick="toggleTravelAdvisorModal()" style="position: absolute; top: 15px; right: 15px; background: none; border: none; color: var(--text-muted); font-size: 1.2rem; cursor: pointer;">✕</button>
             
-            <h2 id="modal-advisor-title" style="color: var(--accent-color); margin-bottom: 10px;">May Roga LLC - Luxury Travel</h2>
+            <h2 id="modal-advisor-title" style="color: var(--accent-color); margin-bottom: 10px;">May Roga LLC - Viajes de Lujo</h2>
             <p id="modal-advisor-desc" style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 20px; text-align: left;">
-                Connect directly with your certified private advisor to design tailor-made itineraries and manage your exclusive reservations.
+                Conecta directamente con tu asesor privado certificado para diseñar itinerarios a la medida y gestionar tus reservas exclusivas.
             </p>
 
             <div style="display: flex; flex-direction: column; gap: 12px;">
                 <a id="whatsapp-link" href="https://wa.me/17866471371?text=Hola%20Maykel,%20vengo%2520de%20la%20aplicación%20y%20deseo%20cotizar%20un%20viaje%20o%20itinerario%20privado." target="_blank" style="background: #25d366; color: #ffffff; padding: 12px; border-radius: 6px; text-decoration: none; font-weight: 600; font-size: 0.95rem; display: flex; align-items: center; justify-content: center; gap: 8px;">
-                    💬 <span id="wa-btn-label">Direct WhatsApp Chat</span>
+                    💬 <span id="wa-btn-label">Chat Directo por WhatsApp</span>
                 </a>
                 <a id="email-link" href="mailto:maykel75122805321@gmail.com?subject=Solicitud%20de%20Asesoría%20de%20Viaje%20Privada" style="background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-main); padding: 12px; border-radius: 6px; text-decoration: none; font-weight: 600; font-size: 0.95rem; display: flex; align-items: center; justify-content: center; gap: 8px;">
-                    ✉️ <span id="email-btn-label">Send Email</span>
+                    ✉️ <span id="email-btn-label">Enviar Correo Electrónico</span>
                 </a>
             </div>
         </div>
