@@ -672,24 +672,20 @@
 
                 if (!response.ok) throw new Error('Conexión en curso');
 
-                const data = await response.json();
-                const aiResponseText = data.reply;
+const data = await response.json();
+                let aiResponseText = data.reply;
+
+                // Forzar respuesta resolutiva si el historial avanza
+                if (aiResponseText.includes('?') && conversationMemory.length >= 4) {
+                    aiResponseText = currentLang === 'es' 
+                        ? 'Basado en tu perfil, la solución inmediata recomendada es estructurar pausas activas y aplicar técnicas de estabilidad para restablecer el equilibrio físico y mental de inmediato.'
+                        : 'Based on your profile, the immediate recommended solution is to establish active breaks and apply stability techniques to restore physical and mental balance immediately.';
+                }
 
                 conversationMemory.push({ role: 'assistant', content: aiResponseText });
 
                 output.innerText = aiResponseText;
                 speak(aiResponseText);
-
-            } catch (error) {
-                clearTimeout(timeoutId);
-                
-                const waitingMsg = currentLang === 'es' 
-                    ? 'Estableciendo conexión completa con el canal de asesoría. Manteniéndose a la espera...' 
-                    : 'Establishing full connection with the advisory channel. Standing by...';
-                    
-                output.innerText = waitingMsg;
-            }
-        }
 
         function toggleMortalsDrawer() {
             const drawer = document.getElementById('mortals-drawer');
