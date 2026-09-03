@@ -2,183 +2,234 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="theme-color" content="#0b0b0b">
-<title>MIRROR TO YOU — Private Life Concierge</title>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0b0d12">
+<meta name="description" content="MIRROR TO YOU — The Private Life Concierge">
+<title>MIRROR TO YOU</title>
 <link rel="stylesheet" href="/static/style.css">
 </head>
-
 <body>
+<div id="app">
+
 <header class="topbar">
-  <a class="brand" href="/">MIRROR <span>TO YOU</span></a>
-  <span class="private-mode">PRIVATE MODE</span>
-</header>
-
-<main class="container">
-
-<section class="hero">
-  <p class="eyebrow">THE PRIVATE LIFE CONCIERGE</p>
-  <h1>What can I take care of for you?</h1>
-  <p class="intro">
-    Don't search. Tell MIRROR what you need.
-    Write it or speak it. MIRROR will understand, personalize,
-    decide and shape the right direction for you.
-  </p>
-
-  <div class="request-box">
-    <textarea id="requestInput"
-      placeholder="Tell MIRROR what you need..."
-      aria-label="Tell MIRROR what you need"></textarea>
-
-    <div class="request-actions">
-      <button id="voiceButton" class="icon-button" aria-label="Speak to MIRROR">◉</button>
-      <button id="clearButton" class="icon-button" aria-label="Clear">×</button>
-      <button id="askMirrorButton" class="primary-button">ASK MIRROR</button>
+  <div class="brand">
+    <span class="brand-mark">M</span>
+    <div>
+      <div class="brand-name">MIRROR</div>
+      <div class="brand-sub">TO YOU</div>
     </div>
   </div>
+  <button id="memoryButton" class="icon-button" type="button" aria-label="Memory">◌</button>
+</header>
 
-  <div class="suggestions">
-    <button data-request="I need a private escape.">Private escape</button>
-    <button data-request="Surprise me. I want something exceptional.">Surprise me</button>
-    <button data-request="I want to travel somewhere special.">Travel</button>
-    <button data-request="I need help with something private.">Private life</button>
-  </div>
-</section>
+<main>
 
-
-<section id="responsePanel" class="panel" hidden>
-  <div class="panel-label">MIRROR RESPONSE</div>
-  <div class="response-row">
-    <p id="mirrorResponse"></p>
-    <button id="speakButton" class="secondary-button">◉ SPEAK</button>
-  </div>
-</section>
-
-
-<section id="understandingPanel" class="understanding" hidden></section>
-
-
-<section id="planPanel" class="panel plan-panel" hidden>
-  <div class="panel-label">YOUR MIRROR DIRECTION</div>
-
-  <h2 id="planTitle">Your MIRROR proposal</h2>
-  <small id="missionId" class="mission-id"></small>
-
-  <div class="plan-meta">
-    <div><small>TYPE</small><strong id="planCategory">—</strong></div>
-    <div><small>PRIVACY</small><strong id="planPrivacy">—</strong></div>
-    <div><small>PRIORITY</small><strong id="planPriority">—</strong></div>
-    <div><small>BUDGET</small><strong id="planBudget">—</strong></div>
-    <div><small>DESTINATION</small><strong id="planDestination">—</strong></div>
-  </div>
-
-  <ul id="planDetails" class="plan-details"></ul>
-
-  <div class="direction">
-    <p class="panel-label">WHAT MIRROR IS THINKING</p>
-    <ol id="planSteps"></ol>
-  </div>
-
-  <div class="plan-actions">
-    <button id="thisFeelsRightButton" class="primary-button">
-      THIS FEELS RIGHT
-    </button>
-
-    <button id="makeDifferentButton" class="secondary-button">
-      MAKE IT DIFFERENT
-    </button>
-
-    <button id="conciergeButton" class="secondary-button">
-      LET CONCIERGE HANDLE IT
-    </button>
-
-    <button id="openMapsButton" class="secondary-button">
-      OPEN IN GOOGLE MAPS
-    </button>
-
-    <button id="playMoodButton" class="secondary-button">
-      PLAY THE MOOD
-    </button>
-  </div>
-</section>
-
-
-<section id="conciergeStatus" class="status" hidden></section>
-
-
-<section class="three-points">
-  <article>
-    <span>01</span>
-    <h3>MY MIRROR</h3>
-    <p>Your preferences stay on this device so MIRROR can become increasingly aligned with you.</p>
-  </article>
-
-  <article>
-    <span>02</span>
-    <h3>YOUR MOMENT</h3>
-    <p>Every day is different. MIRROR considers what matters to you now, not only what it learned before.</p>
-  </article>
-
-  <article>
-    <span>03</span>
-    <h3>PRIVATE CONCIERGE</h3>
-    <p>When something requires real-world coordination, MIRROR prepares it for concierge handling.</p>
-  </article>
-</section>
-
-
-<section class="memory-panel">
-  <div>
-    <p class="panel-label">MEMORY</p>
-    <h2>Your MIRROR memory lives on this device.</h2>
-    <p>
-      MIRROR uses your preferences to personalize your experience.
-      If you change devices, you can rebuild your experience privately.
+<section id="welcome" class="screen active">
+  <div class="welcome-content">
+    <div class="welcome-mark" aria-hidden="true">
+      <span></span>
+    </div>
+    <p class="eyebrow">PRIVATE LIFE CONCIERGE</p>
+    <h1>What can I take care of for you?</h1>
+    <p class="welcome-text">
+      Tell me what you need. You can write it or simply speak.
     </p>
-  </div>
-
-  <div class="memory-actions">
-    <button id="rebuildMemoryButton" class="secondary-button">REBUILD MY MIRROR</button>
-    <button id="backupMemoryButton" class="secondary-button">BACK UP MEMORY</button>
-    <button id="restoreMemoryButton" class="secondary-button">RESTORE MEMORY</button>
-    <input id="memoryFile" type="file" accept=".json,application/json" hidden>
+    <button id="startButton" class="primary-button" type="button">Begin</button>
   </div>
 </section>
 
+<section id="conversation" class="screen">
+  <div class="conversation-wrap">
 
-<section class="missions">
-  <div class="panel-label">CURRENT MISSIONS</div>
-  <div id="missionsList"></div>
+    <div id="conversationMessages" class="conversation-messages" aria-live="polite"></div>
+
+    <div id="thinking" class="thinking hidden" aria-live="polite">
+      <span></span><span></span><span></span>
+    </div>
+
+    <div id="planArea" class="plan-area hidden">
+
+      <div class="mirror-heading">
+        <p class="eyebrow">MIRROR</p>
+        <h2 id="planTitle">Let MIRROR take care of it</h2>
+      </div>
+
+      <p id="planReply" class="plan-reply"></p>
+
+      <div id="directions" class="directions"></div>
+
+      <div id="questionArea" class="question-area hidden">
+        <p id="mirrorQuestion"></p>
+      </div>
+
+      <div id="planActions" class="plan-actions hidden">
+        <button id="mapsButton" class="secondary-button hidden" type="button">
+          Open Maps
+        </button>
+        <button id="musicButton" class="secondary-button hidden" type="button">
+          Play Music
+        </button>
+        <button id="conciergeButton" class="primary-button hidden" type="button">
+          Let MIRROR Handle It
+        </button>
+      </div>
+
+    </div>
+
+    <div id="breathingArea" class="breathing-area hidden">
+      <div class="breathing-top">
+        <p class="eyebrow">A MOMENT FOR YOU</p>
+        <button id="closeBreathing" class="small-button" type="button">Close</button>
+      </div>
+
+      <div class="breathing-stage">
+        <div id="breathingOrb" class="breathing-orb">
+          <div class="breathing-core">
+            <span id="breathingPhase">READY</span>
+            <strong id="breathingTimer">10:00</strong>
+          </div>
+        </div>
+      </div>
+
+      <p id="breathingInstruction" class="breathing-instruction">
+        When you're ready, begin.
+      </p>
+
+      <div class="breathing-controls">
+        <button id="breathingStart" class="primary-button" type="button">
+          Begin
+        </button>
+        <button id="breathingStop" class="secondary-button hidden" type="button">
+          Pause
+        </button>
+      </div>
+    </div>
+
+    <div class="composer">
+
+      <button id="voiceButton" class="round-button" type="button" aria-label="Speak">
+        <span class="mic-icon">●</span>
+      </button>
+
+      <textarea
+        id="messageInput"
+        rows="1"
+        maxlength="2000"
+        autocomplete="off"
+        spellcheck="true"
+        placeholder="Tell MIRROR what you need..."
+        aria-label="Tell MIRROR what you need"
+      ></textarea>
+
+      <button id="sendButton" class="round-button send-button" type="button" aria-label="Send">
+        ↑
+      </button>
+
+    </div>
+
+    <div id="voiceStatus" class="voice-status hidden" aria-live="polite"></div>
+
+  </div>
+</section>
+
+<section id="memoryScreen" class="screen">
+  <div class="memory-wrap">
+
+    <div class="section-header">
+      <button id="closeMemory" class="small-button" type="button">Close</button>
+      <p class="eyebrow">YOUR MIRROR</p>
+      <h2>What MIRROR knows</h2>
+      <p>
+        Your personal context stays on this device unless you choose to share
+        something during a conversation.
+      </p>
+    </div>
+
+    <div id="memorySummary" class="memory-summary">
+      <div class="memory-empty">
+        MIRROR is still getting to know your rhythm.
+      </div>
+    </div>
+
+    <div class="memory-actions">
+      <button id="recoveryButton" class="primary-button" type="button">
+        Reconnect My Context
+      </button>
+      <button id="backupButton" class="secondary-button" type="button">
+        Export Memory
+      </button>
+      <button id="clearMemoryButton" class="danger-button" type="button">
+        Clear Local Memory
+      </button>
+    </div>
+
+  </div>
 </section>
 
 </main>
 
-
-<div id="recoveryModal" class="modal" hidden>
-  <div class="modal-backdrop"></div>
-
+<div id="recoveryModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="recoveryTitle">
   <div class="modal-card">
-    <button id="closeRecoveryButton" class="modal-close">×</button>
 
-    <p class="panel-label">REBUILD YOUR MIRROR</p>
-    <h2>Let's find your rhythm again.</h2>
-    <p>
-      A few choices are enough for MIRROR to rebuild your preferences.
+    <button id="closeRecovery" class="modal-close" type="button" aria-label="Close">
+      ×
+    </button>
+
+    <p class="eyebrow">WELCOME BACK</p>
+    <h2 id="recoveryTitle">Let's reconnect.</h2>
+    <p class="modal-intro">
+      A few answers can help MIRROR understand your preferences again.
     </p>
 
-    <div id="recoveryQuestions"></div>
+    <div class="recovery-form">
 
-    <button id="saveRecoveryButton" class="primary-button">
-      RESTORE MY EXPERIENCE
+      <label>
+        <span>What should MIRROR call you?</span>
+        <input id="recoveryName" type="text" maxlength="80" autocomplete="off">
+      </label>
+
+      <label>
+        <span>What matters most to you right now?</span>
+        <input id="recoveryPriority" type="text" maxlength="160" autocomplete="off">
+      </label>
+
+      <label>
+        <span>What kind of atmosphere do you prefer?</span>
+        <input id="recoveryAtmosphere" type="text" maxlength="160" autocomplete="off">
+      </label>
+
+      <label>
+        <span>Anything MIRROR should avoid?</span>
+        <input id="recoveryAvoid" type="text" maxlength="160" autocomplete="off">
+      </label>
+
+    </div>
+
+    <button id="saveRecovery" class="primary-button full-button" type="button">
+      Save
     </button>
+
+    <p id="recoveryStatus" class="form-status" aria-live="polite"></p>
+
   </div>
 </div>
 
+<div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
 
-<footer>
-  <strong>MIRROR TO YOU</strong>
-  <span>Private by design.</span>
-</footer>
+<div id="confirmModal" class="modal hidden" role="dialog" aria-modal="true">
+  <div class="modal-card compact-card">
+    <button id="closeConfirm" class="modal-close" type="button" aria-label="Close">×</button>
+    <p class="eyebrow">CONFIRM</p>
+    <h2 id="confirmTitle">Are you sure?</h2>
+    <p id="confirmText"></p>
+    <div class="confirm-actions">
+      <button id="confirmCancel" class="secondary-button" type="button">Cancel</button>
+      <button id="confirmProceed" class="primary-button" type="button">Continue</button>
+    </div>
+  </div>
+</div>
+
+</div>
 
 <script src="/static/app.js" defer></script>
 </body>
