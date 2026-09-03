@@ -47,12 +47,11 @@ async def process_chat_directive(req: ChatRequest):
                     "parts": [{"text": msg.content}]
                 })
 
-            gemini_url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={GEMINI_API_KEY}"
+            gemini_url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={GEMINI_API_KEY}"
             payload = {
                 "system_instruction": {"parts": [{"text": system_prompt}]},
                 "contents": formatted_contents
             }
-
             response = await client.post(gemini_url, json=payload)
             if response.status_code == 200:
                 data = response.json()
@@ -86,7 +85,7 @@ async def process_chat_directive(req: ChatRequest):
                     raise Exception(f"OpenAI status {openai_response.status_code}")
 
             except Exception as openai_error:
-                raise HTTPException(status_code=500, detail="No se pudo procesar la respuesta con las IA.")
+                raise HTTPException(status_code=500, detail="No se pudo procesar la respuesta con el motor de asesoría.")
 
 @app.post("/api/wellness")
 async def process_wellness_routine(req: WellnessRequest):
