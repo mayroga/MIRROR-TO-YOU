@@ -1,4 +1,3 @@
-```python
 from pathlib import Path
 from datetime import datetime, timezone
 from uuid import uuid4
@@ -527,4 +526,3 @@ async def server_error(_, exc):
         status_code=500,
         content={"error": "MIRROR encountered an internal error.", "detail": str(exc)}
     )
-```
