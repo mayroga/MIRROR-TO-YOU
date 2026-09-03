@@ -1,580 +1,549 @@
 import os
+import json
 import uuid
 import urllib.parse
-from datetime import datetime, timezone
-from pathlib import Path
+from typing import Any,Dict,Optional,List
 
-from fastapi import FastAPI, Request
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi import FastAPI,HTTPException
 from fastapi.staticfiles import StaticFiles
-from pydantic import BaseModel, Field
+from fastapi.responses import FileResponse,JSONResponse
+from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel,Field
 
-from mirror_engine import process, response_text
+from mirror_engine import (
+    process,
+    response_text,
+    engine_status,
+    feedback,
+    revise
+)
 
+app=FastAPI(
+    title="MIRROR TO YOU",
+    version="1.0.0"
+)
 
-BASE = Path(__file__).resolve().parent
-STATIC = BASE / "static"
-STATIC.mkdir(exist_ok=True)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=False,
+    allow_methods=["*"],
+    allow_headers=["*"]
+)
 
-app = FastAPI(title="MIRROR TO YOU", version="2.0")
-app.mount("/static", StaticFiles(directory=str(STATIC)), name="static")
+BASE_DIR=os.path.dirname(os.path.abspath(__file__))
+STATIC_DIR=os.path.join(BASE_DIR,"static")
 
-MISSIONS = {}
+if os.path.isdir(STATIC_DIR):
+    app.mount(
+        "/static",
+        StaticFiles(directory=STATIC_DIR),
+        name="static"
+    )
 
-
-def now():
-    return datetime.now(timezone.utc).isoformat()
-
-
-def new_id():
-    return "m_" + uuid.uuid4().hex[:12]
-
-
-def clean(value, default=None):
-    if value is None:
-        return default
-    if isinstance(value, str):
-        value = value.strip()
-        return value or default
-    return value
-
+MISSIONS:List[Dict[str,Any]]=[]
 
 class Memory(BaseModel):
-    core: dict = Field(default_factory=dict)
-    moment: dict = Field(default_factory=dict)
-    preferences: dict = Field(default_factory=dict)
-    dislikes: list = Field(default_factory=list)
-    history: list = Field(default_factory=list)
-    learning: dict = Field(default_factory=dict)
-
+    core:Dict[str,Any]=Field(default_factory=dict)
+    preferences:Dict[str,Any]=Field(default_factory=dict)
+    dislikes:List[str]=Field(default_factory=list)
+    history:List[Dict[str,Any]]=Field(default_factory=list)
+    daily:Dict[str,List[Dict[str,Any]]]=Field(default_factory=dict)
+    feedback:List[Dict[str,Any]]=Field(default_factory=list)
+    profile:Dict[str,Any]=Field(default_factory=dict)
 
 class MirrorRequest(BaseModel):
-    message: str
-    memory: Memory = Field(default_factory=Memory)
-    language: str | None = None
-    voice_enabled: bool = False
-    client_device_id: str | None = None
-
+    message:str=Field(default="")
+    memory:Dict[str,Any]=Field(default_factory=dict)
 
 class FeedbackRequest(BaseModel):
-    mission_id: str
-    accepted: bool
-    feedback: str = ""
-    memory: Memory = Field(default_factory=Memory)
-
+    memory:Dict[str,Any]=Field(default_factory=dict)
+    experience_id:str=Field(default="")
+    value:str=Field(default="")
+    message:str=Field(default="")
 
 class PlanRevisionRequest(BaseModel):
-    mission_id: str
-    instruction: str
-    memory: Memory = Field(default_factory=Memory)
-
-
-class ConciergeRequest(BaseModel):
-    note: str = ""
-    memory: Memory = Field(default_factory=Memory)
-
+    memory:Dict[str,Any]=Field(default_factory=dict)
+    experience_id:str=Field(default="")
+    instruction:str=Field(default="")
 
 class RecoveryRequest(BaseModel):
-    answers: dict = Field(default_factory=dict)
-    memory: Memory = Field(default_factory=Memory)
+    answers:Dict[str,Any]=Field(default_factory=dict)
+    memory:Dict[str,Any]=Field(default_factory=dict)
 
+class ConciergeRequest(BaseModel):
+    message:str=Field(default="")
+    memory:Dict[str,Any]=Field(default_factory=dict)
 
-def update_memory(memory, understanding, accepted=None, feedback=""):
-    data = memory.model_dump() if isinstance(memory, Memory) else dict(memory or {})
-    core = data.setdefault("core", {})
-    moment = data.setdefault("moment", {})
-    preferences = data.setdefault("preferences", {})
-    dislikes = data.setdefault("dislikes", [])
-    history = data.setdefault("history", [])
-    learning = data.setdefault("learning", {})
+def clean(value:Any,default=""):
+    if value is None:
+        return default
+    if isinstance(value,str):
+        return value.strip()
+    return value
 
-    for key in ("companion", "destination", "budget", "duration"):
-        value = understanding.get(key)
-        if value not in (None, "", "unknown"):
-            moment[key] = value
+def create_mission(result:Dict[str,Any])->Dict[str,Any]:
+    proposal=result.get("proposal",{})
+    understanding=result.get("understanding",{})
 
-    signals = understanding.get("signals") or []
-    if signals:
-        moment["signals"] = signals
+    mission_id=f"mission_{uuid.uuid4().hex[:12]}"
 
-    if understanding.get("privacy"):
-        moment["privacy"] = understanding["privacy"]
-
-    if understanding.get("priority"):
-        moment["priority"] = understanding["priority"]
-
-    intent = understanding.get("intent")
-    if intent:
-        moment["intent"] = intent
-
-    if accepted is not None:
-        learning["last_accepted"] = bool(accepted)
-
-    if feedback:
-        learning["last_feedback"] = feedback[:500]
-
-    if accepted is False and feedback:
-        dislikes.append(feedback[:200])
-        data["dislikes"] = dislikes[-30:]
-
-    if intent:
-        history.append({
-            "time": now(),
-            "intent": intent,
-            "accepted": accepted
-        })
-        data["history"] = history[-50:]
-
-    if signals:
-        for signal in signals:
-            preferences[signal.lower()] = True
-
-    data["core"] = core
-    data["moment"] = moment
-    data["preferences"] = preferences
-    data["learning"] = learning
-    return data
-
-
-def public_plan(proposal, mission_id):
-    if not proposal:
-        return None
-
-    return {
-        "title": proposal.get("title") or "Your MIRROR",
-        "direction": proposal.get("direction") or [],
-        "category": proposal.get("category"),
-        "privacy": proposal.get("privacy"),
-        "priority": proposal.get("priority"),
-        "budget": proposal.get("budget"),
-        "destination": proposal.get("destination"),
-        "duration": proposal.get("duration"),
-        "companion": proposal.get("companion"),
-        "signals": proposal.get("signals") or [],
-        "confidence": proposal.get("confidence", 0),
-        "status": proposal.get("status", "PROPOSAL"),
-        "questions": proposal.get("questions") or [],
-        "mission_id": mission_id
+    mission={
+        "mission_id":mission_id,
+        "created_at":result.get("today",{}).get("date"),
+        "title":proposal.get("title",""),
+        "direction":proposal.get("direction",""),
+        "category":proposal.get("category","concierge"),
+        "priority":proposal.get("priority","normal"),
+        "status":proposal.get("status","ready"),
+        "action":proposal.get("action",""),
+        "next_move":proposal.get("next_move",""),
+        "intent":understanding.get("intent"),
+        "breathing":proposal.get("breathing")
     }
 
+    MISSIONS.append(mission)
+
+    if len(MISSIONS)>100:
+        del MISSIONS[:-100]
+
+    return mission
+
+def public_plan(
+    result:Dict[str,Any],
+    mission:Dict[str,Any]
+)->Dict[str,Any]:
+
+    proposal=result.get("proposal",{})
+    understanding=result.get("understanding",{})
+    decision=result.get("decision",{})
+
+    breathing=proposal.get("breathing")
+
+    return {
+        "title":clean(
+            proposal.get("title"),
+            "I'm listening."
+        ),
+        "direction":clean(
+            proposal.get("direction"),
+            "Tell me what you need, in your own words."
+        ),
+        "category":clean(
+            proposal.get("category"),
+            "concierge"
+        ),
+        "privacy":"private",
+        "priority":clean(
+            proposal.get("priority"),
+            decision.get("priority","normal")
+        ),
+        "budget":understanding.get("budget"),
+        "destination":understanding.get("destination"),
+        "duration":understanding.get("duration"),
+        "companion":understanding.get("companion"),
+        "signals":understanding.get("signals",[]),
+        "intent":understanding.get("intent"),
+        "confidence":0.95,
+        "status":clean(
+            proposal.get("status"),
+            "ready"
+        ),
+        "action":clean(
+            proposal.get("action"),
+            "continue"
+        ),
+        "next_move":clean(
+            proposal.get("next_move"),
+            "continue"
+        ),
+        "questions":proposal.get("questions",[]),
+        "steps":proposal.get("steps",[]),
+        "breathing":breathing,
+        "mission_id":mission.get("mission_id")
+    }
 
 @app.get("/")
 async def home():
-    return FileResponse(STATIC / "index.html")
+    index_path=os.path.join(STATIC_DIR,"index.html")
 
+    if not os.path.isfile(index_path):
+        return JSONResponse(
+            {
+                "status":"error",
+                "message":"MIRROR TO YOU interface not found."
+            },
+            status_code=500
+        )
+
+    return FileResponse(index_path)
+
+@app.get("/favicon.ico")
+async def favicon():
+    path=os.path.join(STATIC_DIR,"favicon.ico")
+
+    if os.path.isfile(path):
+        return FileResponse(path)
+
+    return JSONResponse({},status_code=204)
 
 @app.get("/api/health")
 async def health():
     return {
-        "ok": True,
-        "service": "MIRROR TO YOU",
-        "version": "2.0",
-        "time": now()
+        "status":"ok",
+        "service":"MIRROR TO YOU",
+        "free":True
     }
 
-
-@app.get("/api/config")
-async def config():
-    return {
-        "name": "MIRROR TO YOU",
-        "version": "2.0",
-        "voice": True,
-        "memory": "device",
-        "ai": True,
-        "maps": True,
-        "music": True,
-        "concierge": True
-    }
-
+@app.get("/api/status")
+async def status():
+    return engine_status()
 
 @app.post("/api/mirror")
-async def mirror(data: MirrorRequest):
-    message = clean(data.message)
+async def mirror(request:MirrorRequest):
+
+    message=clean(request.message)
 
     if not message:
-        return JSONResponse(
-            {"ok": False, "error": "Tell MIRROR what is on your mind."},
-            status_code=400
+        raise HTTPException(
+            status_code=400,
+            detail="Please tell MIRROR what you need."
         )
 
-    memory = data.memory.model_dump()
+    memory=request.memory or {}
 
     try:
-        result = process(message, memory)
+        result=process(
+            message,
+            memory
+        )
+
+        mission=create_mission(result)
+
+        plan=public_plan(
+            result,
+            mission
+        )
+
+        return {
+            "status":"ok",
+            "message":response_text(result),
+            "analysis":result.get("decision",{}),
+            "understanding":result.get("understanding",{}),
+            "personalization":result.get("personalization",{}),
+            "decision":result.get("decision",{}),
+            "plan":plan,
+            "mission":mission,
+            "breathing":plan.get("breathing"),
+            "memory":result.get("memory",{}),
+            "today":result.get("today",{})
+        }
+
     except Exception as exc:
-        return JSONResponse(
-            {
-                "ok": False,
-                "error": "MIRROR could not complete this moment.",
-                "detail": str(exc)
-            },
-            status_code=500
+        raise HTTPException(
+            status_code=500,
+            detail=f"MIRROR could not process the request: {str(exc)}"
         )
-
-    understanding = result.get("understanding") or {}
-    personalization = result.get("personalization") or {}
-    decision = result.get("decision") or {}
-    proposal = result.get("proposal") or {}
-
-    language = (
-        clean(data.language)
-        or understanding.get("language")
-        or "en"
-    )
-
-    try:
-        message_out = response_text(result, language)
-    except Exception:
-        message_out = (
-            "I’m here. Tell me a little more about what you need right now."
-            if language.startswith("en")
-            else "Estoy aquí. Cuéntame un poco más sobre lo que necesitas ahora."
-        )
-
-    updated_memory = update_memory(
-        memory,
-        understanding
-    )
-
-    mission_id = new_id()
-
-    mission = {
-        "id": mission_id,
-        "created_at": now(),
-        "status": (
-            "CLARIFY"
-            if decision.get("action") in ("ASK", "CLARIFY")
-            else "PROPOSAL"
-        ),
-        "request": message,
-        "understanding": understanding,
-        "personalization": personalization,
-        "decision": decision,
-        "proposal": proposal
-    }
-
-    MISSIONS[mission_id] = mission
-
-    return {
-        "ok": True,
-        "message": message_out,
-        "language": language,
-        "analysis": understanding,
-        "understanding": understanding,
-        "personalization": personalization,
-        "decision": decision,
-        "plan": public_plan(proposal, mission_id),
-        "mission": {
-            "id": mission_id,
-            "status": mission["status"]
-        },
-        "memory": updated_memory
-    }
-
 
 @app.get("/api/missions")
-async def missions():
+async def get_missions():
     return {
-        "ok": True,
-        "missions": [
-            {
-                "id": m["id"],
-                "created_at": m["created_at"],
-                "status": m["status"],
-                "request": m["request"]
-            }
-            for m in list(MISSIONS.values())[-30:][::-1]
-        ]
+        "status":"ok",
+        "missions":MISSIONS[-50:]
     }
-
 
 @app.get("/api/missions/{mission_id}")
-async def mission(mission_id: str):
-    item = MISSIONS.get(mission_id)
+async def get_mission(mission_id:str):
 
-    if not item:
-        return JSONResponse(
-            {"ok": False, "error": "Mission not found."},
-            status_code=404
-        )
+    for mission in reversed(MISSIONS):
+        if mission.get("mission_id")==mission_id:
+            return {
+                "status":"ok",
+                "mission":mission
+            }
 
-    return {
-        "ok": True,
-        "mission": item
-    }
-
-
-@app.post("/api/missions/feedback")
-async def feedback(data: FeedbackRequest):
-    item = MISSIONS.get(data.mission_id)
-
-    if not item:
-        return JSONResponse(
-            {"ok": False, "error": "Mission not found."},
-            status_code=404
-        )
-
-    item["feedback"] = {
-        "accepted": data.accepted,
-        "text": clean(data.feedback, ""),
-        "time": now()
-    }
-
-    item["status"] = "COMPLETED" if data.accepted else "LEARNING"
-
-    understanding = item.get("understanding") or {}
-    updated_memory = update_memory(
-        data.memory,
-        understanding,
-        data.accepted,
-        data.feedback
+    raise HTTPException(
+        status_code=404,
+        detail="Mission not found."
     )
 
-    return {
-        "ok": True,
-        "status": item["status"],
-        "memory": updated_memory
-    }
+@app.post("/api/feedback")
+async def send_feedback(request:FeedbackRequest):
 
-
-@app.post("/api/missions/revise")
-async def revise(data: PlanRevisionRequest):
-    item = MISSIONS.get(data.mission_id)
-
-    if not item:
-        return JSONResponse(
-            {"ok": False, "error": "Mission not found."},
-            status_code=404
-        )
-
-    instruction = clean(data.instruction)
-
-    if not instruction:
-        return JSONResponse(
-            {"ok": False, "error": "Tell MIRROR what you would change."},
-            status_code=400
-        )
-
-    original = item.get("request", "")
-    combined = f"{original}\n\nAdditional direction: {instruction}"
+    memory=request.memory or {}
 
     try:
-        result = process(
-            combined,
-            data.memory.model_dump()
-        )
-    except Exception as exc:
-        return JSONResponse(
-            {
-                "ok": False,
-                "error": "MIRROR could not revise the experience.",
-                "detail": str(exc)
-            },
-            status_code=500
+        updated_memory=feedback(
+            memory,
+            request.experience_id,
+            request.value,
+            request.message
         )
 
-    proposal = result.get("proposal") or {}
-    understanding = result.get("understanding") or {}
-    decision = result.get("decision") or {}
-
-    item["understanding"] = understanding
-    item["decision"] = decision
-    item["proposal"] = proposal
-    item["revision"] = instruction
-    item["status"] = "PROPOSAL"
-
-    language = (
-        understanding.get("language")
-        or "en"
-    )
-
-    try:
-        text = response_text(result, language)
-    except Exception:
-        text = "I’ve adjusted the direction."
-
-    return {
-        "ok": True,
-        "message": text,
-        "analysis": understanding,
-        "decision": decision,
-        "plan": public_plan(proposal, data.mission_id),
-        "mission": {
-            "id": data.mission_id,
-            "status": item["status"]
+        return {
+            "status":"ok",
+            "memory":updated_memory,
+            "message":"Feedback received."
         }
-    }
 
-
-@app.post("/api/missions/{mission_id}/concierge")
-async def concierge(mission_id: str, data: ConciergeRequest):
-    item = MISSIONS.get(mission_id)
-
-    if not item:
-        return JSONResponse(
-            {"ok": False, "error": "Mission not found."},
-            status_code=404
+    except Exception as exc:
+        raise HTTPException(
+            status_code=500,
+            detail=str(exc)
         )
 
-    item["status"] = "CONCIERGE"
-    item["concierge"] = {
-        "note": clean(data.note, ""),
-        "created_at": now()
-    }
+@app.post("/api/revise")
+async def revise_plan(request:PlanRevisionRequest):
 
-    return {
-        "ok": True,
-        "status": "CONCIERGE",
-        "message": (
-            "I have your request. A private concierge can take it from here."
+    try:
+        result=revise(
+            request.memory or {},
+            request.experience_id,
+            request.instruction
         )
-    }
 
+        return {
+            "status":"ok",
+            **result
+        }
+
+    except Exception as exc:
+        raise HTTPException(
+            status_code=500,
+            detail=str(exc)
+        )
+
+@app.post("/api/concierge")
+async def concierge(request:ConciergeRequest):
+
+    message=clean(request.message)
+
+    if not message:
+        raise HTTPException(
+            status_code=400,
+            detail="Please tell MIRROR what you need."
+        )
+
+    try:
+        result=process(
+            message,
+            request.memory or {}
+        )
+
+        mission=create_mission(result)
+        plan=public_plan(result,mission)
+
+        return {
+            "status":"ok",
+            "message":response_text(result),
+            "plan":plan,
+            "mission":mission,
+            "memory":result.get("memory",{}),
+            "today":result.get("today",{})
+        }
+
+    except Exception as exc:
+        raise HTTPException(
+            status_code=500,
+            detail=str(exc)
+        )
 
 @app.get("/api/maps")
-async def maps(destination: str = ""):
-    destination = clean(destination)
+async def maps(
+    destination:Optional[str]=None,
+    query:Optional[str]=None
+):
 
-    if not destination:
-        return {
-            "ok": False,
-            "url": None
-        }
+    search=clean(
+        query or destination
+    )
 
-    url = (
-        "https://www.google.com/maps/search/?api=1&query="
-        + urllib.parse.quote_plus(destination)
+    if not search:
+        raise HTTPException(
+            status_code=400,
+            detail="A place or search term is required."
+        )
+
+    encoded=urllib.parse.quote_plus(search)
+
+    url=(
+        "https://www.google.com/maps/search/"
+        f"?api=1&query={encoded}"
     )
 
     return {
-        "ok": True,
-        "destination": destination,
-        "url": url
+        "status":"ok",
+        "destination":search,
+        "url":url
     }
-
 
 @app.get("/api/music")
-async def music(query: str = ""):
-    query = clean(query, "calm luxury music")
+async def music(
+    query:Optional[str]=None
+):
 
-    url = (
-        "https://www.youtube.com/results?search_query="
-        + urllib.parse.quote_plus(query)
+    search=clean(query)
+
+    if not search:
+        search="music for this moment"
+
+    encoded=urllib.parse.quote_plus(search)
+
+    url=(
+        "https://www.youtube.com/results"
+        f"?search_query={encoded}"
     )
 
     return {
-        "ok": True,
-        "query": query,
-        "url": url
+        "status":"ok",
+        "query":search,
+        "url":url
     }
-
-
-class VoiceRequest(BaseModel):
-    text: str
-
 
 @app.post("/api/voice/text")
-async def voice_text(data: VoiceRequest):
-    text = clean(data.text, "")
+async def voice_text(request:MirrorRequest):
+
+    text=clean(request.message)
 
     return {
-        "ok": True,
-        "text": text
+        "status":"ok",
+        "text":text
     }
-
 
 @app.get("/api/providers")
 async def providers():
+
     return {
-        "ok": True,
-        "providers": [],
-        "message": "Real providers will be connected only when verified integrations are available."
+        "status":"ok",
+        "providers":[],
+        "message":"Real providers will be connected only when verified integrations are available."
     }
 
-
-@app.get("/api/memory/recovery/questions")
+@app.get("/api/recovery/questions")
 async def recovery_questions():
+
     return {
-        "ok": True,
-        "questions": [
+        "status":"ok",
+        "questions":[
             {
-                "id": "energy",
-                "question": "What feels most like you today?",
-                "options": [
-                    "Quiet",
-                    "Movement",
-                    "Water",
-                    "Music",
-                    "Nature"
+                "id":"favorite_place",
+                "question":"What kind of place feels most like you?",
+                "type":"text"
+            },
+            {
+                "id":"preferred_pace",
+                "question":"Which pace feels most natural to you?",
+                "type":"choice",
+                "options":[
+                    "slow",
+                    "balanced",
+                    "active"
                 ]
             },
             {
-                "id": "need",
-                "question": "What would you like more of right now?",
-                "options": [
-                    "Disconnect",
-                    "Discover",
-                    "Breathe",
-                    "Play",
-                    "Do nothing"
+                "id":"privacy_level",
+                "question":"How private would you like your experience to feel?",
+                "type":"choice",
+                "options":[
+                    "quiet",
+                    "private",
+                    "very_private"
                 ]
             },
             {
-                "id": "style",
-                "question": "Which experience feels most natural to you?",
-                "options": [
-                    "Private",
-                    "Spontaneous",
-                    "Refined",
-                    "Simple",
-                    "Unexpected"
-                ]
-            },
-            {
-                "id": "pace",
-                "question": "How should MIRROR move with you?",
-                "options": [
-                    "Slowly",
-                    "Directly",
-                    "Quietly",
-                    "Playfully",
-                    "Surprise me"
+                "id":"experience_style",
+                "question":"What would you rather receive right now?",
+                "type":"choice",
+                "options":[
+                    "something_simple",
+                    "something_special",
+                    "something_new",
+                    "let_mirror_choose"
                 ]
             }
         ]
     }
 
+@app.post("/api/recovery")
+async def recovery(request:RecoveryRequest):
 
-@app.post("/api/memory/recovery")
-async def recovery(data: RecoveryRequest):
-    memory = data.memory.model_dump()
-    answers = data.answers or {}
+    memory=request.memory or {}
+    answers=request.answers or {}
 
-    preferences = memory.setdefault("preferences", {})
-    moment = memory.setdefault("moment", {})
+    core=memory.setdefault("core",{})
+    preferences=memory.setdefault("preferences",{})
 
-    for key, value in answers.items():
-        value = clean(value)
-        if value:
-            preferences[key] = value
-            moment[key] = value
+    if answers.get("favorite_place"):
+        core["favorite_place"]=answers["favorite_place"]
 
-    memory["recovered_at"] = now()
+    if answers.get("preferred_pace"):
+        preferences["preferred_pace"]=answers["preferred_pace"]
+
+    if answers.get("privacy_level"):
+        preferences["privacy_level"]=answers["privacy_level"]
+
+    if answers.get("experience_style"):
+        preferences["experience_style"]=answers["experience_style"]
+
+    profile=memory.setdefault("profile",{})
+    profile["memory_recovered"]=True
 
     return {
-        "ok": True,
-        "memory": memory,
-        "message": "MIRROR is getting to know your rhythm again."
+        "status":"ok",
+        "memory":memory,
+        "message":"Your preferences have been reconnected."
     }
 
+@app.post("/api/memory/clear")
+async def clear_memory():
+
+    return {
+        "status":"ok",
+        "memory":{
+            "core":{},
+            "preferences":{},
+            "dislikes":[],
+            "history":[],
+            "daily":{},
+            "feedback":[],
+            "profile":{}
+        }
+    }
+
+@app.get("/api/config")
+async def config():
+
+    return {
+        "status":"ok",
+        "name":"MIRROR TO YOU",
+        "free":True,
+        "payments":False,
+        "stripe":False,
+        "ai_visible":False,
+        "memory":"client_side",
+        "maps":True,
+        "music":True,
+        "breathing":True
+    }
 
 @app.exception_handler(Exception)
-async def global_error(request: Request, exc: Exception):
+async def global_exception_handler(request,exc):
+
     return JSONResponse(
-        {
-            "ok": False,
-            "error": "MIRROR encountered an unexpected error.",
-            "detail": str(exc)
-        },
-        status_code=500
+        status_code=500,
+        content={
+            "status":"error",
+            "message":"MIRROR encountered an unexpected problem."
+        }
+    )
+
+if __name__=="__main__":
+    import uvicorn
+
+    port=int(os.getenv("PORT","10000"))
+
+    uvicorn.run(
+        "main:app",
+        host="0.0.0.0",
+        port=port
     )
