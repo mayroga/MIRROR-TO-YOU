@@ -1,832 +1,295 @@
-const API_BASE="";
-const DB_NAME="mirror_to_you";
-const DB_VERSION=1;
-const STORE="memory";
-let memory={
-  core:{},moment:{},preferences:{},dislikes:[],history:[],learning:{}
-};
-let currentResult=null;
-let currentMission=null;
-let recognition=null;
-let listening=false;
-let speaking=false;
-let breathingTimer=null;
-let breathingRunning=false;
-let breathingPaused=false;
-let breathingSeconds=600;
-let breathingPhaseTimer=null;
-let confirmAction=null;
-
-const $=id=>document.getElementById(id);
-
-function normalizeMemory(data){
-  data=data&&typeof data==="object"?data:{};
-  const obj=v=>v&&typeof v==="object"&&!Array.isArray(v)?v:{};
-  const arr=v=>Array.isArray(v)?v:[];
-  return{
-    core:obj(data.core),
-    moment:obj(data.moment),
-    preferences:obj(data.preferences),
-    dislikes:arr(data.dislikes),
-    history:arr(data.history),
-    learning:obj(data.learning),
-    ...(data.recovered_at?{recovered_at:data.recovered_at}:{})
-  };
+:root {
+    --bg-dark: #05070a;
+    --panel-dark: #0b0f17;
+    --accent-gold: #d4af37;
+    --accent-gold-dim: rgba(212, 175, 55, 0.1);
+    --text-pure: #ffffff;
+    --text-muted: #8a95a5;
+    --border-dim: #161f30;
+    --font-premium: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 }
 
-function show(id){
-  document.querySelectorAll(".screen").forEach(x=>x.classList.remove("active"));
-  const el=$(id);
-  if(el)el.classList.add("active");
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
 }
 
-function setHidden(id,hidden=true){
-  const el=$(id);
-  if(el)el.classList.toggle("hidden",hidden);
+body {
+    background-color: var(--bg-dark);
+    color: var(--text-pure);
+    font-family: var(--font-premium);
+    overflow: hidden;
+    height: 100vh;
 }
 
-function toast(message){
-  const el=$("toast");
-  if(!el)return;
-  el.textContent=message||"";
-  el.classList.remove("hidden");
-  clearTimeout(el._timer);
-  el._timer=setTimeout(()=>el.classList.add("hidden"),3500);
+#app {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    justify-content: space-between;
 }
 
-function setThinking(on){
-  setHidden("thinking",!on);
+.luxury-header {
+    padding: 24px 32px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--border-dim);
 }
 
-function escapeText(value){
-  return String(value??"").trim();
+.mirror-logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
 }
 
-function openDB(){
-  return new Promise((resolve,reject)=>{
-    if(!window.indexedDB)return reject(new Error("IndexedDB unavailable"));
-    const req=indexedDB.open(DB_NAME,DB_VERSION);
-    req.onupgradeneeded=()=>{
-      const db=req.result;
-      if(!db.objectStoreNames.contains(STORE))db.createObjectStore(STORE);
-    };
-    req.onsuccess=()=>resolve(req.result);
-    req.onerror=()=>reject(req.error||new Error("Database error"));
-  });
+.logo-orb {
+    width: 12px;
+    height: 12px;
+    background: var(--text-pure);
+    border-radius: 50%;
+    box-shadow: 0 0 10px var(--text-pure);
 }
 
-async function saveMemory(data=memory){
-  memory=normalizeMemory(data);
-  try{
-    const db=await openDB();
-    await new Promise((resolve,reject)=>{
-      const tx=db.transaction(STORE,"readwrite");
-      tx.objectStore(STORE).put(memory,"profile");
-      tx.oncomplete=resolve;
-      tx.onerror=()=>reject(tx.error||new Error("Save error"));
-    });
-    db.close();
-  }catch(e){
-    try{localStorage.setItem("mirror_memory",JSON.stringify(memory));}catch(_){}
-  }
+.logo-text {
+    font-weight: 700;
+    letter-spacing: 4px;
+    font-size: 14px;
 }
 
-async function loadMemory(){
-  try{
-    const db=await openDB();
-    const data=await new Promise((resolve,reject)=>{
-      const tx=db.transaction(STORE,"readonly");
-      const req=tx.objectStore(STORE).get("profile");
-      req.onsuccess=()=>resolve(req.result);
-      req.onerror=()=>reject(req.error);
-    });
-    db.close();
-    if(data){
-      memory=normalizeMemory(data);
-      await saveMemory(memory);
-      return memory;
-    }
-  }catch(e){}
-  try{
-    const old=localStorage.getItem("mirror_memory");
-    if(old){
-      memory=normalizeMemory(JSON.parse(old));
-      await saveMemory(memory);
-    }
-  }catch(e){}
-  return memory;
+.header-controls {
+    display: flex;
+    gap: 20px;
+    align-items: center;
 }
 
-function deviceId(){
-  let id=localStorage.getItem("mirror_device_id");
-  if(!id){
-    id=(crypto.randomUUID?crypto.randomUUID():Date.now()+"-"+Math.random());
-    localStorage.setItem("mirror_device_id",id);
-  }
-  return id;
+.text-btn, .icon-btn, .close-btn {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    font-size: 13px;
+    letter-spacing: 1px;
+    transition: color 0.3s;
 }
 
-async function api(path,options={},timeout=15000){
-  const controller=new AbortController();
-  const timer=setTimeout(()=>controller.abort(),timeout);
-  try{
-    const opts={...options,signal:controller.signal,headers:{
-      "Content-Type":"application/json",
-      ...(options.headers||{})
-    }};
-    const response=await fetch(API_BASE+path,opts);
-    let data=null;
-    const type=response.headers.get("content-type")||"";
-    if(type.includes("application/json")){
-      try{data=await response.json();}catch(_){}
-    }else{
-      try{data={text:await response.text()};}catch(_){}
-    }
-    if(!response.ok){
-      const detail=data?.error||data?.detail||data?.message||`Request failed (${response.status})`;
-      const error=new Error(Array.isArray(detail)?detail.map(x=>x.msg||"Invalid request").join(", "):String(detail));
-      error.status=response.status;
-      throw error;
-    }
-    return data||{};
-  }catch(e){
-    if(e.name==="AbortError")throw new Error("MIRROR took too long to respond. Please try again.");
-    if(!navigator.onLine)throw new Error("You appear to be offline.");
-    throw e;
-  }finally{
-    clearTimeout(timer);
-  }
+.text-btn:hover, .icon-btn:hover {
+    color: var(--text-pure);
 }
 
-function addMessage(text,type="mirror"){
-  const box=$("conversationMessages");
-  if(!box)return;
-  const item=document.createElement("div");
-  item.className=`message ${type}`;
-  const content=document.createElement("div");
-  content.className="message-content";
-  content.textContent=escapeText(text);
-  item.appendChild(content);
-  box.appendChild(item);
-  box.scrollTop=box.scrollHeight;
+.luxury-main {
+    flex: 1;
+    position: relative;
+    padding: 40px 32px;
 }
 
-function clearPlan(){
-  setHidden("planArea",true);
-  setHidden("questionArea",true);
-  setHidden("mapsButton",true);
-  setHidden("musicButton",true);
-  setHidden("conciergeButton",true);
-  const d=$("directions");
-  if(d)d.replaceChildren();
+.deck {
+    position: absolute;
+    top: 40px; left: 32px; right: 32px; bottom: 40px;
+    opacity: 0;
+    transform: translateY(10px);
+    pointer-events: none;
+    transition: opacity 0.4s ease, transform 0.4s ease;
 }
 
-function renderPlan(result){
-  currentResult=result||null;
-  currentMission=result?.mission||null;
-
-  const plan=result?.plan||result?.proposal||{};
-  const understanding=result?.understanding||result?.analysis||{};
-  const reply=result?.message||plan.reply||"";
-  const title=plan.title||"Let MIRROR take care of it";
-  const directions=Array.isArray(plan.direction)?plan.direction:[];
-
-  $("planTitle").textContent=title;
-  $("planReply").textContent=reply;
-
-  const box=$("directions");
-  box.replaceChildren();
-
-  directions.slice(0,5).forEach(text=>{
-    const item=document.createElement("div");
-    item.className="direction";
-    item.textContent=escapeText(text);
-    box.appendChild(item);
-  });
-
-  const question=plan.question||result?.questions?.[0]||"";
-  $("mirrorQuestion").textContent=question;
-  setHidden("questionArea",!question);
-
-  const intent=understanding.intent||"";
-  const destination=understanding.destination||plan.destination||"";
-  setHidden("mapsButton",!(destination||intent==="MAPS"));
-  setHidden("musicButton",!(intent==="MUSIC"||understanding.signals?.includes?.("MUSIC")));
-  setHidden("conciergeButton",!["CONCIERGE","URGENT"].includes(plan.action||result?.decision?.action));
-
-  setHidden("planArea",false);
-
-  if(reply)speak(reply);
+.deck.active {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
 }
 
-function updateMemoryFromResult(result){
-  const u=result?.understanding||result?.analysis||{};
-  const p=result?.personalization||{};
-  const stamp={
-    at:new Date().toISOString(),
-    intent:u.intent||"",
-    destination:u.destination||"",
-    signals:u.signals||[]
-  };
-
-  memory=normalizeMemory(memory);
-
-  if(u.language)memory.moment.language=u.language;
-  if(u.companion)memory.moment.companion=u.companion;
-  if(u.destination)memory.moment.destination=u.destination;
-  if(u.intent)memory.moment.intent=u.intent;
-  if(u.signals?.length)memory.moment.signals=u.signals;
-
-  if(p.name&&!memory.core.name)memory.core.name=p.name;
-
-  memory.history.push(stamp);
-  if(memory.history.length>30)memory.history=memory.history.slice(-30);
-
-  saveMemory(memory);
+.hero-section {
+    margin-bottom: 40px;
 }
 
-async function askMirror(){
-  const input=$("messageInput");
-  const text=escapeText(input?.value);
-  if(!text)return;
-  if(text.length>2000)return;
-
-  input.value="";
-  input.style.height="auto";
-  addMessage(text,"client");
-  setThinking(true);
-  $("sendButton").disabled=true;
-  $("voiceButton").disabled=true;
-
-  try{
-    memory=normalizeMemory(memory);
-    const result=await api("/api/mirror",{
-      method:"POST",
-      body:JSON.stringify({
-        message:text,
-        language:navigator.language?.slice(0,2)||"en",
-        device_id:deviceId(),
-        memory
-      })
-    },18000);
-
-    updateMemoryFromResult(result);
-
-    const reply=result?.message||result?.plan?.reply||result?.proposal?.reply;
-    if(reply)addMessage(reply,"mirror");
-
-    renderPlan(result);
-
-    if(result?.decision?.action==="ASK"){
-      setHidden("breathingArea",true);
-    }
-
-    if(result?.plan?.intent==="WELLBEING"||result?.understanding?.intent==="WELLBEING"){
-      setTimeout(()=>openBreathing(false),500);
-    }
-  }catch(e){
-    addMessage(e.message||"I couldn't complete that request right now.","mirror");
-    toast(e.message||"Something went wrong.");
-  }finally{
-    setThinking(false);
-    $("sendButton").disabled=false;
-    $("voiceButton").disabled=false;
-    input.focus();
-  }
+.hero-section h1 {
+    font-size: 36px;
+    font-weight: 300;
+    letter-spacing: -0.5px;
+    margin-bottom: 8px;
 }
 
-async function feedback(value){
-  if(!currentMission?.id&&!currentResult?.mission?.id)return;
-  const missionId=currentMission?.id||currentResult?.mission?.id;
-  try{
-    await api("/api/missions/feedback",{
-      method:"POST",
-      body:JSON.stringify({
-        mission_id:missionId,
-        feedback:value,
-        memory:normalizeMemory(memory)
-      })
-    },10000);
-    memory.learning.last_feedback=value;
-    await saveMemory(memory);
-    toast("MIRROR is learning your preferences.");
-  }catch(e){
-    toast(e.message);
-  }
+.hero-section p {
+    color: var(--text-muted);
+    font-size: 15px;
 }
 
-async function revise(note){
-  const missionId=currentMission?.id||currentResult?.mission?.id;
-  if(!missionId)return;
-  try{
-    const result=await api("/api/missions/revise",{
-      method:"POST",
-      body:JSON.stringify({
-        mission_id:missionId,
-        note:note||"",
-        memory:normalizeMemory(memory)
-      })
-    },12000);
-    if(result?.plan)renderPlan({...currentResult,...result});
-  }catch(e){
-    toast(e.message);
-  }
+.plan-panel {
+    background: var(--panel-dark);
+    border: 1px solid var(--border-dim);
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 24px;
 }
 
-async function sendConcierge(){
-  const missionId=currentMission?.id||currentResult?.mission?.id;
-  if(!missionId){
-    toast("Tell MIRROR what you need first.");
-    return;
-  }
-
-  const button=$("conciergeButton");
-  button.disabled=true;
-
-  try{
-    const result=await api(`/api/missions/${encodeURIComponent(missionId)}/concierge`,{
-      method:"POST",
-      body:JSON.stringify({
-        note:"",
-        memory:normalizeMemory(memory)
-      })
-    },15000);
-
-    const message=result?.message||"MIRROR has prepared the next step.";
-    addMessage(message,"mirror");
-    speak(message);
-    memory.learning.last_concierge=new Date().toISOString();
-    await saveMemory(memory);
-  }catch(e){
-    toast(e.message);
-  }finally{
-    button.disabled=false;
-  }
+.panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
 }
 
-function openMaps(){
-  const u=currentResult?.understanding||currentResult?.analysis||{};
-  const plan=currentResult?.plan||{};
-  const destination=u.destination||plan.destination||"";
-
-  if(!destination){
-    toast("Tell MIRROR the place you have in mind first.");
-    return;
-  }
-
-  const url="https://www.google.com/maps/search/?api=1&query="+encodeURIComponent(destination);
-  window.open(url,"_blank","noopener,noreferrer");
+.status-badge {
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: var(--accent-gold);
+    font-weight: 700;
 }
 
-function playMood(){
-  const u=currentResult?.understanding||currentResult?.analysis||{};
-  let query="relaxing elegant music";
-  if(u.signals?.includes?.("NATURE"))query="peaceful nature music";
-  if(u.signals?.includes?.("LUXURY"))query="luxury lounge music";
-  if(u.signals?.includes?.("QUIET"))query="calm ambient music";
-  if(u.intent==="MUSIC")query="beautiful music for this moment";
-
-  const url="https://www.youtube.com/results?search_query="+encodeURIComponent(query);
-  window.open(url,"_blank","noopener,noreferrer");
+.premium-reply {
+    font-size: 18px;
+    line-height: 1.5;
+    margin-bottom: 20px;
+    font-weight: 400;
 }
 
-function speak(text){
-  if(!text||!("speechSynthesis"in window)||speaking)return;
-  const utter=new SpeechSynthesisUtterance(text);
-  utter.lang=(currentResult?.understanding?.language||navigator.language?.slice(0,2)||"en")==="es"?"es-US":"en-US";
-  utter.rate=.95;
-  utter.pitch=1;
-  utter.onstart=()=>speaking=true;
-  utter.onend=()=>speaking=false;
-  utter.onerror=()=>speaking=false;
-  window.speechSynthesis.cancel();
-  window.speechSynthesis.speak(utter);
+.premium-direction-item {
+    font-size: 14px;
+    color: var(--text-muted);
+    padding: 8px 0;
+    border-top: 1px solid rgba(255,255,255,0.03);
 }
 
-function setupRecognition(){
-  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
-  if(!SR)return null;
-
-  const r=new SR();
-  r.lang=navigator.language||"en-US";
-  r.continuous=false;
-  r.interimResults=true;
-  r.maxAlternatives=1;
-
-  r.onstart=()=>{
-    listening=true;
-    $("voiceButton").classList.add("listening");
-    $("voiceStatus").textContent="Listening...";
-    $("voiceStatus").classList.remove("hidden");
-  };
-
-  r.onresult=e=>{
-    let finalText="";
-    let interim="";
-    for(let i=e.resultIndex;i<e.results.length;i++){
-      const text=e.results[i][0].transcript;
-      if(e.results[i].isFinal)finalText+=text;
-      else interim+=text;
-    }
-    const input=$("messageInput");
-    if(finalText){
-      input.value=(input.value+" "+finalText).trim();
-      input.style.height="auto";
-      input.style.height=Math.min(input.scrollHeight,150)+"px";
-    }else if(interim){
-      $("voiceStatus").textContent=interim;
-    }
-  };
-
-  r.onerror=e=>{
-    listening=false;
-    $("voiceButton").classList.remove("listening");
-    $("voiceStatus").textContent="";
-    $("voiceStatus").classList.add("hidden");
-    if(e.error!=="aborted")toast("Voice input is unavailable right now.");
-  };
-
-  r.onend=()=>{
-    listening=false;
-    $("voiceButton").classList.remove("listening");
-    $("voiceStatus").classList.add("hidden");
-  };
-
-  return r;
+.action-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 12px;
+    margin-top: 24px;
 }
 
-function toggleVoice(){
-  if(!recognition){
-    recognition=setupRecognition();
-    if(!recognition){
-      toast("Voice recognition is not supported by this browser.");
-      return;
-    }
-  }
-
-  if(listening){
-    try{recognition.stop();}catch(_){}
-  }else{
-    try{
-      recognition.lang=navigator.language||"en-US";
-      recognition.start();
-    }catch(e){
-      try{recognition.stop();}catch(_){}
-    }
-  }
+.luxury-action-btn {
+    background: rgba(255,255,255,0.02);
+    border: 1px solid var(--border-dim);
+    color: var(--text-pure);
+    padding: 14px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 13px;
+    transition: all 0.3s;
 }
 
-function formatTime(seconds){
-  const m=Math.floor(seconds/60);
-  const s=seconds%60;
-  return `${String(m).padStart(2,"0")}:${String(s).padStart(2,"0")}`;
+.luxury-action-btn:hover {
+    background: rgba(255,255,255,0.08);
 }
 
-function breathingPhase(elapsed){
-  const cycle=16;
-  const position=elapsed%cycle;
-  if(position<4)return{phase:"INHALE",instruction:"Breathe in slowly.",className:"inhale"};
-  if(position<6)return{phase:"HOLD",instruction:"Hold gently.",className:"hold"};
-  if(position<14)return{phase:"EXHALE",instruction:"Let the breath leave slowly.",className:"exhale"};
-  return{phase:"REST",instruction:"Rest for a moment.",className:"rest"};
+.primary-gold {
+    background: var(--accent-gold-dim);
+    border: 1px solid var(--accent-gold);
+    color: var(--accent-gold);
 }
 
-function updateBreathing(){
-  if(!$("breathingTimer"))return;
-  $("breathingTimer").textContent=formatTime(breathingSeconds);
-
-  const elapsed=600-breathingSeconds;
-  const phase=breathingPhase(elapsed);
-
-  $("breathingPhase").textContent=phase.phase;
-  $("breathingInstruction").textContent=phase.instruction;
-
-  const orb=$("breathingOrb");
-  orb.classList.remove("inhale","hold","exhale","rest");
-  orb.classList.add(phase.className);
+.primary-gold:hover {
+    background: var(--accent-gold);
+    color: var(--bg-dark);
 }
 
-function startBreathing(){
-  if(breathingRunning&&!breathingPaused)return;
-
-  breathingRunning=true;
-  breathingPaused=false;
-
-  $("breathingStart").classList.add("hidden");
-  $("breathingStop").classList.remove("hidden");
-  $("breathingStart").textContent="Resume";
-
-  clearInterval(breathingTimer);
-  breathingTimer=setInterval(()=>{
-    if(breathingPaused)return;
-
-    breathingSeconds--;
-
-    if(breathingSeconds<=0){
-      breathingSeconds=0;
-      updateBreathing();
-      stopBreathing(true);
-      const message="Beautiful. Take one more natural breath and return when you're ready.";
-      addMessage(message,"mirror");
-      speak(message);
-      return;
-    }
-
-    updateBreathing();
-  },1000);
-
-  updateBreathing();
+/* Círculo Respiratorio Premium Variable */
+.breathing-panel {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    background: rgba(255,255,255,0.01);
+    border: 1px solid var(--border-dim);
+    border-radius: 12px;
+    padding: 20px;
 }
 
-function pauseBreathing(){
-  breathingPaused=true;
-  $("breathingStop").textContent="Resume";
-  $("breathingStop").onclick=()=>{
-    breathingPaused=false;
-    $("breathingStop").textContent="Pause";
-  };
+.professional-orb {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    border: 2px solid var(--border-dim);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 4s ease-in-out;
 }
 
-function stopBreathing(finished=false){
-  clearInterval(breathingTimer);
-  breathingTimer=null;
-  breathingRunning=false;
-  breathingPaused=false;
-
-  $("breathingStart").classList.remove("hidden");
-  $("breathingStop").classList.add("hidden");
-  $("breathingStart").textContent=finished?"Begin Again":"Begin";
+.orb-inner {
+    text-align: center;
 }
 
-function resetBreathing(){
-  stopBreathing();
-  breathingSeconds=600;
-  updateBreathing();
-  $("breathingInstruction").textContent="When you're ready, begin.";
-  $("breathingPhase").textContent="READY";
-  $("breathingOrb").classList.remove("inhale","hold","exhale","rest");
+.orb-inner span {
+    display: block;
+    font-size: 8px;
+    letter-spacing: 1px;
+    color: var(--text-muted);
 }
 
-function openBreathing(auto=false){
-  setHidden("breathingArea",false);
-  if(auto&&!breathingRunning)startBreathing();
+.orb-inner strong {
+    font-size: 11px;
 }
 
-function closeBreathing(){
-  resetBreathing();
-  setHidden("breathingArea",true);
+/* Animaciones del Círculo Variable según fase */
+.professional-orb.inhale { transform: scale(1.25); border-color: var(--text-pure); box-shadow: 0 0 15px rgba(255,255,255,0.2); }
+.professional-orb.hold { transform: scale(1.25); border-color: var(--accent-gold); }
+.professional-orb.exhale { transform: scale(0.95); border-color: var(--text-muted); }
+.professional-orb.rest { transform: scale(1.0); border-color: var(--border-dim); }
+
+.control-pill {
+    background: var(--text-pure);
+    color: var(--bg-dark);
+    border: none;
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 6px;
 }
 
-function renderMemory(){
-  const box=$("memorySummary");
-  if(!box)return;
-  box.replaceChildren();
-
-  const values=[];
-
-  if(memory.core.name)values.push(["Name",memory.core.name]);
-  Object.entries(memory.preferences||{}).forEach(([key,value])=>{
-    if(value)values.push([key.replace(/_/g," "),value]);
-  });
-  if(memory.moment.intent)values.push(["Current focus",memory.moment.intent.toLowerCase()]);
-  if(memory.moment.signals?.length)values.push(["Atmosphere",memory.moment.signals.join(", ").toLowerCase()]);
-  if(memory.dislikes.length)values.push(["Avoid",memory.dislikes.join(", ")]);
-
-  if(!values.length){
-    const empty=document.createElement("div");
-    empty.className="memory-empty";
-    empty.textContent="MIRROR is still getting to know your rhythm.";
-    box.appendChild(empty);
-    return;
-  }
-
-  values.slice(0,12).forEach(([key,value])=>{
-    const item=document.createElement("div");
-    item.className="memory-item";
-
-    const label=document.createElement("span");
-    label.className="memory-label";
-    label.textContent=key;
-
-    const val=document.createElement("strong");
-    val.textContent=String(value);
-
-    item.append(label,val);
-    box.appendChild(item);
-  });
+.luxury-footer {
+    padding: 24px 32px 40px 32px;
+    border-top: 1px solid var(--border-dim);
+    background: var(--bg-dark);
 }
 
-function openMemory(){
-  renderMemory();
-  show("memoryScreen");
+.composer-container {
+    display: flex;
+    align-items: center;
+    background: var(--panel-dark);
+    border: 1px solid var(--border-dim);
+    border-radius: 30px;
+    padding: 6px 12px;
+    gap: 12px;
 }
 
-function closeMemory(){
-  show("conversation");
+.composer-container textarea {
+    flex: 1;
+    background: none;
+    border: none;
+    color: var(--text-pure);
+    font-family: var(--font-premium);
+    font-size: 15px;
+    resize: none;
+    outline: none;
+    padding: 8px 4px;
 }
 
-function openRecovery(){
-  $("recoveryName").value=memory.core.name||"";
-  $("recoveryPriority").value=memory.preferences.priority||"";
-  $("recoveryAtmosphere").value=memory.preferences.atmosphere||"";
-  $("recoveryAvoid").value=memory.dislikes.join(", ")||"";
-  $("recoveryStatus").textContent="";
-  $("recoveryModal").classList.remove("hidden");
+.action-trigger {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    transition: all 0.3s;
 }
 
-function closeRecovery(){
-  $("recoveryModal").classList.add("hidden");
+.mic-trigger { background: transparent; color: var(--text-muted); }
+.mic-trigger.active-mic { background: #ea4335; color: white; animation: pulse 1.5s infinite; }
+.send-trigger { background: transparent; color: var(--text-pure); }
+.send-trigger:hover { background: rgba(255,255,255,0.05); }
+
+@keyframes pulse {
+    0% { box-shadow: 0 0 0 0 rgba(234, 67, 53, 0.4); }
+    70% { box-shadow: 0 0 0 10px rgba(234, 67, 53, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(234, 67, 53, 0); }
 }
 
-async function saveRecoveryForm(){
-  const answers={
-    name:escapeText($("recoveryName").value),
-    priority:escapeText($("recoveryPriority").value),
-    atmosphere:escapeText($("recoveryAtmosphere").value),
-    avoid:escapeText($("recoveryAvoid").value)
-  };
-
-  const hasAnswer=Object.values(answers).some(Boolean);
-  if(!hasAnswer){
-    $("recoveryStatus").textContent="Choose at least one detail.";
-    return;
-  }
-
-  const local=normalizeMemory(memory);
-
-  if(answers.name)local.core.name=answers.name;
-  if(answers.priority)local.preferences.priority=answers.priority;
-  if(answers.atmosphere)local.preferences.atmosphere=answers.atmosphere;
-  if(answers.avoid){
-    local.dislikes=answers.avoid.split(",").map(x=>x.trim()).filter(Boolean);
-  }
-
-  $("recoveryStatus").textContent="Saving...";
-  $("saveRecovery").disabled=true;
-
-  try{
-    const result=await api("/api/memory/recovery",{
-      method:"POST",
-      body:JSON.stringify({
-        answers,
-        memory:local
-      })
-    },10000);
-
-    memory=normalizeMemory(result?.memory||local);
-    await saveMemory(memory);
-    renderMemory();
-    $("recoveryStatus").textContent="Your context is restored.";
-    setTimeout(closeRecovery,700);
-  }catch(e){
-    memory=local;
-    await saveMemory(memory);
-    $("recoveryStatus").textContent="Saved locally.";
-    toast(e.message||"Saved locally.");
-    setTimeout(closeRecovery,900);
-  }finally{
-    $("saveRecovery").disabled=false;
-  }
-}
-
-function backupMemory(){
-  try{
-    const data=JSON.stringify(normalizeMemory(memory),null,2);
-    const blob=new Blob([data],{type:"application/json"});
-    const url=URL.createObjectURL(blob);
-    const a=document.createElement("a");
-    a.href=url;
-    a.download="mirror-to-you-memory.json";
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    setTimeout(()=>URL.revokeObjectURL(url),1000);
-  }catch(e){
-    toast("Memory export failed.");
-  }
-}
-
-function clearMemory(){
-  $("confirmTitle").textContent="Clear local memory?";
-  $("confirmText").textContent="This will remove the personal context stored on this device.";
-  confirmAction=async()=>{
-    memory={
-      core:{},moment:{},preferences:{},dislikes:[],history:[],learning:{}
-    };
-    try{
-      const db=await openDB();
-      await new Promise((resolve,reject)=>{
-        const tx=db.transaction(STORE,"readwrite");
-        tx.objectStore(STORE).delete("profile");
-        tx.oncomplete=resolve;
-        tx.onerror=()=>reject(tx.error);
-      });
-      db.close();
-    }catch(_){}
-    localStorage.removeItem("mirror_memory");
-    renderMemory();
-    toast("Local memory cleared.");
-  };
-  $("confirmModal").classList.remove("hidden");
-}
-
-function closeConfirm(){
-  $("confirmModal").classList.add("hidden");
-  confirmAction=null;
-}
-
-async function loadMissions(){
-  try{
-    const result=await api("/api/missions",{},7000);
-    if(!result)return;
-  }catch(_){}
-}
-
-function autoResize(){
-  const el=$("messageInput");
-  if(!el)return;
-  el.style.height="auto";
-  el.style.height=Math.min(el.scrollHeight,150)+"px";
-}
-
-function bind(){
-  $("startButton").onclick=()=>{
-    show("conversation");
-    $("messageInput").focus();
-  };
-
-  $("memoryButton").onclick=openMemory;
-  $("closeMemory").onclick=closeMemory;
-
-  $("sendButton").onclick=askMirror;
-  $("voiceButton").onclick=toggleVoice;
-
-  $("messageInput").addEventListener("input",autoResize);
-  $("messageInput").addEventListener("keydown",e=>{
-    if(e.key==="Enter"&&!e.shiftKey){
-      e.preventDefault();
-      askMirror();
-    }
-  });
-
-  $("mapsButton").onclick=openMaps;
-  $("musicButton").onclick=playMood;
-  $("conciergeButton").onclick=sendConcierge;
-
-  $("recoveryButton").onclick=openRecovery;
-  $("closeRecovery").onclick=closeRecovery;
-  $("saveRecovery").onclick=saveRecoveryForm;
-  $("backupButton").onclick=backupMemory;
-  $("clearMemoryButton").onclick=clearMemory;
-
-  $("breathingStart").onclick=startBreathing;
-  $("breathingStop").onclick=()=>{
-    if(breathingPaused){
-      breathingPaused=false;
-      $("breathingStop").textContent="Pause";
-    }else{
-      pauseBreathing();
-    }
-  };
-  $("closeBreathing").onclick=closeBreathing;
-
-  $("closeConfirm").onclick=closeConfirm;
-  $("confirmCancel").onclick=closeConfirm;
-  $("confirmProceed").onclick=async()=>{
-    const action=confirmAction;
-    closeConfirm();
-    if(action)await action();
-  };
-
-  $("recoveryModal").addEventListener("click",e=>{
-    if(e.target===$("recoveryModal"))closeRecovery();
-  });
-
-  $("confirmModal").addEventListener("click",e=>{
-    if(e.target===$("confirmModal"))closeConfirm();
-  });
-}
-
-async function init(){
-  bind();
-  memory=normalizeMemory(await loadMemory());
-  updateBreathing();
-  deviceId();
-  await loadMissions();
-
-  if(!("speechSynthesis"in window)){
-    $("voiceStatus").textContent="";
-  }
-
-  window.addEventListener("beforeunload",()=>{
-    clearInterval(breathingTimer);
-    try{window.speechSynthesis?.cancel();}catch(_){}
-    try{recognition?.abort();}catch(_){}
-  });
-}
-
-if(document.readyState==="loading"){
-  document.addEventListener("DOMContentLoaded",init,{once:true});
-}else{
-  init();
-}
+.hidden { display: none !important; }
