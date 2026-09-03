@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Curated Experiences — MIRROR TO YOU</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        obsidian: '#0a0a0a',
+                        surface: '#121212',
+                        card: '#18181b',
+                        gold: {
+                            light: '#e2c999',
+                            DEFAULT: '#c5a059',
+                            dark: '#9a7b38'
+                        },
+                        platinum: '#e5e7eb'
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        serif: ['Playfair Display', 'serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .font-serif { font-family: 'Playfair Display', serif; }
+        .glass-panel {
+            background: rgba(24, 24, 27, 0.7);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(197, 160, 89, 0.15);
+        }
+        .glow-gold {
+            box-shadow: 0 0 40px -10px rgba(197, 160, 89, 0.15);
+        }
+        .text-gradient {
+            background: linear-gradient(135deg, #ffffff 0%, #e2c999 50%, #c5a059 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+    </style>
+</head>
+<body class="bg-obsidian text-platinum antialiased min-h-screen flex flex-col justify-between selection:bg-gold selection:text-obsidian">
+
+    <!-- Header / Navigation -->
+    <header class="fixed top-0 left-0 right-0 z-50 glass-panel border-b border-white/5">
+        <div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+            <a href="index.html" class="flex items-center space-x-3 group">
+                <div class="w-8 h-8 rounded-full border border-gold/40 flex items-center justify-center transition-colors group-hover:border-gold">
+                    <div class="w-2 h-2 rounded-full bg-gold"></div>
+                </div>
+                <span class="font-serif tracking-[0.2em] text-lg text-platinum font-medium">MIRROR TO YOU</span>
+            </a>
+
+            <nav class="hidden md:flex items-center space-x-8 text-sm tracking-widest text-platinum/70 uppercase font-light">
+                <a href="dashboard.html" class="hover:text-gold transition-colors">Dashboard</a>
+                <a href="concierge.html" class="hover:text-gold transition-colors">Concierge</a>
+                <a href="travel.html" class="hover:text-gold transition-colors">Journeys</a>
+                <a href="experiences.html" class="text-gold font-medium">Experiences</a>
+            </nav>
+
+            <div class="flex items-center space-x-4">
+                <span class="text-xs tracking-widest text-gold uppercase px-3 py-1 border border-gold/30 bg-gold/5 hidden sm:inline-block">Private Account</span>
+                <a href="settings.html" class="text-xs tracking-widest text-platinum/80 hover:text-gold uppercase px-3 py-2 transition-colors">Settings</a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-grow pt-28 pb-16 px-6">
+        <div class="max-w-6xl mx-auto">
+            
+            <!-- Page Title Section -->
+            <div class="mb-10 border-b border-white/10 pb-6 flex flex-col md:flex-row md:items-end justify-between gap-4">
+                <div>
+                    <span class="text-xs uppercase tracking-[0.25em] text-gold font-medium block mb-2">Exclusives & Access</span>
+                    <h1 class="font-serif text-3xl sm:text-4xl text-white">Curated Experiences</h1>
+                </div>
+                <p class="text-xs text-platinum/50 uppercase tracking-widest max-w-xs">
+                    Private access, closed-door viewings, and bespoke engagements curated by your dedicated desk.
+                </p>
+            </div>
+
+            <!-- Quick Experience Request Bar (FastAPI Ready) -->
+            <div class="glass-panel p-6 rounded-none mb-10 glow-gold">
+                <form id="experienceRequestForm" onsubmit="handleExperienceRequest(event)" class="space-y-4">
+                    <div class="flex items-center justify-between border-b border-white/10 pb-3">
+                        <span class="text-xs tracking-widest text-gold uppercase font-medium">Request Bespoke Engagement</span>
+                        <span class="text-[10px] text-platinum/40 uppercase tracking-wider">Zero Public Access</span>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <input type="text" id="expTitle" required placeholder="Engagement Type (e.g., Private Art Viewing)" class="bg-obsidian border border-white/10 p-3 text-sm text-platinum focus:outline-none focus:border-gold transition-colors">
+                        <input type="text" id="expLocation" required placeholder="City / Venue (e.g., Paris, Private Gallery)" class="bg-obsidian border border-white/10 p-3 text-sm text-platinum focus:outline-none focus:border-gold transition-colors">
+                        <input type="text" id="expDetails" placeholder="Specific Preferences (e.g., After-hours access)" class="bg-obsidian border border-white/10 p-3 text-sm text-platinum focus:outline-none focus:border-gold transition-colors">
+                    </div>
+                    <div class="flex items-center justify-between pt-2">
+                        <span id="expFeedback" class="text-xs text-gold uppercase tracking-widest hidden">Engagement request transmitted to your private concierge desk.</span>
+                        <button type="submit" class="ml-auto bg-gold text-obsidian text-xs tracking-widest uppercase px-8 py-3 font-medium hover:bg-gold-light transition-all flex items-center space-x-2">
+                            <span>Submit Request</span>
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Curated Experiences Grid (DEMO DATA) -->
+            <div class="space-y-6">
+                <h2 class="text-xs uppercase tracking-[0.2em] text-gold font-medium mb-4">Available Private Allocations</h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    
+                    <!-- Experience Card 1 -->
+                    <div class="glass-panel p-6 rounded-none flex flex-col justify-between group hover:border-gold/40 transition-colors">
+                        <div>
+                            <div class="flex items-center justify-between mb-4">
+                                <span class="text-[10px] uppercase tracking-widest bg-gold/10 text-gold px-2.5 py-1 border border-gold/30">Private Allocation</span>
+                                <span class="text-xs text-platinum/50 uppercase tracking-widest">Florence, Italy</span>
+                            </div>
+                            <h3 class="font-serif text-2xl text-white mb-2 group-hover:text-gold-light transition-colors">After-Hours Uffizi Gallery & Restorer Consultation</h3>
+                            <p class="text-xs text-platinum/70 leading-relaxed mb-6 font-light">
+                                Complete closed-doors access to the Vasari Corridor and Botticelli collection accompanied by the head chief art restorer.
+                            </p>
+                        </div>
+                        <div class="border-t border-white/10 pt-4 flex items-center justify-between">
+                            <span class="text-xs tracking-widest text-platinum/40 uppercase">DEMO EXPERIENCE</span>
+                            <a href="concierge.html" class="text-xs uppercase tracking-widest text-gold hover:underline flex items-center space-x-1">
+                                <span>Inquire with Desk</span>
+                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5l7 7-7 7"></path></svg>
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Experience Card 2 -->
+                    <div class="glass-panel p-6 rounded-none flex flex-col justify-between group hover:border-gold/40 transition-colors">
+                        <div>
+                            <div class="flex items-center justify-between mb-4">
+                                <span class="text-[10px] uppercase tracking-widest bg-gold/10 text-gold px-2.5 py-1 border border-gold/30">Bespoke Access</span>
+                                <span class="text-xs text-platinum/50 uppercase tracking-widest">Bordeaux, France</span>
+                            </div>
+                            <h3 class="font-serif text-2xl text-white mb-2 group-hover:text-gold-light transition-colors">First-Growth Private Cellar Vintage Tasting</h3>
+                            <p class="text-xs text-platinum/70 leading-relaxed mb-6 font-light">
+                                Helicopter transfer directly to premier classified château estate for vertical tasting of unreleased vintages with the Master Winemaker.
+                            </p>
+                        </div>
+                        <div class="border-t border-white/10 pt-4 flex items-center justify-between">
+                            <span class="text-xs tracking-widest text-platinum/40 uppercase">DEMO EXPERIENCE</span>
+                            <a href="concierge.html" class="text-xs uppercase tracking-widest text-gold hover:underline flex items-center space-x-1">
+                                <span>Inquire with Desk</span>
+                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5l7 7-7 7"></path></svg>
+                            </a>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="border-t border-white/5 py-8 text-center text-xs tracking-widest text-platinum/40 uppercase">
+        <div class="max-w-7xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <p>&copy; 2026 Mirror To You. Private Account Only.</p>
+            <div class="flex space-x-6">
+                <a href="dashboard.html" class="hover:text-gold transition-colors">Dashboard</a>
+                <a href="concierge.html" class="hover:text-gold transition-colors">Concierge Desk</a>
+                <a href="settings.html" class="hover:text-gold transition-colors">Security</a>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Frontend Demo Handler for Experience Requests (Ready for FastAPI endpoint integration)
+        function handleExperienceRequest(event) {
+            event.preventDefault();
+
+            const experiencePayload = {
+                title: document.getElementById('expTitle').value,
+                location: document.getElementById('expLocation').value,
+                details: document.getElementById('expDetails').value,
+                timestamp: new Date().toISOString()
+            };
+
+            // In production, this will connect via fetch('/api/v1/experiences/request', { method: 'POST', body: JSON.stringify(experiencePayload) })
+            console.log("DEMO FastAPI Experience Payload:", experiencePayload);
+
+            const feedback = document.getElementById('expFeedback');
+            feedback.classList.remove('hidden');
+
+            document.getElementById('expTitle').value = '';
+            document.getElementById('expLocation').value = '';
+            document.getElementById('expDetails').value = '';
+
+            setTimeout(() => {
+                feedback.classList.add('hidden');
+            }, 6000);
+        }
+    </script>
+</body>
+</html>
