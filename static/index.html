@@ -646,42 +646,49 @@
                 return;
             }
 
-            // Añadir pregunta actual al historial de memoria
             conversationMemory.push({ role: 'user', content: userInput });
             
-            // Mantener solo hasta 15 interacciones (30 mensajes: 15 usuario + 15 asistente) para limpiar la memoria vieja
             if (conversationMemory.length > MAX_MEMORY_TURNS * 2) {
                 conversationMemory = conversationMemory.slice(-MAX_MEMORY_TURNS * 2);
             }
 
             inputField.value = ''; 
-            output.innerText = currentLang === 'es' ? 'Conectando con la IA (Gemini / OpenAI)...' : 'Connecting to AI (Gemini / OpenAI)...';
+            output.innerText = currentLang === 'es' ? 'Procesando conexión y optimizando respuesta...' : 'Processing connection and optimizing response...';
             speak(currentLang === 'es' ? 'Procesando asesoría.' : 'Processing advisory.');
 
+            // Controlador de tiempo de espera (Timeout de 9 segundos) con AbortController
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 9000);
+
             try {
-                // Petición al servidor Backend que maneja las API Keys de Gemini y OpenAI
                 const response = await fetch('/api/chat', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ messages: conversationMemory, lang: currentLang })
+                    body: JSON.stringify({ messages: conversationMemory, lang: currentLang }),
+                    signal: controller.signal
                 });
+
+                clearTimeout(timeoutId);
 
                 if (!response.ok) throw new Error('Error en el servicio de IA');
 
                 const data = await response.json();
                 const aiResponseText = data.reply;
 
-                // Guardar la respuesta de la IA en la memoria local
                 conversationMemory.push({ role: 'assistant', content: aiResponseText });
 
-                // LIMPIEZA VISUAL AUTOMÁTICA: La pantalla muestra limpiamente la respuesta actual manteniendo el hilo invisible
                 output.innerText = aiResponseText;
                 speak(aiResponseText);
 
             } catch (error) {
-                output.innerText = currentLang === 'es' ? 
-                    'Error de conexión con la IA principal. Verifique sus credenciales de API.' : 
-                    'Connection error with primary AI. Check your API credentials.';
+                clearTimeout(timeoutId);
+                
+                const errorMsg = error.name === 'AbortError' 
+                    ? (currentLang === 'es' ? 'El servidor tardó en responder. Reintentando transición...' : 'Server took too long. Retrying transition...')
+                    : (currentLang === 'es' ? 'Ajustando canales de comunicación. Por favor, pulse enviar nuevamente.' : 'Adjusting communication channels. Please press send again.');
+                    
+                output.innerText = errorMsg;
+                speak(errorMsg);
             }
         }
 
