@@ -1,964 +1,1995 @@
-const API_BASE=window.MIRROR_CONFIG?.apiBase||"";
-let memory=null;
-let currentMissionId=null;
+"use strict";
+
+const MIRROR_STORAGE_KEY="mirror_memory";
+const MIRROR_DB_NAME="mirror_to_you";
+const MIRROR_DB_VERSION=1;
+const MIRROR_DB_STORE="memory";
+const DEVICE_KEY="mirror_device_id";
+const LANG_KEY="mirror_language";
+const TODAY_HISTORY_LIMIT=120;
+
+let mirrorMemory=null;
+let currentPlan=null;
+let currentMission=null;
+let currentResponse=null;
+let currentLanguage=localStorage.getItem(LANG_KEY)||detectLanguage();
 let recognition=null;
-let currentLanguage="en";
+let listening=false;
+let speechEnabled=true;
+let breathingTimer=null;
+let breathingRunning=false;
+let breathingStartedAt=0;
+let breathingElapsed=0;
+let breathingRemaining=0;
+let breathingPattern=null;
+let breathingCycleTimer=null;
+let currentBreathingPhaseIndex=0;
+let currentBreathingCycle=0;
+let todayExperienceSignature=null;
 
-const $=id=>document.getElementById(id);
-const api=(url,options={})=>fetch(`${API_BASE}${url}`,{
-headers:{"Content-Type":"application/json",...(options.headers||{})},
-...options
-}).then(async r=>{
-const data=await r.json().catch(()=>({}));
-if(!r.ok)throw new Error(data.detail||data.message||"Request failed");
-return data;
-});
-
-function deviceId(){
-let id=localStorage.getItem("mirror_device_id");
-if(!id){
-id=crypto?.randomUUID?crypto.randomUUID():`mirror-${Date.now()}-${Math.random().toString(36).slice(2)}`;
-localStorage.setItem("mirror_device_id",id);
-}
-return id;
+function $(id){
+  return document.getElementById(id);
 }
 
-function defaultMemory(){
-return{
-core:{},
-moment:{},
-preferences:{},
-dislikes:[],
-history:[],
-learning:{}
-};
+function safeText(value){
+  return value===null||value===undefined?"":String(value);
 }
 
-function normalizeMemory(data){
-const m=data&&typeof data==="object"?data:{};
-return{
-core:m.core&&typeof m.core==="object"?m.core:{},
-moment:m.moment&&typeof m.moment==="object"?m.moment:{},
-preferences:m.preferences&&typeof m.preferences==="object"?m.preferences:{},
-dislikes:Array.isArray(m.dislikes)?m.dislikes:[],
-history:Array.isArray(m.history)?m.history:[],
-learning:m.learning&&typeof m.learning==="object"?m.learning:{}
-};
+function detectLanguage(){
+  const lang=(navigator.language||"en").toLowerCase();
+  return lang.startsWith("es")?"es":"en";
 }
 
-function openDB(){
-return new Promise((resolve,reject)=>{
-const request=indexedDB.open("mirror_to_you",1);
-request.onupgradeneeded=()=>{
-const db=request.result;
-if(!db.objectStoreNames.contains("memory"))db.createObjectStore("memory");
-};
-request.onsuccess=()=>resolve(request.result);
-request.onerror=()=>reject(request.error);
-});
+function getDeviceId(){
+  let id=localStorage.getItem(DEVICE_KEY);
+  if(!id){
+    id="mirror-"+Date.now().toString(36)+"-"+Math.random().toString(36).slice(2,12);
+    localStorage.setItem(DEVICE_KEY,id);
+  }
+  return id;
+}
+
+function getLocalDate(){
+  const d=new Date();
+  const y=d.getFullYear();
+  const m=String(d.getMonth()+1).padStart(2,"0");
+  const day=String(d.getDate()).padStart(2,"0");
+  return `${y}-${m}-${day}`;
+}
+
+function getLocalTime(){
+  const d=new Date();
+  return d.toTimeString().slice(0,8);
+}
+
+function getTimezone(){
+  try{
+    return Intl.DateTimeFormat().resolvedOptions().timeZone||"UTC";
+  }catch(e){
+    return "UTC";
+  }
+}
+
+function createEmptyMemory(){
+  return {
+    core:{},
+    preferences:{},
+    dislikes:[],
+    daily:{},
+    history:[],
+    feedback:[],
+    device_id:getDeviceId(),
+    created_at:new Date().toISOString(),
+    updated_at:new Date().toISOString()
+  };
+}
+
+function normalizeMemory(memory){
+  const m=memory&&typeof memory==="object"?memory:createEmptyMemory();
+
+  if(!m.core||typeof m.core!=="object")m.core={};
+  if(!m.preferences||typeof m.preferences!=="object")m.preferences={};
+  if(!Array.isArray(m.dislikes))m.dislikes=[];
+  if(!m.daily||typeof m.daily!=="object")m.daily={};
+  if(!Array.isArray(m.history))m.history=[];
+  if(!Array.isArray(m.feedback))m.feedback=[];
+  if(!m.device_id)m.device_id=getDeviceId();
+
+  const today=getLocalDate();
+
+  if(!Array.isArray(m.daily[today]))m.daily[today]=[];
+
+  Object.keys(m.daily).forEach(day=>{
+    if(day!==today&&Object.keys(m.daily).length>14)delete m.daily[day];
+  });
+
+  m.daily[today]=m.daily[today].slice(-TODAY_HISTORY_LIMIT);
+  m.history=m.history.slice(-100);
+  m.feedback=m.feedback.slice(-100);
+  m.updated_at=new Date().toISOString();
+
+  return m;
+}
+
+function saveMemoryLocal(memory){
+  mirrorMemory=normalizeMemory(memory);
+  localStorage.setItem(MIRROR_STORAGE_KEY,JSON.stringify(mirrorMemory));
+  return mirrorMemory;
+}
+
+function loadMemoryLocal(){
+  try{
+    const raw=localStorage.getItem(MIRROR_STORAGE_KEY);
+    if(raw)return normalizeMemory(JSON.parse(raw));
+  }catch(e){
+    console.warn("MIRROR memory reset:",e);
+    localStorage.removeItem(MIRROR_STORAGE_KEY);
+  }
+  return createEmptyMemory();
+}
+
+function openMemoryDB(){
+  return new Promise((resolve,reject)=>{
+    if(!window.indexedDB){
+      resolve(null);
+      return;
+    }
+
+    const request=indexedDB.open(MIRROR_DB_NAME,MIRROR_DB_VERSION);
+
+    request.onupgradeneeded=()=>{
+      const db=request.result;
+      if(!db.objectStoreNames.contains(MIRROR_DB_STORE)){
+        db.createObjectStore(MIRROR_DB_STORE,{keyPath:"id"});
+      }
+    };
+
+    request.onsuccess=()=>resolve(request.result);
+    request.onerror=()=>reject(request.error);
+  });
+}
+
+async function saveMemoryIndexedDB(memory){
+  try{
+    const db=await openMemoryDB();
+    if(!db)return;
+
+    await new Promise((resolve,reject)=>{
+      const tx=db.transaction(MIRROR_DB_STORE,"readwrite");
+      tx.objectStore(MIRROR_DB_STORE).put({
+        id:"primary",
+        memory:normalizeMemory(memory)
+      });
+      tx.oncomplete=resolve;
+      tx.onerror=()=>reject(tx.error);
+    });
+
+    db.close();
+  }catch(e){
+    console.warn("IndexedDB save failed:",e);
+  }
+}
+
+async function loadMemoryIndexedDB(){
+  try{
+    const db=await openMemoryDB();
+    if(!db)return null;
+
+    const result=await new Promise((resolve,reject)=>{
+      const tx=db.transaction(MIRROR_DB_STORE,"readonly");
+      const request=tx.objectStore(MIRROR_DB_STORE).get("primary");
+      request.onsuccess=()=>resolve(request.result||null);
+      request.onerror=()=>reject(request.error);
+    });
+
+    db.close();
+
+    return result&&result.memory?normalizeMemory(result.memory):null;
+  }catch(e){
+    console.warn("IndexedDB load failed:",e);
+    return null;
+  }
 }
 
 async function loadMemory(){
-try{
-const db=await openDB();
-const value=await new Promise((resolve,reject)=>{
-const tx=db.transaction("memory","readonly");
-const req=tx.objectStore("memory").get("client_memory");
-req.onsuccess=()=>resolve(req.result);
-req.onerror=()=>reject(req.error);
-});
-db.close();
-memory=normalizeMemory(value||defaultMemory());
-}catch(e){
-memory=normalizeMemory(JSON.parse(localStorage.getItem("mirror_memory")||"null"));
-}
-return memory;
+  const indexed=await loadMemoryIndexedDB();
+
+  if(indexed){
+    mirrorMemory=normalizeMemory(indexed);
+    localStorage.setItem(MIRROR_STORAGE_KEY,JSON.stringify(mirrorMemory));
+    return mirrorMemory;
+  }
+
+  mirrorMemory=loadMemoryLocal();
+  await saveMemoryIndexedDB(mirrorMemory);
+  return mirrorMemory;
 }
 
-async function saveMemory(data){
-memory=normalizeMemory(data);
-try{
-const db=await openDB();
-await new Promise((resolve,reject)=>{
-const tx=db.transaction("memory","readwrite");
-tx.objectStore("memory").put(memory,"client_memory");
-tx.oncomplete=resolve;
-tx.onerror=()=>reject(tx.error);
-});
-db.close();
-}catch(e){
-localStorage.setItem("mirror_memory",JSON.stringify(memory));
-}
+async function persistMemory(memory){
+  mirrorMemory=saveMemoryLocal(memory);
+  await saveMemoryIndexedDB(mirrorMemory);
+  return mirrorMemory;
 }
 
-function language(){
-return document.documentElement.lang==="es"?"es":"en";
+function todayHistory(){
+  if(!mirrorMemory)mirrorMemory=loadMemoryLocal();
+  const today=getLocalDate();
+
+  if(!Array.isArray(mirrorMemory.daily[today])){
+    mirrorMemory.daily[today]=[];
+  }
+
+  return mirrorMemory.daily[today];
+}
+
+function getTodayUsed(){
+  const history=todayHistory();
+
+  const used={
+    experience_ids:new Set(),
+    exercise_ids:new Set(),
+    breathing_ids:new Set(),
+    patterns:new Set(),
+    actions:new Set(),
+    phrases:new Set(),
+    titles:new Set(),
+    signatures:new Set()
+  };
+
+  history.forEach(item=>{
+    if(!item||typeof item!=="object")return;
+
+    [
+      ["experience_id","experience_ids"],
+      ["exercise_id","exercise_ids"],
+      ["breathing_id","breathing_ids"],
+      ["pattern","patterns"],
+      ["action","actions"],
+      ["phrase","phrases"],
+      ["title","titles"],
+      ["signature","signatures"]
+    ].forEach(([field,target])=>{
+      const value=item[field];
+      if(value!==undefined&&value!==null&&String(value).trim()){
+        used[target].add(String(value).trim().toLowerCase());
+      }
+    });
+
+    if(item.breathing&&typeof item.breathing==="object"){
+      const b=item.breathing;
+
+      if(b.id)used.breathing_ids.add(String(b.id).toLowerCase());
+      if(b.pattern)used.patterns.add(String(b.pattern).toLowerCase());
+      if(b.signature)used.signatures.add(String(b.signature).toLowerCase());
+    }
+  });
+
+  return used;
+}
+
+function addTodayExperience(experience){
+  if(!mirrorMemory)mirrorMemory=loadMemoryLocal();
+
+  const today=getLocalDate();
+
+  if(!Array.isArray(mirrorMemory.daily[today])){
+    mirrorMemory.daily[today]=[];
+  }
+
+  const record={
+    ...experience,
+    date:today,
+    time:getLocalTime(),
+    timestamp:new Date().toISOString()
+  };
+
+  mirrorMemory.daily[today].push(record);
+  mirrorMemory.daily[today]=mirrorMemory.daily[today].slice(-TODAY_HISTORY_LIMIT);
+
+  mirrorMemory.history.push(record);
+  mirrorMemory.history=mirrorMemory.history.slice(-100);
+
+  persistMemory(mirrorMemory);
+  return record;
+}
+
+function buildClientContext(){
+  const used=getTodayUsed();
+
+  return {
+    device_id:getDeviceId(),
+    date:getLocalDate(),
+    time:getLocalTime(),
+    timezone:getTimezone(),
+    language:currentLanguage,
+    today_count:todayHistory().length,
+    today_history:todayHistory().slice(-40),
+    avoid_today:{
+      experience_ids:Array.from(used.experience_ids),
+      exercise_ids:Array.from(used.exercise_ids),
+      breathing_ids:Array.from(used.breathing_ids),
+      patterns:Array.from(used.patterns),
+      actions:Array.from(used.actions),
+      phrases:Array.from(used.phrases),
+      titles:Array.from(used.titles),
+      signatures:Array.from(used.signatures)
+    },
+    core:mirrorMemory?.core||{},
+    preferences:mirrorMemory?.preferences||{},
+    dislikes:mirrorMemory?.dislikes||{}
+  };
+}
+
+async function api(url,options={}){
+  const config={
+    method:"GET",
+    headers:{
+      "Accept":"application/json",
+      ...(options.body?{"Content-Type":"application/json"}:{})
+    },
+    ...options
+  };
+
+  const response=await fetch(url,config);
+  let data=null;
+
+  try{
+    data=await response.json();
+  }catch(e){
+    data={};
+  }
+
+  if(!response.ok){
+    const detail=data&&data.detail?
+      (typeof data.detail==="string"?data.detail:JSON.stringify(data.detail)):
+      `HTTP ${response.status}`;
+
+    throw new Error(detail);
+  }
+
+  return data;
+}
+
+function setLoading(loading){
+  const button=$("askBtn");
+  if(button){
+    button.disabled=loading;
+    button.dataset.originalText=button.dataset.originalText||button.textContent;
+    button.textContent=loading?
+      (currentLanguage==="es"?"Estoy contigo…":"I'm with you…"):
+      button.dataset.originalText;
+  }
+
+  document.body.classList.toggle("mirror-loading",loading);
+}
+
+function showSection(id,show=true){
+  const el=$(id);
+  if(el)el.classList.toggle("hidden",!show);
 }
 
 function setText(id,text){
-const el=$(id);
-if(el&&text!==undefined&&text!==null)el.textContent=String(text);
+  const el=$(id);
+  if(el)el.textContent=safeText(text);
 }
 
-function show(id,visible=true){
-const el=$(id);
-if(el)el.classList.toggle("hidden",!visible);
-}
-
-function escapeHTML(value){
-return String(value??"").replace(/[&<>"']/g,c=>({
-"&":"&",
-"<":"<",
-">":">",
-'"':""",
-"'":"'"
-}[c]));
-}
-
-function cleanText(value){
-if(value===undefined||value===null)return"";
-if(typeof value==="string")return value.trim();
-if(Array.isArray(value))return value.map(cleanText).filter(Boolean).join(" ");
-return String(value).trim();
-}
-
-function formatValue(value){
-if(value===undefined||value===null||value==="")return"";
-if(typeof value==="string")return value;
-if(Array.isArray(value))return value.join(", ");
-if(typeof value==="object"){
-return Object.values(value).filter(v=>v!==null&&v!==undefined&&v!=="").join(", ");
-}
-return String(value);
-}
-
-function speak(text){
-if(!window.speechSynthesis||!text)return;
-try{
-window.speechSynthesis.cancel();
-const utterance=new SpeechSynthesisUtterance(cleanText(text));
-utterance.lang=language()==="es"?"es-US":"en-US";
-utterance.rate=.94;
-utterance.pitch=1;
-window.speechSynthesis.speak(utterance);
-}catch(e){}
+function setHTML(id,html){
+  const el=$(id);
+  if(el)el.innerHTML=html;
 }
 
 function showToast(message){
-const toast=$("toast");
-if(!toast)return;
-toast.textContent=message;
-toast.classList.remove("hidden");
-clearTimeout(window.mirrorToastTimer);
-window.mirrorToastTimer=setTimeout(()=>toast.classList.add("hidden"),3500);
+  const toast=$("toast");
+  if(!toast)return;
+
+  toast.textContent=safeText(message);
+  toast.classList.add("show");
+
+  clearTimeout(showToast.timer);
+  showToast.timer=setTimeout(()=>{
+    toast.classList.remove("show");
+  },3200);
 }
 
-function showStatus(message,type=""){
-const status=$("responseStatus");
-if(!status)return;
-status.textContent=message||"";
-status.className=`response-status ${type}`.trim();
-if(!message)status.classList.add("hidden");
-else status.classList.remove("hidden");
+function speak(text,options={}){
+  if(!speechEnabled)return;
+  if(!("speechSynthesis" in window))return;
+
+  const value=safeText(text).trim();
+  if(!value)return;
+
+  window.speechSynthesis.cancel();
+
+  const utterance=new SpeechSynthesisUtterance(value);
+  utterance.lang=options.lang||
+    (currentLanguage==="es"?"es-US":"en-US");
+  utterance.rate=options.rate||0.95;
+  utterance.pitch=options.pitch||1;
+
+  const voices=window.speechSynthesis.getVoices();
+
+  if(voices.length){
+    const preferred=voices.find(v=>{
+      const l=(v.lang||"").toLowerCase();
+      return currentLanguage==="es"?l.startsWith("es"):l.startsWith("en");
+    });
+
+    if(preferred)utterance.voice=preferred;
+  }
+
+  window.speechSynthesis.speak(utterance);
 }
 
-function resetPlanFields(){
-[
-"planDestinationWrap",
-"planBudgetWrap",
-"planPrivacyWrap",
-"planPriorityWrap",
-"mapsBtn",
-"musicBtn",
-"planQuestions"
-].forEach(id=>show(id,false));
-
-setText("planDestination","");
-setText("planBudget","");
-setText("planPrivacy","");
-setText("planPriority","");
-setText("planDetails","");
-setText("planSteps","");
-setText("planQuestions","");
-setText("planDirection","");
+function stopSpeech(){
+  if("speechSynthesis" in window){
+    window.speechSynthesis.cancel();
+  }
 }
 
-function renderUnderstanding(data){
-if(!data||typeof data!=="object"){
-show("understandingSection",false);
-return;
-}
-
-const u=data.understanding||data;
-const companion=formatValue(u.companion);
-const duration=formatValue(u.duration);
-const destination=formatValue(u.destination);
-
-const parts=[];
-if(companion)parts.push(companion);
-if(duration)parts.push(duration);
-if(destination)parts.push(destination);
-
-setText("understandingText",
-cleanText(
-u.summary||
-u.direction||
-u.need||
-u.intent||
-(language()==="es"?"Estoy entendiendo lo que necesitas.":"I'm understanding what you need.")
-)
-);
-
-setText("understandingCompanion",companion);
-setText("understandingDuration",duration);
-setText("understandingDestination",destination);
-
-show("understandingCompanion",!!companion);
-show("understandingDuration",!!duration);
-show("understandingDestination",!!destination);
-show("understandingSection",true);
-}
-
-function renderSteps(steps){
-const container=$("planSteps");
-if(!container)return;
-container.innerHTML="";
-
-if(!steps){
-container.classList.add("hidden");
-return;
-}
-
-let list=Array.isArray(steps)?steps:[steps];
-list=list.map(cleanText).filter(Boolean);
-
-if(!list.length){
-container.classList.add("hidden");
-return;
-}
-
-list.forEach((step,index)=>{
-const item=document.createElement("div");
-item.className="plan-step";
-item.innerHTML=`<span class="plan-step-number">${String(index+1).padStart(2,"0")}</span> <span class="plan-step-text">${escapeHTML(step)}</span>`;
-container.appendChild(item);
-});
-
-container.classList.remove("hidden");
-}
-
-function renderQuestions(questions){
-const container=$("planQuestions");
-if(!container)return;
-
-container.innerHTML="";
-const list=Array.isArray(questions)?questions:[questions];
-const valid=list.map(cleanText).filter(Boolean);
-
-if(!valid.length){
-show("planQuestions",false);
-return;
-}
-
-valid.forEach(question=>{
-const item=document.createElement("div");
-item.className="plan-question";
-item.textContent=question;
-container.appendChild(item);
-});
-
-show("planQuestions",true);
-}
-
-function renderPlan(plan){
-if(!plan||typeof plan!=="object"){
-show("planSection",false);
-return;
-}
-
-resetPlanFields();
-
-const title=cleanText(plan.title)||
-(language()==="es"?"Algo pensado para ti":"Something made for you");
-
-const direction=cleanText(plan.direction);
-const destination=formatValue(plan.destination);
-const budget=formatValue(plan.budget);
-const privacy=formatValue(plan.privacy);
-const priority=formatValue(plan.priority);
-const details=cleanText(plan.details||plan.description||plan.summary);
-
-setText("planTitle",title);
-setText("planDirection",direction);
-setText("planDetails",details);
-
-if(destination){
-setText("planDestination",destination);
-show("planDestinationWrap",true);
-}
-
-if(budget){
-setText("planBudget",budget);
-show("planBudgetWrap",true);
-}
-
-if(privacy){
-setText("planPrivacy",privacy);
-show("planPrivacyWrap",true);
-}
-
-if(priority){
-setText("planPriority",priority);
-show("planPriorityWrap",true);
-}
-
-renderSteps(plan.steps||plan.actions||plan.next_steps);
-renderQuestions(plan.questions);
-
-currentMissionId=plan.mission_id||plan.id||currentMissionId;
-
-if(destination){
-show("mapsBtn",true);
-$("mapsBtn").dataset.destination=destination;
-}
-
-if(plan.music||plan.mood||plan.music_query){
-show("musicBtn",true);
-$("musicBtn").dataset.query=formatValue(plan.music||plan.mood||plan.music_query);
-}
-
-show("planSection",true);
+function getResponseText(data){
+  return data?.message||
+    data?.response||
+    data?.answer||
+    data?.direction||
+    data?.plan?.direction||
+    "";
 }
 
 function renderResponse(data){
-const text=cleanText(data?.message||data?.response||data?.text);
+  currentResponse=data;
 
-if(text){
-setText("responseText",text);
-show("responseSection",true);
-}else{
-show("responseSection",false);
+  const text=getResponseText(data);
+
+  if(text){
+    setText("responseText",text);
+    showSection("responseSection",true);
+    setText(
+      "responseStatus",
+      currentLanguage==="es"?"Aquí estoy.":"I'm here."
+    );
+  }
+
+  if(data?.understanding){
+    renderUnderstanding(data.understanding);
+  }
+
+  if(data?.personalization){
+    renderPersonalization(data.personalization);
+  }
+
+  if(data?.plan){
+    currentPlan=data.plan;
+    renderPlan(data.plan);
+  }
+
+  if(data?.mission){
+    currentMission=data.mission;
+  }
+
+  if(data?.memory){
+    persistMemory(data.memory);
+  }
+
+  if(text){
+    speak(text);
+  }
 }
 
-showStatus("", "");
+function renderUnderstanding(understanding){
+  showSection("understandingSection",true);
+
+  let text="";
+
+  if(typeof understanding==="string"){
+    text=understanding;
+  }else if(understanding&&typeof understanding==="object"){
+    text=
+      understanding.summary||
+      understanding.text||
+      understanding.direction||
+      understanding.message||
+      "";
+  }
+
+  setText("understandingText",text);
+
+  const fields={
+    companion:understanding?.companion,
+    duration:understanding?.duration,
+    destination:understanding?.destination
+  };
+
+  Object.entries(fields).forEach(([key,value])=>{
+    const el=$(key);
+    if(el&&value!==undefined&&value!==null){
+      el.value=safeText(value);
+      el.textContent=safeText(value);
+    }
+  });
 }
 
-function updateMemoryFromResponse(data){
-if(data?.memory){
-saveMemory(data.memory);
-return;
+function renderPersonalization(personalization){
+  if(!personalization)return;
+
+  const values={
+    companion:personalization.companion,
+    duration:personalization.duration,
+    destination:personalization.destination
+  };
+
+  Object.entries(values).forEach(([key,value])=>{
+    if(value===undefined||value===null)return;
+
+    const el=$(key);
+    if(!el)return;
+
+    if("value" in el)el.value=safeText(value);
+    else el.textContent=safeText(value);
+  });
 }
 
-if(!memory)return;
+function renderPlan(plan){
+  if(!plan)return;
 
-if(data?.analysis?.memory)memory=normalizeMemory(data.analysis.memory);
-saveMemory(memory);
+  showSection("planSection",true);
+
+  setText(
+    "planTitle",
+    plan.title||
+    plan.experience_title||
+    plan.name||
+    (currentLanguage==="es"?"Para este momento":"For this moment")
+  );
+
+  setText(
+    "planDirection",
+    plan.direction||
+    plan.next_move||
+    plan.action||
+    ""
+  );
+
+  setText("planDetails",buildPlanDetails(plan));
+
+  renderPlanSteps(plan);
+  renderPlanQuestions(plan);
+  renderBreathing(plan);
+
+  const destination=plan.destination||plan.destino;
+
+  const destinationWrapper=$("planDestinationWrapper");
+  if(destinationWrapper){
+    destinationWrapper.classList.toggle("hidden",!destination);
+  }
+
+  if(destination){
+    setText("planDestination",destination);
+  }
+
+  const budgetWrapper=$("planBudgetWrapper");
+  if(budgetWrapper){
+    budgetWrapper.classList.toggle(
+      "hidden",
+      !plan.budget
+    );
+  }
+
+  if(plan.budget)setText("planBudget",plan.budget);
+
+  const privacyWrapper=$("planPrivacyWrapper");
+  if(privacyWrapper){
+    privacyWrapper.classList.toggle(
+      "hidden",
+      !plan.privacy
+    );
+  }
+
+  if(plan.privacy)setText("planPrivacy",plan.privacy);
+
+  const priorityWrapper=$("planPriorityWrapper");
+  if(priorityWrapper){
+    priorityWrapper.classList.toggle(
+      "hidden",
+      !plan.priority
+    );
+  }
+
+  if(plan.priority)setText("planPriority",plan.priority);
+}
+
+function buildPlanDetails(plan){
+  const pieces=[];
+
+  if(plan.category)pieces.push(plan.category);
+  if(plan.duration)pieces.push(plan.duration);
+  if(plan.companion)pieces.push(plan.companion);
+  if(plan.status)pieces.push(plan.status);
+
+  return pieces.join(" · ");
+}
+
+function renderPlanSteps(plan){
+  const container=$("planSteps");
+  if(!container)return;
+
+  const steps=Array.isArray(plan.steps)?
+    plan.steps:
+    Array.isArray(plan.actions)?
+      plan.actions:
+      [];
+
+  container.innerHTML="";
+
+  if(!steps.length){
+    container.classList.add("hidden");
+    return;
+  }
+
+  container.classList.remove("hidden");
+
+  steps.forEach((step,index)=>{
+    const item=document.createElement("div");
+    item.className="mirror-step";
+
+    const number=document.createElement("span");
+    number.className="mirror-step-number";
+    number.textContent=String(index+1);
+
+    const content=document.createElement("span");
+
+    if(typeof step==="string"){
+      content.textContent=step;
+    }else{
+      content.textContent=
+        step.text||
+        step.action||
+        step.description||
+        step.title||
+        "";
+    }
+
+    item.append(number,content);
+    container.appendChild(item);
+  });
+}
+
+function renderPlanQuestions(plan){
+  const container=$("planQuestions");
+  if(!container)return;
+
+  const questions=Array.isArray(plan.questions)?
+    plan.questions:
+    [];
+
+  container.innerHTML="";
+
+  if(!questions.length){
+    container.classList.add("hidden");
+    return;
+  }
+
+  container.classList.remove("hidden");
+
+  questions.forEach(question=>{
+    const item=document.createElement("div");
+    item.className="mirror-question";
+    item.textContent=typeof question==="string"?
+      question:
+      question.text||question.question||"";
+    container.appendChild(item);
+  });
+}
+
+function extractBreathing(plan){
+  if(!plan)return null;
+
+  return plan.breathing||
+    plan.respiracion||
+    plan.experience?.breathing||
+    plan.experience?.respiracion||
+    null;
+}
+
+function renderBreathing(plan){
+  const breathing=extractBreathing(plan);
+
+  const section=
+    $("breathingSection")||
+    $("breathingExperience")||
+    $("breathingContainer");
+
+  if(!section){
+    if(breathing)createBreathingInterface(breathing);
+    return;
+  }
+
+  if(!breathing){
+    section.classList.add("hidden");
+    return;
+  }
+
+  section.classList.remove("hidden");
+
+  updateBreathingElements(breathing);
+}
+
+function createBreathingInterface(breathing){
+  if(document.getElementById("mirrorBreathingDynamic"))return;
+
+  const target=
+    $("planSection")||
+    $("responseSection")||
+    document.body;
+
+  const section=document.createElement("section");
+  section.id="mirrorBreathingDynamic";
+  section.className="mirror-breathing";
+
+  section.innerHTML=`
+    <div class="mirror-breathing-inner">
+      <div class="mirror-breathing-title" id="mirrorBreathingTitle"></div>
+      <div class="mirror-breathing-orb" id="mirrorBreathingOrb">
+        <div class="mirror-breathing-phase" id="mirrorBreathingPhase"></div>
+      </div>
+      <div class="mirror-breathing-time" id="mirrorBreathingTime"></div>
+      <div class="mirror-breathing-instruction" id="mirrorBreathingInstruction"></div>
+      <button type="button" id="mirrorBreathingStart"></button>
+      <button type="button" id="mirrorBreathingStop" class="hidden"></button>
+    </div>
+  `;
+
+  target.appendChild(section);
+
+  bindBreathingControls();
+  updateBreathingElements(breathing);
+}
+
+function bindBreathingControls(){
+  const start=$("mirrorBreathingStart");
+  const stop=$("mirrorBreathingStop");
+
+  if(start&&!start.dataset.bound){
+    start.dataset.bound="1";
+    start.addEventListener("click",startBreathing);
+  }
+
+  if(stop&&!stop.dataset.bound){
+    stop.dataset.bound="1";
+    stop.addEventListener("click",stopBreathing);
+  }
+}
+
+function updateBreathingElements(breathing){
+  if(!breathing)return;
+
+  bindBreathingControls();
+
+  const section=
+    $("breathingSection")||
+    $("breathingExperience")||
+    $("breathingContainer")||
+    $("mirrorBreathingDynamic");
+
+  if(section)section.classList.remove("hidden");
+
+  breathingPattern=normalizeBreathingPattern(breathing);
+
+  setText(
+    "mirrorBreathingTitle",
+    breathing.title||
+    breathing.name||
+    (currentLanguage==="es"?"Un momento para ti":"A moment for you")
+  );
+
+  setText(
+    "mirrorBreathingInstruction",
+    breathing.instruction||
+    breathing.description||
+    breathing.guidance||
+    ""
+  );
+
+  setText(
+    "mirrorBreathingStart",
+    currentLanguage==="es"?"Comenzar":"Begin"
+  );
+
+  setText(
+    "mirrorBreathingStop",
+    currentLanguage==="es"?"Detener":"Stop"
+  );
+
+  breathingRemaining=
+    Number(breathing.duration_seconds||
+    breathing.duration||
+    breathing.seconds||
+    120);
+
+  if(!Number.isFinite(breathingRemaining)||breathingRemaining<=0){
+    breathingRemaining=120;
+  }
+
+  breathingRemaining=Math.min(breathingRemaining,900);
+
+  updateBreathingTime();
+}
+
+function normalizeBreathingPattern(breathing){
+  const raw=breathing.patterns||
+    breathing.phases||
+    breathing.sequence||
+    null;
+
+  if(Array.isArray(raw)&&raw.length){
+    return raw.map(phase=>{
+      if(typeof phase==="string"){
+        return {
+          name:phase,
+          seconds:4
+        };
+      }
+
+      return {
+        name:
+          phase.name||
+          phase.phase||
+          phase.label||
+          "Respira",
+        seconds:
+          Number(
+            phase.seconds||
+            phase.duration||
+            phase.duration_seconds||
+            4
+          )||4,
+        instruction:phase.instruction||""
+      };
+    }).filter(p=>p.seconds>0);
+  }
+
+  const inhale=Number(
+    breathing.inhale_seconds||
+    breathing.inhale||
+    4
+  )||4;
+
+  const hold=Number(
+    breathing.hold_seconds||
+    breathing.hold||
+    0
+  )||0;
+
+  const exhale=Number(
+    breathing.exhale_seconds||
+    breathing.exhale||
+    6
+  )||6;
+
+  const phases=[
+    {
+      name:currentLanguage==="es"?"Inhala":"Inhale",
+      seconds:inhale
+    }
+  ];
+
+  if(hold>0){
+    phases.push({
+      name:currentLanguage==="es"?"Mantén":"Hold",
+      seconds:hold
+    });
+  }
+
+  phases.push({
+    name:currentLanguage==="es"?"Exhala":"Exhale",
+    seconds:exhale
+  });
+
+  return phases;
+}
+
+function updateBreathingTime(){
+  const el=$("mirrorBreathingTime");
+  if(!el)return;
+
+  const total=Math.max(0,Math.ceil(breathingRemaining));
+  const minutes=Math.floor(total/60);
+  const seconds=total%60;
+
+  el.textContent=
+    `${minutes}:${String(seconds).padStart(2,"0")}`;
+}
+
+function getBreathingPhase(){
+  if(!breathingPattern||!breathingPattern.length){
+    return null;
+  }
+
+  return breathingPattern[
+    currentBreathingPhaseIndex%breathingPattern.length
+  ];
+}
+
+function setBreathingOrb(phase){
+  const orb=
+    $("mirrorBreathingOrb")||
+    $("breathingOrb")||
+    $("breathingCircle")||
+    $("respiratoryCircle");
+
+  const phaseText=
+    $("mirrorBreathingPhase")||
+    $("breathingPhase")||
+    $("breathingInstruction");
+
+  if(!phase)return;
+
+  const name=safeText(phase.name);
+
+  if(phaseText)phaseText.textContent=name;
+
+  if(!orb)return;
+
+  const normalized=name.toLowerCase();
+
+  let scale=1;
+
+  if(
+    normalized.includes("inh")||
+    normalized.includes("inhal")||
+    normalized.includes("insp")
+  ){
+    scale=1.45;
+  }else if(
+    normalized.includes("exh")||
+    normalized.includes("exhal")||
+    normalized.includes("expir")
+  ){
+    scale=.82;
+  }else{
+    scale=1.05;
+  }
+
+  orb.style.transform=`scale(${scale})`;
+  orb.style.transition=
+    `transform ${Math.max(1,Number(phase.seconds)||4)}s ease-in-out`;
+}
+
+function startBreathing(){
+  if(breathingRunning)return;
+  if(!breathingPattern||!breathingPattern.length)return;
+
+  breathingRunning=true;
+  breathingStartedAt=Date.now();
+  currentBreathingPhaseIndex=0;
+  currentBreathingCycle=0;
+
+  const start=$("mirrorBreathingStart");
+  const stop=$("mirrorBreathingStop");
+
+  if(start)start.classList.add("hidden");
+  if(stop)stop.classList.remove("hidden");
+
+  stopSpeech();
+  runBreathingPhase();
+
+  clearInterval(breathingTimer);
+
+  breathingTimer=setInterval(()=>{
+    breathingRemaining=Math.max(
+      0,
+      breathingRemaining-1
+    );
+
+    updateBreathingTime();
+
+    if(breathingRemaining<=0){
+      finishBreathing();
+    }
+  },1000);
+}
+
+function runBreathingPhase(){
+  if(!breathingRunning)return;
+
+  const phase=getBreathingPhase();
+  if(!phase)return;
+
+  setBreathingOrb(phase);
+
+  const instruction=
+    phase.instruction||
+    phase.name||
+    "";
+
+  if(instruction){
+    speak(instruction,{
+      rate:.88,
+      pitch:1
+    });
+  }
+
+  clearTimeout(breathingCycleTimer);
+
+  breathingCycleTimer=setTimeout(()=>{
+    if(!breathingRunning)return;
+
+    currentBreathingPhaseIndex++;
+
+    if(currentBreathingPhaseIndex>=breathingPattern.length){
+      currentBreathingPhaseIndex=0;
+      currentBreathingCycle++;
+    }
+
+    runBreathingPhase();
+  },Math.max(1,Number(phase.seconds)||4)*1000);
+}
+
+function stopBreathing(){
+  breathingRunning=false;
+
+  clearInterval(breathingTimer);
+  clearTimeout(breathingCycleTimer);
+
+  breathingTimer=null;
+  breathingCycleTimer=null;
+
+  stopSpeech();
+
+  const start=$("mirrorBreathingStart");
+  const stop=$("mirrorBreathingStop");
+  const orb=$("mirrorBreathingOrb");
+
+  if(start)start.classList.remove("hidden");
+  if(stop)stop.classList.add("hidden");
+
+  if(orb){
+    orb.style.transform="scale(1)";
+  }
+}
+
+function finishBreathing(){
+  if(!breathingRunning)return;
+
+  breathingRunning=false;
+
+  clearInterval(breathingTimer);
+  clearTimeout(breathingCycleTimer);
+
+  breathingTimer=null;
+  breathingCycleTimer=null;
+
+  const breathing=
+    extractBreathing(currentPlan)||{};
+
+  const signature=
+    breathing.signature||
+    breathing.id||
+    `${breathing.pattern||""}-${breathing.duration_seconds||breathing.duration||""}-${breathing.inhale_seconds||""}-${breathing.exhale_seconds||""}`;
+
+  addTodayExperience({
+    type:"breathing",
+    experience_id:
+      breathing.experience_id||
+      currentPlan?.experience_id||
+      `breathing-${Date.now()}`,
+    exercise_id:breathing.exercise_id||breathing.id||null,
+    breathing_id:breathing.id||null,
+    pattern:breathing.pattern||breathingPattern.map(p=>p.seconds).join("-"),
+    signature:String(signature).toLowerCase(),
+    title:
+      breathing.title||
+      currentPlan?.title||
+      "",
+    action:"breathing_completed",
+    phrase:breathing.opening||breathing.instruction||"",
+    breathing:{
+      id:breathing.id||null,
+      pattern:breathing.pattern||breathingPattern.map(p=>p.seconds).join("-"),
+      signature:String(signature).toLowerCase()
+    }
+  });
+
+  const start=$("mirrorBreathingStart");
+  const stop=$("mirrorBreathingStop");
+
+  if(start)start.classList.remove("hidden");
+  if(stop)stop.classList.add("hidden");
+
+  speak(
+    breathing.closing||
+    (currentLanguage==="es"?
+      "Muy bien. Quédate un instante con esta sensación.":
+      "Good. Stay with this feeling for a moment."),
+    {rate:.9}
+  );
+
+  showToast(
+    currentLanguage==="es"?
+      "Este momento queda guardado en tu memoria de hoy.":
+      "This moment has been kept in today's memory."
+  );
 }
 
 async function askMirror(){
-const input=$("messageInput");
-const button=$("askBtn");
-if(!input||!button)return;
+  const input=$("messageInput");
 
-const message=input.value.trim();
-if(!message){
-input.focus();
-showToast(language()==="es"?"Dime qué necesitas.":"Tell me what you need.");
-return;
+  if(!input)return;
+
+  const message=input.value.trim();
+
+  if(!message){
+    showToast(
+      currentLanguage==="es"?
+        "Cuéntame qué necesitas.":
+        "Tell me what you need."
+    );
+    input.focus();
+    return;
+  }
+
+  stopBreathing();
+  setLoading(true);
+
+  try{
+    if(!mirrorMemory){
+      await loadMemory();
+    }
+
+    mirrorMemory=normalizeMemory(mirrorMemory);
+
+    const context=buildClientContext();
+
+    const payload={
+      message,
+      language:currentLanguage,
+      device_id:getDeviceId(),
+      local_date:getLocalDate(),
+      local_time:getLocalTime(),
+      timezone:getTimezone(),
+      memory:mirrorMemory,
+      client_context:context
+    };
+
+    const data=await api("/api/mirror",{
+      method:"POST",
+      body:JSON.stringify(payload)
+    });
+
+    renderResponse(data);
+
+    if(data?.memory){
+      await persistMemory(data.memory);
+    }
+
+    recordResponseExperience(data,message);
+
+    const response=getResponseText(data);
+
+    if(response){
+      setText("responseText",response);
+    }
+
+    input.value="";
+  }catch(error){
+    console.error("MIRROR error:",error);
+
+    setText(
+      "responseText",
+      currentLanguage==="es"?
+        "Estoy aquí. Hubo una interrupción momentánea. Inténtalo nuevamente.":
+        "I'm here. There was a brief interruption. Please try again."
+    );
+
+    showSection("responseSection",true);
+
+    showToast(
+      currentLanguage==="es"?
+        "No pude completar este momento. Inténtalo otra vez.":
+        "I couldn't complete this moment. Please try again."
+    );
+  }finally{
+    setLoading(false);
+  }
 }
 
-button.disabled=true;
-button.classList.add("loading");
-showStatus(language()==="es"?"Un momento…":"One moment…","working");
-show("understandingSection",false);
-show("planSection",false);
+function recordResponseExperience(data,message){
+  const plan=data?.plan||{};
+  const breathing=extractBreathing(plan);
 
-try{
-if(!memory)await loadMemory();
+  const experienceId=
+    plan.experience_id||
+    data?.experience_id||
+    data?.mission?.experience_id||
+    null;
 
-const data=await api("/api/mirror",{
-method:"POST",
-body:JSON.stringify({
-message,
-memory,
-language:language(),
-voice_enabled:true,
-client_device_id:deviceId()
-})
-});
+  const signature=
+    plan.signature||
+    data?.signature||
+    buildExperienceSignature(plan,message);
 
-renderResponse(data);
-renderUnderstanding(data);
-renderPlan(data?.plan||data?.proposal||data?.mission);
-updateMemoryFromResponse(data);
+  const record={
+    type:"mirror_entry",
+    experience_id:experienceId,
+    exercise_id:
+      plan.exercise_id||
+      data?.exercise_id||
+      null,
+    title:
+      plan.title||
+      plan.experience_title||
+      "",
+    action:
+      plan.action||
+      plan.next_move||
+      "",
+    phrase:
+      data?.message||
+      plan.direction||
+      "",
+    signature:signature,
+    user_message:message.slice(0,500),
+    intent:data?.decision?.intent||null,
+    category:plan.category||null
+  };
 
-if(data?.mission?.id)currentMissionId=data.mission.id;
-if(data?.mission_id)currentMissionId=data.mission_id;
+  if(breathing){
+    record.breathing={
+      id:breathing.id||null,
+      pattern:breathing.pattern||
+        breathing.patterns||
+        breathing.sequence||
+        null,
+      signature:
+        breathing.signature||
+        `${breathing.id||""}-${breathing.pattern||""}`
+    };
+  }
 
-const response=cleanText(data?.message||data?.response);
-if(response)speak(response);
-
-input.value="";
-showStatus("", "");
-document.querySelector(".response-section")?.scrollIntoView({behavior:"smooth",block:"center"});
-}catch(error){
-console.error("MIRROR:",error);
-showStatus(
-language()==="es"
-?"No pude completar esto en este momento. Inténtalo nuevamente."
-:"I couldn't complete that right now. Please try again.",
-"error"
-);
-showToast(language()==="es"?"MIRROR necesita otro intento.":"MIRROR needs another try.");
-}finally{
-button.disabled=false;
-button.classList.remove("loading");
-}
-}
-
-async function feedback(value){
-if(!currentMissionId){
-showToast(language()==="es"?"Primero crea una experiencia con MIRROR.":"Start an experience with MIRROR first.");
-return;
-}
-
-try{
-await api("/api/missions/feedback",{
-method:"POST",
-body:JSON.stringify({
-mission_id:currentMissionId,
-feedback:value,
-memory:memory||defaultMemory()
-})
-});
-
-if(value==="positive"){
-showToast(language()==="es"?"Perfecto. MIRROR lo tendrá en cuenta.":"Perfect. MIRROR will keep that in mind.");
-}else{
-showToast(language()==="es"?"Vamos a buscar otra dirección.":"Let's take it in another direction.");
-}
-}catch(e){
-console.error(e);
-}
+  addTodayExperience(record);
+  todayExperienceSignature=signature;
 }
 
-async function revise(){
-const input=$("messageInput");
-const message=input?.value.trim();
+function buildExperienceSignature(plan,message){
+  const values=[
+    plan.title,
+    plan.action,
+    plan.next_move,
+    plan.direction,
+    plan.category,
+    message
+  ]
+  .filter(Boolean)
+  .map(v=>String(v).trim().toLowerCase())
+  .join("|");
 
-if(message){
-await askMirror();
-return;
+  return values.slice(0,500);
 }
 
-if(!currentMissionId){
-showToast(language()==="es"?"Dime qué quieres cambiar.":"Tell me what you'd like to change.");
-input?.focus();
-return;
+async function sendFeedback(value){
+  try{
+    const payload={
+      value,
+      language:currentLanguage,
+      device_id:getDeviceId(),
+      memory:mirrorMemory,
+      mission_id:currentMission?.id||null,
+      experience_id:
+        currentPlan?.experience_id||
+        currentMission?.experience_id||
+        null
+    };
+
+    const data=await api("/api/feedback",{
+      method:"POST",
+      body:JSON.stringify(payload)
+    });
+
+    if(data?.memory){
+      await persistMemory(data.memory);
+    }
+
+    mirrorMemory.feedback.push({
+      value,
+      timestamp:new Date().toISOString(),
+      experience_id:payload.experience_id
+    });
+
+    mirrorMemory.feedback=
+      mirrorMemory.feedback.slice(-100);
+
+    await persistMemory(mirrorMemory);
+
+    showToast(
+      currentLanguage==="es"?
+        "Lo tendré en cuenta para lo que sigue.":
+        "I'll take that into account going forward."
+    );
+  }catch(error){
+    console.error("Feedback error:",error);
+    showToast(
+      currentLanguage==="es"?
+        "No pude guardar el comentario.":
+        "I couldn't save the feedback."
+    );
+  }
 }
 
-const different=language()==="es"
-?"Hazlo diferente. Sorpréndeme con otra dirección."
-:"Make it different. Surprise me with another direction.";
+async function revisePlan(){
+  const request={
+    message:
+      currentLanguage==="es"?
+        "Quiero algo diferente para este momento.":
+        "I want something different for this moment.",
+    language:currentLanguage,
+    device_id:getDeviceId(),
+    local_date:getLocalDate(),
+    timezone:getTimezone(),
+    memory:mirrorMemory,
+    today_context:buildClientContext(),
+    previous_plan:currentPlan
+  };
 
-try{
-showStatus(language()==="es"?"Buscando otra posibilidad…":"Looking at another possibility…","working");
+  try{
+    setLoading(true);
 
-const data=await api("/api/missions/revise",{
-method:"POST",
-body:JSON.stringify({
-mission_id:currentMissionId,
-message:different,
-memory:memory||defaultMemory(),
-language:language()
-})
-});
+    const data=await api("/api/mirror",{
+      method:"POST",
+      body:JSON.stringify(request)
+    });
 
-renderResponse(data);
-renderUnderstanding(data);
-renderPlan(data?.plan||data?.proposal||data?.mission);
-updateMemoryFromResponse(data);
+    renderResponse(data);
 
-const response=cleanText(data?.message||data?.response);
-if(response)speak(response);
+    if(data?.memory){
+      await persistMemory(data.memory);
+    }
 
-showStatus("", "");
-}catch(e){
-console.error(e);
-showStatus(
-language()==="es"
-?"No pude cambiarlo ahora."
-:"I couldn't change it right now.",
-"error"
-);
+    showToast(
+      currentLanguage==="es"?
+        "He buscado otra experiencia para este momento.":
+        "I found a different experience for this moment."
+    );
+  }catch(error){
+    console.error("Revision error:",error);
+
+    showToast(
+      currentLanguage==="es"?
+        "No pude cambiar la experiencia ahora.":
+        "I couldn't change the experience right now."
+    );
+  }finally{
+    setLoading(false);
+  }
 }
-}
 
-async function sendConcierge(){
-if(!currentMissionId){
-showToast(language()==="es"?"Primero dime qué necesitas.":"Tell me what you need first.");
-return;
-}
+async function requestConcierge(){
+  const status=$("conciergeStatus");
 
-const button=$("conciergeBtn");
-if(button)button.disabled=true;
+  if(status){
+    status.textContent=
+      currentLanguage==="es"?
+        "Estoy preparando lo que necesitas…":
+        "I'm preparing what you need…";
+  }
 
-try{
-const data=await api(`/api/missions/${encodeURIComponent(currentMissionId)}/concierge`,{
-method:"POST",
-body:JSON.stringify({
-memory:memory||defaultMemory(),
-language:language()
-})
-});
+  try{
+    const data=await api("/api/concierge",{
+      method:"POST",
+      body:JSON.stringify({
+        language:currentLanguage,
+        device_id:getDeviceId(),
+        memory:mirrorMemory,
+        plan:currentPlan,
+        mission:currentMission,
+        local_date:getLocalDate(),
+        timezone:getTimezone()
+      })
+    });
 
-const status=cleanText(
-data?.message||
-data?.status||
-(language()==="es"
-?"MIRROR ha preparado el siguiente paso."
-:"MIRROR has prepared the next step.")
-);
+    const text=
+      data?.message||
+      data?.status||
+      (currentLanguage==="es"?
+        "He recibido tu solicitud.":
+        "I've received your request.");
 
-setText("conciergeStatus",status);
-show("conciergeStatus",true);
-showToast(status);
-}catch(e){
-console.error(e);
-showToast(
-language()==="es"
-?"No fue posible activar el concierge ahora."
-:"The concierge could not be activated right now."
-);
-}finally{
-if(button)button.disabled=false;
-}
+    if(status)status.textContent=text;
+
+    speak(text);
+  }catch(error){
+    console.error("Concierge error:",error);
+
+    if(status){
+      status.textContent=
+        currentLanguage==="es"?
+          "Todavía no puedo coordinar este servicio.":
+          "I can't coordinate this service yet.";
+    }
+  }
 }
 
 function openMaps(){
-const button=$("mapsBtn");
-const destination=button?.dataset.destination;
+  const destination=
+    currentPlan?.destination||
+    currentPlan?.destino||
+    $("planDestination")?.textContent||
+    "";
 
-if(!destination)return;
+  if(!destination){
+    showToast(
+      currentLanguage==="es"?
+        "Todavía no hay un lugar concreto.":
+        "There isn't a specific place yet."
+    );
+    return;
+  }
 
-const url=`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(destination)}`;
-window.open(url,"_blank","noopener,noreferrer");
+  const url=
+    `/api/maps?destination=${encodeURIComponent(destination)}`;
+
+  window.open(url,"_blank","noopener,noreferrer");
 }
 
-function playMood(){
-const button=$("musicBtn");
-const query=button?.dataset.query||"relaxing elegant music";
+function openMusic(){
+  const query=
+    currentPlan?.music||
+    currentPlan?.music_query||
+    currentPlan?.destination||
+    (currentLanguage==="es"?
+      "música para este momento":
+      "music for this moment");
 
-const url=`https://www.youtube.com/results?search_query=${encodeURIComponent(query)}`;
-window.open(url,"_blank","noopener,noreferrer");
+  const url=
+    `/api/music?query=${encodeURIComponent(query)}`;
+
+  window.open(url,"_blank","noopener,noreferrer");
 }
 
 async function loadMissions(){
-try{
-const data=await api("/api/missions");
-const missions=Array.isArray(data)?data:(data?.missions||[]);
-const list=$("missionsList");
+  const container=$("missionsContainer")||$("missionsList");
+  if(!container)return;
 
-if(!list||!missions.length){
-show("missionsSection",false);
-return;
+  try{
+    const data=await api("/api/missions");
+
+    const missions=
+      Array.isArray(data)?
+        data:
+        data?.missions||[];
+
+    container.innerHTML="";
+
+    if(!missions.length){
+      container.classList.add("hidden");
+      return;
+    }
+
+    missions.forEach(mission=>{
+      const item=document.createElement("button");
+      item.type="button";
+      item.className="mirror-mission";
+
+      item.textContent=
+        mission.title||
+        mission.name||
+        mission.description||
+        "";
+
+      item.addEventListener("click",()=>{
+        const input=$("messageInput");
+        if(!input)return;
+
+        input.value=
+          currentLanguage==="es"?
+            `Quiero explorar ${mission.title||mission.name||"esto"}.`:
+            `I want to explore ${mission.title||mission.name||"this"}.`;
+
+        input.focus();
+      });
+
+      container.appendChild(item);
+    });
+
+    container.classList.remove("hidden");
+  }catch(error){
+    console.warn("Mission loading skipped:",error);
+  }
 }
 
-list.innerHTML="";
-
-missions.slice(0,8).forEach(mission=>{
-const item=document.createElement("button");
-item.type="button";
-item.className="mission-item";
-
-const title=cleanText(mission.title||mission.name||"MIRROR");
-const direction=cleanText(mission.direction||mission.summary);
-
-item.innerHTML=` <span class="mission-item-title">${escapeHTML(title)}</span>
-${direction?`<span class="mission-item-text">${escapeHTML(direction)}</span>`:""}
-`;
-
-item.addEventListener("click",async()=>{
-const id=mission.id||mission.mission_id;
-if(!id)return;
-
-try{
-const data=await api(`/api/missions/${encodeURIComponent(id)}`);
-currentMissionId=id;
-renderResponse(data);
-renderUnderstanding(data);
-renderPlan(data.plan||data.proposal||data.mission);
-document.querySelector(".plan-section")?.scrollIntoView({behavior:"smooth",block:"center"});
-}catch(e){
-console.error(e);
-}
-});
-
-list.appendChild(item);
-});
-
-show("missionsSection",true);
-}catch(e){
-console.warn("Mission history unavailable:",e);
-}
+function clearInput(){
+  const input=$("messageInput");
+  if(input){
+    input.value="";
+    input.focus();
+  }
 }
 
 function startVoiceRecognition(){
-const SpeechRecognition=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(listening){
+    stopVoiceRecognition();
+    return;
+  }
 
-if(!SpeechRecognition){
-showToast(language()==="es"
-?"El reconocimiento de voz no está disponible en este navegador."
-:"Voice recognition is not available in this browser.");
-return;
+  const SpeechRecognition=
+    window.SpeechRecognition||
+    window.webkitSpeechRecognition;
+
+  if(!SpeechRecognition){
+    showToast(
+      currentLanguage==="es"?
+        "El reconocimiento de voz no está disponible en este navegador.":
+        "Voice recognition isn't available in this browser."
+    );
+    return;
+  }
+
+  recognition=new SpeechRecognition();
+  recognition.lang=currentLanguage==="es"?"es-US":"en-US";
+  recognition.interimResults=true;
+  recognition.continuous=false;
+
+  recognition.onstart=()=>{
+    listening=true;
+    updateVoiceButton();
+  };
+
+  recognition.onresult=event=>{
+    const input=$("messageInput");
+    if(!input)return;
+
+    let transcript="";
+
+    for(let i=event.resultIndex;i<event.results.length;i++){
+      transcript+=event.results[i][0].transcript;
+    }
+
+    if(transcript){
+      input.value=transcript.trim();
+    }
+  };
+
+  recognition.onerror=event=>{
+    console.warn("Voice recognition:",event.error);
+
+    if(event.error==="not-allowed"){
+      showToast(
+        currentLanguage==="es"?
+          "Necesito permiso para usar el micrófono.":
+          "I need microphone permission."
+      );
+    }
+  };
+
+  recognition.onend=()=>{
+    listening=false;
+    updateVoiceButton();
+  };
+
+  try{
+    recognition.start();
+  }catch(error){
+    console.warn("Voice start failed:",error);
+    listening=false;
+    updateVoiceButton();
+  }
 }
 
-if(recognition){
-try{
-recognition.stop();
-}catch(e){}
-recognition=null;
+function stopVoiceRecognition(){
+  if(recognition){
+    try{
+      recognition.stop();
+    }catch(e){}
+  }
+
+  listening=false;
+  updateVoiceButton();
 }
 
-recognition=new SpeechRecognition();
-recognition.lang=language()==="es"?"es-US":"en-US";
-recognition.interimResults=true;
-recognition.continuous=false;
+function updateVoiceButton(){
+  const button=$("voiceBtn");
+  if(!button)return;
 
-const button=$("voiceBtn");
-button?.classList.add("listening");
+  button.classList.toggle("active",listening);
 
-recognition.onresult=event=>{
-let transcript="";
-for(let i=event.resultIndex;i<event.results.length;i++){
-transcript+=event.results[i][0].transcript;
-}
-const input=$("messageInput");
-if(input)input.value=transcript.trim();
-};
-
-recognition.onerror=event=>{
-console.warn("Speech recognition:",event.error);
-};
-
-recognition.onend=()=>{
-button?.classList.remove("listening");
-recognition=null;
-};
-
-try{
-recognition.start();
-}catch(e){
-button?.classList.remove("listening");
-recognition=null;
-}
+  button.setAttribute(
+    "aria-label",
+    listening?
+      (currentLanguage==="es"?"Detener voz":"Stop voice"):
+      (currentLanguage==="es"?"Hablar con MIRROR":"Speak to MIRROR")
+  );
 }
 
-async function loadRecoveryQuestions(){
-const container=$("recoveryQuestions");
-if(!container)return;
+function toggleLanguage(){
+  currentLanguage=currentLanguage==="es"?"en":"es";
 
-container.innerHTML=`
+  localStorage.setItem(LANG_KEY,currentLanguage);
 
-<div class="recovery-loading">
-${language()==="es"?"Preparando unas preguntas sencillas…":"Preparing a few simple questions…"}
-</div>`;
+  updateStaticLanguage();
 
-try{
-const data=await api(`/api/memory/recovery/questions?language=${encodeURIComponent(language())}`);
-const questions=Array.isArray(data)?data:(data?.questions||[]);
-
-container.innerHTML="";
-
-questions.forEach((question,index)=>{
-const text=cleanText(question.question||question.text||question);
-const options=Array.isArray(question.options)?question.options:[];
-
-const wrapper=document.createElement("div");
-wrapper.className="recovery-question";
-wrapper.dataset.index=index;
-
-wrapper.innerHTML=`
-
-<div class="recovery-question-title">${escapeHTML(text)}</div>
-<div class="recovery-options"></div>
-`;
-
-const optionsBox=wrapper.querySelector(".recovery-options");
-
-if(options.length){
-options.forEach(option=>{
-const btn=document.createElement("button");
-btn.type="button";
-btn.className="recovery-option";
-btn.textContent=cleanText(option.label||option.value||option);
-
-btn.dataset.value=cleanText(option.value||option.label||option);
-
-btn.addEventListener("click",()=>{
-wrapper.querySelectorAll(".recovery-option").forEach(x=>x.classList.remove("selected"));
-btn.classList.add("selected");
-});
-
-optionsBox.appendChild(btn);
-});
-}else{
-const field=document.createElement("input");
-field.type="text";
-field.className="recovery-input";
-field.placeholder=language()==="es"?"Tu respuesta…":"Your answer…";
-field.dataset.input="true";
-wrapper.appendChild(field);
-}
-
-container.appendChild(wrapper);
-});
-
-if(!questions.length){
-container.innerHTML=`
-
-<div class="recovery-question">
-<div class="recovery-question-title">
-${language()==="es"
-?"Cuéntame qué tipo de experiencia prefieres."
-:"Tell me what kind of experience you prefer."}
-</div>
-<input id="recoveryFallback" class="recovery-input" type="text">
-</div>`;
-}
-}catch(e){
-console.error(e);
-container.innerHTML=`
-<div class="recovery-question">
-<div class="recovery-question-title">
-${language()==="es"
-?"¿Qué debería saber MIRROR sobre la experiencia que quieres?"
-:"What should MIRROR know about the experience you want?"}
-</div>
-<input id="recoveryFallback" class="recovery-input" type="text">
-</div>`;
-}
-}
-
-function openRecovery(){
-show("recoveryModal",true);
-loadRecoveryQuestions();
-}
-
-function closeRecovery(){
-show("recoveryModal",false);
-}
-
-async function submitRecovery(){
-const container=$("recoveryQuestions");
-if(!container)return;
-
-const answers={};
-
-container.querySelectorAll(".recovery-question").forEach((question,index)=>{
-const selected=question.querySelector(".recovery-option.selected");
-const input=question.querySelector("input");
-
-if(selected)answers[String(index)]=selected.dataset.value||selected.textContent;
-else if(input?.value.trim())answers[String(index)]=input.value.trim();
-});
-
-try{
-const data=await api("/api/memory/recovery",{
-method:"POST",
-body:JSON.stringify({
-answers,
-memory:memory||defaultMemory(),
-language:language(),
-client_device_id:deviceId()
-})
-});
-
-if(data?.memory){
-memory=normalizeMemory(data.memory);
-await saveMemory(memory);
-}
-
-closeRecovery();
-
-const message=data?.message||
-(language()==="es"
-?"Tu experiencia ha sido reconstruida."
-:"Your experience has been restored.");
-
-setText("memoryStatus",message);
-showToast(message);
-}catch(e){
-console.error(e);
-showToast(
-language()==="es"
-?"No pude restaurar la experiencia todavía."
-:"I couldn't restore the experience yet."
-);
-}
-}
-
-async function backupMemory(){
-try{
-if(!memory)await loadMemory();
-
-const payload={
-product:"MIRROR TO YOU",
-version:1,
-created_at:new Date().toISOString(),
-memory
-};
-
-const blob=new Blob([JSON.stringify(payload,null,2)],{type:"application/json"});
-const url=URL.createObjectURL(blob);
-const a=document.createElement("a");
-a.href=url;
-a.download=`mirror-to-you-backup-${new Date().toISOString().slice(0,10)}.json`;
-document.body.appendChild(a);
-a.click();
-a.remove();
-URL.revokeObjectURL(url);
-
-const message=language()==="es"?"Copia de MIRROR creada.":"MIRROR backup created.";
-setText("memoryStatus",message);
-showToast(message);
-}catch(e){
-console.error(e);
-showToast(language()==="es"?"No se pudo crear la copia.":"Backup could not be created.");
-}
-}
-
-function restoreFile(){
-const input=$("restoreFile");
-if(!input)return;
-
-input.onchange=async()=>{
-const file=input.files?.[0];
-if(!file)return;
-
-try{
-const text=await file.text();
-const data=JSON.parse(text);
-const restored=normalizeMemory(data.memory||data);
-
-await saveMemory(restored);
-
-const message=language()==="es"
-?"Tu experiencia ha sido restaurada."
-:"Your experience has been restored.";
-
-setText("memoryStatus",message);
-showToast(message);
-}catch(e){
-console.error(e);
-showToast(language()==="es"
-?"El archivo no es válido."
-:"That backup file is not valid.");
-}finally{
-input.value="";
-}
-};
+  if(recognition){
+    recognition.lang=currentLanguage==="es"?"es-US":"en-US";
+  }
 }
 
 function updateStaticLanguage(){
-const es=language()==="es";
+  const elements=document.querySelectorAll("[data-es][data-en]");
 
-setText("heroEyebrow",es?"TU MOMENTO PRIVADO":"YOUR PRIVATE MOMENT");
-setText("heroTitle",es?"¿De qué quieres que me encargue?":"What can I take care of for you?");
-setText("heroText",es
-?"Cuéntame lo que necesitas. No tienes que saber exactamente cómo pedirlo."
-:"Tell me what you need. You don't have to know exactly what to ask for.");
+  elements.forEach(el=>{
+    const value=
+      currentLanguage==="es"?
+        el.dataset.es:
+        el.dataset.en;
 
-$("messageInput")?.setAttribute(
-"placeholder",
-es?"Cuéntale a MIRROR qué necesitas…":"Tell MIRROR what you need…"
-);
+    if(value!==undefined){
+      el.textContent=value;
+    }
+  });
 
-setText("voiceLabel",es?"Hablar":"Speak");
-setText("clearLabel",es?"Limpiar":"Clear");
-setText("askLabel",es?"Preguntar a MIRROR":"Ask MIRROR");
+  const input=$("messageInput");
 
-setText("planLabel",es?"TU PRÓXIMO PASO":"YOUR NEXT MOVE");
-setText("destinationLabel",es?"DÓNDE":"WHERE");
-setText("budgetLabel",es?"TU RANGO":"YOUR RANGE");
-setText("privacyLabel",es?"PRIVACIDAD":"PRIVACY");
-setText("priorityLabel",es?"PRIORIDAD":"PRIORITY");
+  if(input){
+    input.placeholder=
+      currentLanguage==="es"?
+        "Cuéntame qué necesitas…":
+        "Tell me what you need…";
+  }
 
-setText("feedbackYesLabel",es?"Esto se siente bien":"This feels right");
-setText("feedbackDifferentLabel",es?"Hazlo diferente":"Make it different");
-setText("conciergeLabel",es?"Encárgate de ello":"Take care of it");
+  const languageButton=$("languageBtn");
 
-setText("momentText",es
-?"Cada día puede parecer familiar. El momento no lo es."
-:"Every day may look familiar. The moment is not.");
+  if(languageButton){
+    languageButton.textContent=
+      currentLanguage==="es"?"EN":"ES";
+  }
 
-setText("memoryTitle",es
-?"MIRROR recuerda tus preferencias."
-:"MIRROR remembers your preferences.");
+  updateVoiceButton();
+}
 
-setText("memoryText",es
-?"Tu experiencia personal permanece en este dispositivo, salvo que decidas hacer una copia."
-:"Your personal experience stays on this device unless you choose to back it up.");
+function bindButton(id,handler){
+  const el=$(id);
 
-setText("recoveryBtn",es?"Restaurar mi experiencia":"Restore my experience");
-setText("backupBtn",es?"Copia de seguridad":"Backup");
-setText("restoreBtn",es?"Restaurar":"Restore");
+  if(!el||el.dataset.mirrorBound)return;
 
-setText("footerText",es?"Privado por diseño.":"Private by design.");
+  el.dataset.mirrorBound="1";
+  el.addEventListener("click",handler);
 }
 
 function bindEvents(){
-$("askBtn")?.addEventListener("click",askMirror);
+  bindButton("askBtn",askMirror);
+  bindButton("clearBtn",clearInput);
+  bindButton("voiceBtn",startVoiceRecognition);
+  bindButton("languageBtn",toggleLanguage);
 
-$("feedbackYes")?.addEventListener("click",()=>feedback("positive"));
-$("feedbackDifferent")?.addEventListener("click",revise);
-$("conciergeBtn")?.addEventListener("click",sendConcierge);
+  bindButton("feedbackYes",()=>{
+    sendFeedback("helpful");
+  });
 
-$("mapsBtn")?.addEventListener("click",openMaps);
-$("musicBtn")?.addEventListener("click",playMood);
+  bindButton("feedbackDifferent",()=>{
+    sendFeedback("different");
+    revisePlan();
+  });
 
-$("recoveryBtn")?.addEventListener("click",openRecovery);
-$("closeRecovery")?.addEventListener("click",closeRecovery);
-$("recoverySubmit")?.addEventListener("click",submitRecovery);
+  bindButton("conciergeBtn",requestConcierge);
+  bindButton("mapsBtn",openMaps);
+  bindButton("musicBtn",openMusic);
 
-$("backupBtn")?.addEventListener("click",backupMemory);
-restoreFile();
+  const input=$("messageInput");
 
-$("recoveryModal")?.querySelector(".modal-backdrop")?.addEventListener("click",closeRecovery);
+  if(input&&!input.dataset.mirrorInputBound){
+    input.dataset.mirrorInputBound="1";
 
-$("messageInput")?.addEventListener("keydown",e=>{
-if(e.key==="Enter"&&!e.shiftKey){
-e.preventDefault();
-askMirror();
+    input.addEventListener("keydown",event=>{
+      if(event.key==="Enter"&&!event.shiftKey){
+        event.preventDefault();
+        askMirror();
+      }
+    });
+  }
+
+  document.querySelectorAll("[data-suggestion]").forEach(button=>{
+    if(button.dataset.mirrorSuggestionBound)return;
+
+    button.dataset.mirrorSuggestionBound="1";
+
+    button.addEventListener("click",()=>{
+      const input=$("messageInput");
+      if(!input)return;
+
+      input.value=
+        button.dataset.suggestion||
+        button.textContent||
+        "";
+
+      input.focus();
+    });
+  });
+
+  const restoreInput=$("restoreInput");
+
+  if(restoreInput&&!restoreInput.dataset.mirrorRestoreBound){
+    restoreInput.dataset.mirrorRestoreBound="1";
+    restoreInput.addEventListener("change",restoreFile);
+  }
+
+  bindBreathingControls();
 }
-});
+
+function downloadFile(filename,content,type){
+  const blob=new Blob([content],{type});
+  const url=URL.createObjectURL(blob);
+
+  const a=document.createElement("a");
+  a.href=url;
+  a.download=filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+
+  setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
+
+function backupMemory(){
+  if(!mirrorMemory)mirrorMemory=loadMemoryLocal();
+
+  const backup={
+    version:1,
+    app:"MIRROR TO YOU",
+    created_at:new Date().toISOString(),
+    memory:mirrorMemory
+  };
+
+  downloadFile(
+    `mirror-memory-${getLocalDate()}.json`,
+    JSON.stringify(backup,null,2),
+    "application/json"
+  );
+
+  showToast(
+    currentLanguage==="es"?
+      "Tu memoria local fue preparada para respaldo.":
+      "Your local memory backup is ready."
+  );
+}
+
+async function restoreFile(event){
+  const file=event.target.files?.[0];
+
+  if(!file)return;
+
+  try{
+    const text=await file.text();
+    const data=JSON.parse(text);
+
+    const restored=
+      data?.memory||
+      data;
+
+    if(!restored||typeof restored!=="object"){
+      throw new Error("Invalid memory file");
+    }
+
+    const normalized=normalizeMemory(restored);
+
+    await persistMemory(normalized);
+
+    showToast(
+      currentLanguage==="es"?
+        "Memoria restaurada.":
+        "Memory restored."
+    );
+
+    setTimeout(()=>{
+      location.reload();
+    },600);
+  }catch(error){
+    console.error("Restore error:",error);
+
+    showToast(
+      currentLanguage==="es"?
+        "El archivo de memoria no es válido.":
+        "The memory file isn't valid."
+    );
+  }finally{
+    event.target.value="";
+  }
+}
+
+async function prepareRecovery(){
+  const modal=$("recoveryModal");
+
+  if(!modal){
+    showToast(
+      currentLanguage==="es"?
+        "La recuperación estará disponible en breve.":
+        "Recovery will be available shortly."
+    );
+    return;
+  }
+
+  modal.classList.remove("hidden");
+
+  const questions=$("recoveryQuestions");
+
+  if(!questions)return;
+
+  questions.innerHTML="";
+
+  try{
+    const data=await api("/api/recovery/questions",{
+      method:"POST",
+      body:JSON.stringify({
+        language:currentLanguage,
+        device_id:getDeviceId()
+      })
+    });
+
+    const list=
+      data?.questions||
+      [];
+
+    list.forEach((question,index)=>{
+      const wrapper=document.createElement("label");
+      wrapper.className="recovery-question";
+
+      const title=document.createElement("span");
+      title.textContent=
+        typeof question==="string"?
+          question:
+          question.question||
+          question.text||
+          "";
+
+      const input=document.createElement("input");
+      input.type="text";
+      input.dataset.questionIndex=String(index);
+
+      wrapper.append(title,input);
+      questions.appendChild(wrapper);
+    });
+  }catch(error){
+    console.warn("Recovery questions unavailable:",error);
+  }
+}
+
+function closeRecovery(){
+  const modal=$("recoveryModal");
+  if(modal)modal.classList.add("hidden");
+}
+
+async function submitRecovery(){
+  const modal=$("recoveryModal");
+
+  if(!modal)return;
+
+  const inputs=[
+    ...modal.querySelectorAll(
+      "input[data-question-index]"
+    )
+  ];
+
+  const answers=inputs.map(input=>({
+    index:Number(input.dataset.questionIndex),
+    answer:input.value.trim()
+  }));
+
+  try{
+    const data=await api("/api/recovery",{
+      method:"POST",
+      body:JSON.stringify({
+        language:currentLanguage,
+        device_id:getDeviceId(),
+        answers
+      })
+    });
+
+    if(data?.memory){
+      await persistMemory(data.memory);
+    }
+
+    closeRecovery();
+
+    showToast(
+      currentLanguage==="es"?
+        "He reconstruido lo que pudimos recuperar.":
+        "I've reconstructed what could be recovered."
+    );
+  }catch(error){
+    console.error("Recovery error:",error);
+
+    showToast(
+      currentLanguage==="es"?
+        "No pude completar la recuperación.":
+        "I couldn't complete recovery."
+    );
+  }
+}
+
+function resetTodayOnly(){
+  if(!mirrorMemory)mirrorMemory=loadMemoryLocal();
+
+  const today=getLocalDate();
+
+  mirrorMemory.daily[today]=[];
+
+  persistMemory(mirrorMemory);
+
+  showToast(
+    currentLanguage==="es"?
+      "La memoria de hoy fue reiniciada.":
+      "Today's memory was reset."
+  );
+}
+
+function exposePublicFunctions(){
+  window.askMirror=askMirror;
+  window.startVoiceRecognition=startVoiceRecognition;
+  window.stopVoiceRecognition=stopVoiceRecognition;
+  window.clearMirrorInput=clearInput;
+  window.toggleMirrorLanguage=toggleLanguage;
+  window.startBreathing=startBreathing;
+  window.stopBreathing=stopBreathing;
+  window.backupMirrorMemory=backupMemory;
+  window.prepareRecovery=prepareRecovery;
+  window.closeRecovery=closeRecovery;
+  window.submitRecovery=submitRecovery;
+  window.resetMirrorToday=resetTodayOnly;
 }
 
 async function init(){
-try{
-await loadMemory();
-}catch(e){
-memory=defaultMemory();
+  getDeviceId();
+
+  mirrorMemory=await loadMemory();
+
+  bindEvents();
+  updateStaticLanguage();
+  exposePublicFunctions();
+
+  const recoveryButton=$("recoveryBtn");
+  if(recoveryButton&&!recoveryButton.dataset.mirrorRecoveryBound){
+    recoveryButton.dataset.mirrorRecoveryBound="1";
+    recoveryButton.addEventListener("click",prepareRecovery);
+  }
+
+  const recoveryClose=$("recoveryClose");
+  if(recoveryClose&&!recoveryClose.dataset.mirrorRecoveryCloseBound){
+    recoveryClose.dataset.mirrorRecoveryCloseBound="1";
+    recoveryClose.addEventListener("click",closeRecovery);
+  }
+
+  const recoverySubmit=$("recoverySubmit");
+  if(recoverySubmit&&!recoverySubmit.dataset.mirrorRecoverySubmitBound){
+    recoverySubmit.dataset.mirrorRecoverySubmitBound="1";
+    recoverySubmit.addEventListener("click",submitRecovery);
+  }
+
+  const backupButton=$("backupBtn");
+  if(backupButton&&!backupButton.dataset.mirrorBackupBound){
+    backupButton.dataset.mirrorBackupBound="1";
+    backupButton.addEventListener("click",backupMemory);
+  }
+
+  await loadMissions();
+
+  window.addEventListener("beforeunload",()=>{
+    stopBreathing();
+    stopVoiceRecognition();
+  });
+
+  document.addEventListener("visibilitychange",()=>{
+    if(document.hidden&&breathingRunning){
+      stopBreathing();
+    }
+  });
+
+  console.log(
+    "MIRROR TO YOU initialized.",
+    "Today:",
+    getLocalDate(),
+    "Experiences today:",
+    todayHistory().length
+  );
 }
 
-bindEvents();
-updateStaticLanguage();
-
-if(typeof loadMissions==="function"){
-loadMissions();
+if(document.readyState==="loading"){
+  document.addEventListener("DOMContentLoaded",init);
+}else{
+  init();
 }
-}
-
-window.askMirror=askMirror;
-window.startVoiceRecognition=startVoiceRecognition;
-window.feedback=feedback;
-window.revise=revise;
-window.sendConcierge=sendConcierge;
-window.openMaps=openMaps;
-window.playMood=playMood;
-window.openRecovery=openRecovery;
-window.closeRecovery=closeRecovery;
-window.submitRecovery=submitRecovery;
-window.backupMemory=backupMemory;
-
-document.addEventListener("DOMContentLoaded",init);
