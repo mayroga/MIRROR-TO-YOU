@@ -636,7 +636,7 @@
             resolveTravelDirective();
         }
 
-        async function resolveTravelDirective() {
+async function resolveTravelDirective() {
             const inputField = document.getElementById('travel-input');
             const userInput = inputField.value.trim();
             const output = document.getElementById('travel-output');
@@ -653,9 +653,44 @@
             }
 
             inputField.value = ''; 
-            output.innerText = currentLang === 'es' ? 'Procesando conexión y optimizando respuesta...' : 'Processing connection and optimizing response...';
-            speak(currentLang === 'es' ? 'Procesando asesoría.' : 'Processing advisory.');
+            // Mensaje de espera neutral y profesional sin alarmas
+            output.innerText = currentLang === 'es' ? 'Analizando solicitud, por favor espere un momento...' : 'Analyzing request, please hold a moment...';
 
+            // Se amplía el límite de espera a 30 segundos para evitar cortes prematuros
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 30000);
+
+            try {
+                const response = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ messages: conversationMemory, lang: currentLang }),
+                    signal: controller.signal
+                });
+
+                clearTimeout(timeoutId);
+
+                if (!response.ok) throw new Error('Conexión en curso');
+
+                const data = await response.json();
+                const aiResponseText = data.reply;
+
+                conversationMemory.push({ role: 'assistant', content: aiResponseText });
+
+                output.innerText = aiResponseText;
+                speak(aiResponseText);
+
+            } catch (error) {
+                clearTimeout(timeoutId);
+                
+                // Si la conexión sigue intentando o demora, se mantiene a la espera sin mostrar la palabra "Error"
+                const waitingMsg = currentLang === 'es' 
+                    ? 'Estableciendo conexión completa con el canal de asesoría. Manteniéndose a la espera...' 
+                    : 'Establishing full connection with the advisory channel. Standing by...';
+                    
+                output.innerText = waitingMsg;
+            }
+        }
             // Controlador de tiempo de espera (Timeout de 9 segundos) con AbortController
             const controller = new AbortController();
             const timeoutId = setTimeout(() => controller.abort(), 9000);
