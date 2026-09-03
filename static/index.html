@@ -531,8 +531,7 @@
         }
        // Archivo completo unificado, optimizado y sin duplicaciones en la función de fetch:
 // (Se eliminó el bloque duplicado abajo de resolveTravelDirective y se aseguró el timeout de 30 segundos)
-
-        function setBreathingMode(mode) {
+function setBreathingMode(mode) {
             if (currentModeInterval) clearInterval(currentModeInterval);
             if (phraseInterval) clearInterval(phraseInterval);
             const speechBox = document.getElementById('dynamic-speech');
@@ -672,10 +671,9 @@
 
                 if (!response.ok) throw new Error('Conexión en curso');
 
-const data = await response.json();
+                const data = await response.json();
                 let aiResponseText = data.reply;
 
-                // Forzar respuesta resolutiva si el historial avanza
                 if (aiResponseText.includes('?') && conversationMemory.length >= 4) {
                     aiResponseText = currentLang === 'es' 
                         ? 'Basado en tu perfil, la solución inmediata recomendada es estructurar pausas activas y aplicar técnicas de estabilidad para restablecer el equilibrio físico y mental de inmediato.'
@@ -686,6 +684,11 @@ const data = await response.json();
 
                 output.innerText = aiResponseText;
                 speak(aiResponseText);
+            } catch (error) {
+                clearTimeout(timeoutId);
+                output.innerText = currentLang === 'es' ? 'Error de conexión o tiempo de espera agotado. Intente nuevamente.' : 'Connection error or timeout. Please try again.';
+            }
+        }
 
         function toggleMortalsDrawer() {
             const drawer = document.getElementById('mortals-drawer');
