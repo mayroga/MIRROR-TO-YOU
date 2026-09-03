@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Master Administration Desk — MIRROR TO YOU</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        obsidian: '#0a0a0a',
+                        surface: '#121212',
+                        card: '#18181b',
+                        gold: {
+                            light: '#e2c999',
+                            DEFAULT: '#c5a059',
+                            dark: '#9a7b38'
+                        },
+                        platinum: '#e5e7eb'
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        serif: ['Playfair Display', 'serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .font-serif { font-family: 'Playfair Display', serif; }
+        .glass-panel {
+            background: rgba(24, 24, 27, 0.7);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(197, 160, 89, 0.15);
+        }
+        .glow-gold {
+            box-shadow: 0 0 40px -10px rgba(197, 160, 89, 0.15);
+        }
+        .text-gradient {
+            background: linear-gradient(135deg, #ffffff 0%, #e2c999 50%, #c5a059 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+    </style>
+</head>
+<body class="bg-obsidian text-platinum antialiased min-h-screen flex flex-col justify-between selection:bg-gold selection:text-obsidian">
+
+    <!-- Header / Navigation -->
+    <header class="fixed top-0 left-0 right-0 z-50 glass-panel border-b border-white/5">
+        <div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+            <a href="index.html" class="flex items-center space-x-3 group">
+                <div class="w-8 h-8 rounded-full border border-gold/40 flex items-center justify-center transition-colors group-hover:border-gold">
+                    <div class="w-2 h-2 rounded-full bg-gold"></div>
+                </div>
+                <span class="font-serif tracking-[0.2em] text-lg text-platinum font-medium">MIRROR TO YOU</span>
+            </a>
+
+            <nav class="hidden md:flex items-center space-x-8 text-sm tracking-widest text-platinum/70 uppercase font-light">
+                <a href="dashboard.html" class="hover:text-gold transition-colors">Dashboard</a>
+                <a href="concierge.html" class="hover:text-gold transition-colors">Concierge</a>
+                <a href="travel.html" class="hover:text-gold transition-colors">Journeys</a>
+                <a href="profile.html" class="hover:text-gold transition-colors">My Profile</a>
+            </nav>
+
+            <div class="flex items-center space-x-4">
+                <span class="text-xs tracking-widest text-gold uppercase px-3 py-1 border border-gold/30 bg-gold/5 hidden sm:inline-block">Master Admin</span>
+                <a href="settings.html" class="text-xs tracking-widest text-platinum/80 hover:text-gold uppercase px-3 py-2 transition-colors">Settings</a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-grow pt-28 pb-16 px-6">
+        <div class="max-w-7xl mx-auto">
+            
+            <!-- Breadcrumb / Back -->
+            <div class="mb-6">
+                <a href="dashboard.html" class="text-xs uppercase tracking-widest text-gold hover:underline flex items-center space-x-2">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 19l-7-7 7-7"></path></svg>
+                    <span>Back to Client Dashboard</span>
+                </a>
+            </div>
+
+            <!-- Page Title Section -->
+            <div class="mb-10 border-b border-white/10 pb-6 flex flex-col md:flex-row md:items-end justify-between gap-4">
+                <div>
+                    <span class="text-xs uppercase tracking-[0.25em] text-gold font-medium block mb-2">Restricted Supervisory Control</span>
+                    <h1 class="font-serif text-3xl sm:text-4xl text-white">Master Administration Desk</h1>
+                </div>
+                <div class="flex items-center space-x-3">
+                    <span class="text-[10px] uppercase tracking-widest bg-emerald-500/10 text-emerald-400 px-3 py-1.5 border border-emerald-500/30">Node Alpha Online</span>
+                    <button onclick="handleSystemSync()" class="bg-obsidian border border-white/20 text-xs tracking-widest uppercase px-4 py-2 hover:border-gold transition-colors text-platinum">Force Cluster Sync</button>
+                </div>
+            </div>
+
+            <!-- Admin Overview Metrics -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10">
+                <div class="glass-panel p-6 rounded-none glow-gold">
+                    <span class="text-[10px] uppercase tracking-widest text-platinum/50 block mb-1">Active Client Sessions</span>
+                    <span class="font-serif text-3xl text-white">01</span>
+                    <span class="text-[10px] text-gold block mt-2 uppercase tracking-wider">Maykel Rodríguez García (Primary)</span>
+                </div>
+                <div class="glass-panel p-6 rounded-none">
+                    <span class="text-[10px] uppercase tracking-widest text-platinum/50 block mb-1">Pending Directives</span>
+                    <span class="font-serif text-3xl text-white">02</span>
+                    <span class="text-[10px] text-emerald-400 block mt-2 uppercase tracking-wider">Assigned to Desk Alpha</span>
+                </div>
+                <div class="glass-panel p-6 rounded-none">
+                    <span class="text-[10px] uppercase tracking-widest text-platinum/50 block mb-1">Vault Integrity</span>
+                    <span class="font-serif text-3xl text-white">100%</span>
+                    <span class="text-[10px] text-gold block mt-2 uppercase tracking-wider">AES-256 Zero-Retention</span>
+                </div>
+                <div class="glass-panel p-6 rounded-none">
+                    <span class="text-[10px] uppercase tracking-widest text-platinum/50 block mb-1">System Latency</span>
+                    <span class="font-serif text-3xl text-white">14ms</span>
+                    <span class="text-[10px] text-platinum/40 block mt-2 uppercase tracking-wider">Miami Edge Relay</span>
+                </div>
+            </div>
+
+            <!-- Client & Access Control Management -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                
+                <!-- Client Registry Panel -->
+                <div class="lg:col-span-2 glass-panel p-6 sm:p-8 rounded-none">
+                    <div class="flex items-center justify-between border-b border-white/10 pb-4 mb-6">
+                        <h2 class="font-serif text-xl text-white">Authorized Client Directory</h2>
+                        <span class="text-xs text-gold uppercase tracking-widest">Active Privileges</span>
+                    </div>
+
+                    <div class="space-y-4 text-xs">
+                        <!-- Client 1 -->
+                        <div class="p-4 bg-surface/50 border border-white/5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                            <div>
+                                <div class="flex items-center space-x-3 mb-1">
+                                    <span class="font-medium text-white text-sm">Maykel Rodríguez García</span>
+                                    <span class="text-[10px] uppercase tracking-widest bg-gold/10 text-gold px-2 py-0.5 border border-gold/30">Tier: Principal</span>
+                                </div>
+                                <p class="text-platinum/50">May Roga LLC Principal • Secure Gateway Node Alpha</p>
+                            </div>
+                            <div class="flex items-center space-x-3">
+                                <span class="text-[10px] text-emerald-400 uppercase tracking-widest font-mono">Authenticated</span>
+                                <a href="profile.html" class="bg-obsidian border border-white/20 text-[10px] tracking-widest uppercase px-3 py-1.5 hover:border-gold transition-colors text-platinum">Inspect</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Master Controls Panel -->
+                <div class="glass-panel p-6 sm:p-8 rounded-none flex flex-col justify-between">
+                    <div>
+                        <div class="border-b border-white/10 pb-4 mb-6">
+                            <h2 class="font-serif text-xl text-white">System Protocols</h2>
+                            <span class="text-xs text-gold uppercase tracking-widest">Emergency Overrides</span>
+                        </div>
+
+                        <div class="space-y-6 text-xs">
+                            <div>
+                                <span class="font-medium text-white block mb-1">Purge Session Tokens</span>
+                                <p class="text-platinum/50 mb-3">Immediately clear active browser and relay tokens across the cluster.</p>
+                                <button onclick="handleTriggerPurge()" class="w-full bg-obsidian border border-red-500/30 text-red-400 uppercase tracking-widest py-2.5 hover:bg-red-500/10 transition-colors">Execute Token Purge</button>
+                            </div>
+
+                            <div class="border-t border-white/5 pt-6">
+                                <span class="font-medium text-white block mb-1">Maintenance Lockdown</span>
+                                <p class="text-platinum/50 mb-3">Temporarily suspend inbound public access while retaining secure admin routing.</p>
+                                <label class="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" id="lockdownToggle" onchange="handleLockdownToggle(this)" class="sr-only peer">
+                                    <div class="w-11 h-6 bg-obsidian border border-white/20 peer-focus:outline-none peer-checked:bg-red-500 peer-checked:border-red-500 rounded-none transition-all"></div>
+                                    <span class="ml-3 text-platinum/70 uppercase tracking-widest" id="lockdownStatus">Lockdown Inactive</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="adminFeedback" class="mt-6 text-[10px] text-gold uppercase tracking-widest hidden p-3 bg-gold/5 border border-gold/30">
+                        Admin directive executed successfully.
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="border-t border-white/5 py-8 text-center text-xs tracking-widest text-platinum/40 uppercase">
+        <div class="max-w-7xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <p>&copy; 2026 Mirror To You. Master Administration Restricted.</p>
+            <div class="flex space-x-6">
+                <a href="dashboard.html" class="hover:text-gold transition-colors">Client Dashboard</a>
+                <a href="settings.html" class="hover:text-gold transition-colors">Security</a>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // FastAPI Ready Admin Handlers
+        function handleSystemSync() {
+            const feedback = document.getElementById('adminFeedback');
+            console.log("DEMO FastAPI Admin Action: Force Cluster Sync requested at", new Date().toISOString());
+            feedback.textContent = "Cluster sync initiated. Nodes verified.";
+            feedback.classList.remove('hidden');
+            setTimeout(() => feedback.classList.add('hidden'), 5000);
+        }
+
+        function handleTriggerPurge() {
+            const feedback = document.getElementById('adminFeedback');
+            console.log("DEMO FastAPI Admin Action: Token Purge executed at", new Date().toISOString());
+            feedback.textContent = "All session tokens securely purged.";
+            feedback.classList.remove('hidden');
+            setTimeout(() => feedback.classList.add('hidden'), 5000);
+        }
+
+        function handleLockdownToggle(checkbox) {
+            const statusLabel = document.getElementById('lockdownStatus');
+            const feedback = document.getElementById('adminFeedback');
+            const isLocked = checkbox.checked;
+            
+            console.log("DEMO FastAPI Admin Action: Lockdown state changed to:", isLocked);
+            statusLabel.textContent = isLocked ? "System Lockdown Active" : "Lockdown Inactive";
+            feedback.textContent = isLocked ? "Warning: System lockdown engaged." : "System lockdown disengaged.";
+            feedback.classList.remove('hidden');
+            setTimeout(() => feedback.classList.add('hidden'), 5000);
+        }
+    </script>
+</body>
+</html>
