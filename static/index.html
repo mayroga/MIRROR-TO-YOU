@@ -62,6 +62,10 @@
         button:hover {
             border-color: var(--accent-color);
         }
+        .btn-active {
+            border-color: var(--accent-color);
+            background-color: rgba(56, 189, 248, 0.1);
+        }
         .btn-danger {
             color: var(--danger-color);
             border-color: rgba(239, 68, 68, 0.3);
@@ -98,25 +102,44 @@
             text-transform: uppercase;
             letter-spacing: 1px;
         }
+        .breathing-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+        }
         .breathing-circle {
-            width: 120px;
-            height: 120px;
+            width: 140px;
+            height: 140px;
             border: 2px solid var(--accent-color);
             border-radius: 50%;
-            margin: 20px auto;
             display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
-            transition: transform 4s ease-in-out;
-            font-size: 0.85rem;
+            transition: transform 3s ease-in-out;
+            font-size: 0.9rem;
             color: var(--accent-color);
+            text-align: center;
+            padding: 10px;
+        }
+        .objective-info {
+            background-color: var(--bg-color);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 10px;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            width: 100%;
+            min-height: 60px;
         }
         .input-group {
             display: flex;
+            flex-direction: column;
             gap: 8px;
         }
-        input, textarea {
-            flex: 1;
+        textarea {
+            width: 100%;
             background-color: var(--bg-color);
             border: 1px solid var(--border-color);
             border-radius: 6px;
@@ -125,7 +148,7 @@
             font-size: 0.95rem;
             resize: none;
         }
-        input:focus, textarea:focus {
+        textarea:focus {
             outline: none;
             border-color: var(--accent-color);
         }
@@ -134,9 +157,12 @@
             border: 1px solid var(--border-color);
             border-radius: 6px;
             padding: 12px;
-            min-height: 80px;
-            font-size: 0.95rem;
-            color: var(--text-muted);
+            min-height: 100px;
+            font-size: 0.9rem;
+            color: var(--text-main);
+            white-space: pre-line;
+            overflow-y: auto;
+            max-height: 150px;
         }
         footer {
             text-align: center;
@@ -174,7 +200,7 @@
         <div class="logo" id="app-title">MIRROR TO YOU</div>
         <div class="controls">
             <button id="lang-btn" onclick="toggleLanguage()">ES</button>
-            <button id="audio-btn" onclick="toggleAudio()">🔊 Audio</button>
+            <button id="audio-btn" onclick="toggleVoiceGuide()">🔊 Voice: OFF</button>
             <button class="btn-danger" id="clear-btn" onclick="clearData()">Clear</button>
         </div>
     </header>
@@ -182,22 +208,32 @@
     <main>
         <!-- Wellness & Breathing Panel -->
         <div class="panel">
-            <h2 id="wellness-title">Wellness & Anti-Stress</h2>
-            <p id="wellness-desc" style="font-size: 0.9rem; color: var(--text-muted);">Select objective and follow the synchronized rhythm.</p>
-            <div class="breathing-circle" id="b-circle"><span id="b-text">Inhale</span></div>
-            <div style="display: flex; gap: 8px; justify-content: center;">
-                <button onclick="setBreathingMode('calm')">Calm</button>
-                <button onclick="setBreathingMode('focus')">Focus</button>
-                <button onclick="setBreathingMode('energy')">Energy</button>
+            <h2 id="wellness-title">Precision Wellness & Anti-Stress</h2>
+            <div class="breathing-container">
+                <div class="breathing-circle" id="b-circle">
+                    <span id="b-phase" style="font-weight: 600;">Ready</span>
+                    <span id="b-counter" style="font-size: 0.8rem;">0s</span>
+                </div>
+                <div class="objective-info" id="objective-desc">
+                    Select a target objective to initialize guided neural synchronization.
+                </div>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                <button id="btn-anti-panic" onclick="setBreathingMode('antipanic')">Anti-Panic</button>
+                <button id="btn-focus" onclick="setBreathingMode('focus')">Executive Focus</button>
+                <button id="btn-sleep" onclick="setBreathingMode('sleep')">Deep Sleep</button>
+                <button id="btn-energy" onclick="setBreathingMode('energy')">Instant Energy</button>
             </div>
         </div>
 
-        <!-- Private Travel Agent Panel -->
+        <!-- Private Travel Agent & Problem Solver Panel -->
         <div class="panel">
-            <h2 id="travel-title">Private Travel Agent</h2>
-            <textarea id="travel-input" rows="3" placeholder="Request private itinerary, luxury charter, or bespoke connections..."></textarea>
-            <button onclick="sendTravelRequest()">Submit Request</button>
-            <div class="output-box" id="travel-output">Secure link established. Awaiting directives...</div>
+            <h2 id="travel-title">Executive Private Travel & Logistics</h2>
+            <div class="input-group">
+                <textarea id="travel-input" rows="3" placeholder="Enter travel emergency, private jet requirement, or complex logistics roadblock..."></textarea>
+                <button onclick="resolveTravelDirective()" style="background-color: var(--accent-color); color: var(--bg-color); font-weight: 600;">Execute Resolution</button>
+            </div>
+            <div class="output-box" id="travel-output">Secure link active. Ready to resolve custom itineraries and logistics challenges...</div>
         </div>
     </main>
 
@@ -205,7 +241,6 @@
         <span id="footer-text">Encrypted Volatile Session. Zero Data Retained.</span>
     </footer>
 
-    <!-- Inactivity Warning Modal -->
     <div id="warning-modal">
         <div class="modal-content">
             <p id="modal-text" style="margin-bottom: 20px;">Inactivity detected. Touch the screen to maintain session.</p>
@@ -215,80 +250,137 @@
 
     <script>
         let currentLang = 'en';
+        let voiceEnabled = false;
+        let currentModeInterval = null;
+
+        const breathingModes = {
+            antipanic: {
+                en: { name: "Anti-Panic", why: "Why: Rapidly activates the parasympathetic nervous system.", how: "For: Eliminating acute anxiety, heart palpitations, and sensory overload in under 2 minutes." },
+                es: { name: "Anti-Pánico", why: "Por qué: Activa de inmediato el sistema nervioso parasimpático.", how: "Para: Eliminar ansiedad aguda, palpitaciones y saturación mental en menos de 2 minutos." }
+            },
+            focus: {
+                en: { name: "Executive Focus", why: "Why: Balances oxygen and carbon dioxide to clear brain fog.", how: "For: Maximizing high-stakes decision making, clarity, and mental endurance." },
+                es: { name: "Enfoque Ejecutivo", why: "Por qué: Equilibra oxígeno y CO2 para despejar la niebla mental.", how: "Para: Maximizar decisiones de alto nivel, claridad y resistencia mental." }
+            },
+            sleep: {
+                en: { name: "Deep Sleep", why: "Why: Lowers heart rate and signals the brain for physical shutdown.", how: "For: Rapid decompression after long-haul flights or high-stress boardrooms." },
+                es: { name: "Sueño Profundo", why: "Por qué: Reduce el ritmo cardíaco y prepara el cuerpo para el descanso.", how: "Para: Descompresión rápida tras vuelos largos o jornadas intensas." }
+            },
+            energy: {
+                en: { name: "Instant Energy", why: "Why: Increases cellular oxygenation and alertness.", how: "For: Overcoming physical exhaustion and jet lag instantly." },
+                es: { name: "Energía Instantánea", why: "Por qué: Incrementa la oxigenación celular y el estado de alerta.", how: "Para: Superar el agotamiento físico y el desfase horario al instante." }
+            }
+        };
 
         function toggleLanguage() {
             currentLang = currentLang === 'en' ? 'es' : 'en';
             const langBtn = document.getElementById('lang-btn');
-            const wellnessTitle = document.getElementById('wellness-title');
-            const wellnessDesc = document.getElementById('wellness-desc');
-            const travelTitle = document.getElementById('travel-title');
-            const travelInput = document.getElementById('travel-input');
-            const travelOutput = document.getElementById('travel-output');
-            const footerText = document.getElementById('footer-text');
-            const clearBtn = document.getElementById('clear-btn');
-            const modalText = document.getElementById('modal-text');
+            langBtn.innerText = currentLang === 'es' ? 'EN' : 'ES';
 
-            if (currentLang === 'es') {
-                langBtn.innerText = 'EN';
-                wellnessTitle.innerText = 'Bienestar y Antiestrés';
-                wellnessDesc.innerText = 'Seleccione objetivo y siga el ritmo sincronizado.';
-                travelTitle.innerText = 'Agente Privado de Viajes';
-                travelInput.placeholder = 'Solicite itinerario privado, chárter de lujo o conexiones a medida...';
-                travelOutput.innerText = 'Enlace seguro establecido. Esperando directivas...';
-                footerText.innerText = 'Sesión Volátil Encriptada. Cero Datos Retenidos.';
-                clearBtn.innerText = 'Borrar';
-                modalText.innerText = 'Inactividad detectada. Toque la pantalla para mantener la sesión.';
-            } else {
-                langBtn.innerText = 'ES';
-                wellnessTitle.innerText = 'Wellness & Anti-Stress';
-                wellnessDesc.innerText = 'Select objective and follow the synchronized rhythm.';
-                travelTitle.innerText = 'Private Travel Agent';
-                travelInput.placeholder = 'Request private itinerary, luxury charter, or bespoke connections...';
-                travelOutput.innerText = 'Secure link established. Awaiting directives...';
-                footerText.innerText = 'Encrypted Volatile Session. Zero Data Retained.';
-                clearBtn.innerText = 'Clear';
-                modalText.innerText = 'Inactivity detected. Touch the screen to maintain session.';
+            document.getElementById('wellness-title').innerText = currentLang === 'es' ? 'Bienestar de Precisión y Antiestrés' : 'Precision Wellness & Anti-Stress';
+            document.getElementById('travel-title').innerText = currentLang === 'es' ? 'Viajes Privados y Logística Ejecutiva' : 'Executive Private Travel & Logistics';
+            document.getElementById('footer-text').innerText = currentLang === 'es' ? 'Sesión Volátil Encriptada. Cero Datos Retenidos.' : 'Encrypted Volatile Session. Zero Data Retained.';
+            document.getElementById('clear-btn').innerText = currentLang === 'es' ? 'Borrar' : 'Clear';
+            document.getElementById('modal-text').innerText = currentLang === 'es' ? 'Inactividad detectada. Toque la pantalla para mantener la sesión.' : 'Inactivity detected. Touch the screen to maintain session.';
+            document.getElementById('travel-input').placeholder = currentLang === 'es' ? 'Ingrese emergencia de viaje, requerimiento de jet privado o bloqueo logístico...' : 'Enter travel emergency, private jet requirement, or complex logistics roadblock...';
+            document.getElementById('objective-desc').innerText = currentLang === 'es' ? 'Seleccione un objetivo para iniciar la sincronización guiada.' : 'Select a target objective to initialize guided neural synchronization.';
+            document.getElementById('audio-btn').innerText = voiceEnabled ? (currentLang === 'es' ? '🔊 Voz: ON' : '🔊 Voice: ON') : (currentLang === 'es' ? '🔊 Voz: OFF' : '🔊 Voice: OFF');
+        }
+
+        function toggleVoiceGuide() {
+            voiceEnabled = !voiceEnabled;
+            const btn = document.getElementById('audio-btn');
+            btn.innerText = voiceEnabled ? (currentLang === 'es' ? '🔊 Voz: ON' : '🔊 Voice: ON') : (currentLang === 'es' ? '🔊 Voz: OFF' : '🔊 Voice: OFF');
+            if (voiceEnabled) speak(currentLang === 'es' ? 'Guía por voz activada.' : 'Voice guide activated.');
+        }
+
+        function speak(text) {
+            if (!voiceEnabled || !('speechSynthesis' in window)) return;
+            window.speechSynthesis.cancel();
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = currentLang === 'es' ? 'es-ES' : 'en-US';
+            utterance.rate = 0.95;
+            window.speechSynthesis.speak(utterance);
+        }
+
+        function setBreathingMode(mode) {
+            if (currentModeInterval) clearInterval(currentModeInterval);
+            
+            const info = breathingModes[mode][currentLang];
+            document.getElementById('objective-desc').innerHTML = `<strong>${info.name}</strong><br>${info.why}<br><em>${info.how}</em>`;
+            speak(`${info.name}. ${info.why}`);
+
+            const circle = document.getElementById('b-circle');
+            const phase = document.getElementById('b-phase');
+            const counter = document.getElementById('b-counter');
+
+            let step = 0;
+            const sequence = [
+                { text: currentLang === 'es' ? 'Inhalar' : 'Inhale', scale: 'scale(1.3)', time: 4 },
+                { text: currentLang === 'es' ? 'Retener' : 'Hold', scale: 'scale(1.3)', time: 4 },
+                { text: currentLang === 'es' ? 'Exhalar' : 'Exhale', scale: 'scale(1)', time: 4 }
+            ];
+
+            function runStep() {
+                const current = sequence[step % sequence.length];
+                phase.innerText = current.text;
+                circle.style.transform = current.scale;
+                speak(current.text);
+
+                let t = current.time;
+                counter.innerText = `${t}s`;
+                
+                currentModeInterval = setInterval(() => {
+                    t--;
+                    counter.innerText = `${t}s`;
+                    if (t <= 0) {
+                        clearInterval(currentModeInterval);
+                        step++;
+                        runStep();
+                    }
+                }, 1000);
             }
+            runStep();
+        }
+
+        function resolveTravelDirective() {
+            const input = document.getElementById('travel-input').value.trim();
+            const output = document.getElementById('travel-output');
+            if (!input) {
+                output.innerText = currentLang === 'es' ? 'Por favor, escriba una necesidad o requerimiento de viaje.' : 'Please enter a travel need or requirement.';
+                return;
+            }
+
+            output.innerText = currentLang === 'es' ? 'Procesando solución ejecutiva con red privada...' : 'Processing executive resolution with private network...';
+            speak(currentLang === 'es' ? 'Procesando solución de viaje.' : 'Processing travel solution.');
+
+            setTimeout(() => {
+                const solutions = currentLang === 'es' ? 
+                    `✓ Solución Asignada: Coordinación prioritaria ejecutada.\n✓ Alternativa A: Chárter privado disponible en FBO local en 45 min.\n✓ Alternativa B: Reubicación de itinerario con prioridad de clase ejecutiva VIP.\n✓ Acción Sugerida: Confirmar enlace seguro para emisión inmediata de salvoconducto.` :
+                    `✓ Assigned Solution: Priority coordination executed.\n✓ Option A: Private charter positioned at local FBO in 45 min.\n✓ Option B: Full itinerary rerouting with VIP executive priority.\n✓ Recommended Action: Confirm secure link for instant clearance emission.`;
+                
+                output.innerText = solutions;
+                speak(currentLang === 'es' ? 'Solución de viaje generada con éxito.' : 'Travel solution successfully generated.');
+            }, 1200);
         }
 
         function clearData() {
             document.getElementById('travel-input').value = '';
-            document.getElementById('travel-output').innerText = currentLang === 'es' ? 'Datos borrados.' : 'Data cleared.';
+            document.getElementById('travel-output').innerText = currentLang === 'es' ? 'Memoria volátil depurada.' : 'Volatile memory cleared.';
+            if (currentModeInterval) clearInterval(currentModeInterval);
+            document.getElementById('b-phase').innerText = 'Ready';
+            document.getElementById('b-counter').innerText = '0s';
+            document.getElementById('b-circle').style.transform = 'scale(1)';
         }
 
-        function toggleAudio() {
-            const btn = document.getElementById('audio-btn');
-            btn.style.borderColor = btn.style.borderColor === 'rgb(56, 189, 248)' ? 'var(--border-color)' : 'var(--accent-color)';
-        }
-
-        function setBreathingMode(mode) {
-            const circle = document.getElementById('b-circle');
-            const text = document.getElementById('b-text');
-            text.innerText = mode.toUpperCase();
-            circle.style.transform = 'scale(1.2)';
-            setTimeout(() => {
-                circle.style.transform = 'scale(1)';
-            }, 3000);
-        }
-
-        function sendTravelRequest() {
-            const input = document.getElementById('travel-input').value;
-            if(!input) return;
-            const output = document.getElementById('travel-output');
-            output.innerText = currentLang === 'es' ? 'Procesando directiva con agente privado...' : 'Processing directive with private agent...';
-            setTimeout(() => {
-                output.innerText = currentLang === 'es' ? 'Itinerario ajustado de forma confidencial.' : 'Itinerary adjusted confidentially.';
-            }, 1000);
-        }
-
-        // Inactivity Timer Simulation (59 seconds warning)
         let inactivityTimer = setTimeout(() => {
             document.getElementById('warning-modal').style.display = 'flex';
         }, 59000);
 
         function resetTimer() {
             clearTimeout(inactivityTimer);
-            document.getElementById('warning-modal').style.display = 'none';
+            const modal = document.getElementById('warning-modal');
+            if (modal) modal.style.display = 'none';
             inactivityTimer = setTimeout(() => {
                 document.getElementById('warning-modal').style.display = 'flex';
             }, 59000);
@@ -302,6 +394,7 @@
             window.addEventListener('mousemove', resetTimer);
             window.addEventListener('keypress', resetTimer);
             window.addEventListener('touchstart', resetTimer);
+            resetTimer();
         };
     </script>
 </body>
