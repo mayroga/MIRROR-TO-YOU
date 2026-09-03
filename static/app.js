@@ -1,4 +1,3 @@
-```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -184,4 +183,3 @@
 <script src="/static/app.js" defer></script>
 </body>
 </html>
-```
