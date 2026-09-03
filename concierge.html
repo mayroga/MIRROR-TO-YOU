@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Concierge Desk — MIRROR TO YOU</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        obsidian: '#0a0a0a',
+                        surface: '#121212',
+                        card: '#18181b',
+                        gold: {
+                            light: '#e2c999',
+                            DEFAULT: '#c5a059',
+                            dark: '#9a7b38'
+                        },
+                        platinum: '#e5e7eb'
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        serif: ['Playfair Display', 'serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .font-serif { font-family: 'Playfair Display', serif; }
+        .glass-panel {
+            background: rgba(24, 24, 27, 0.7);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(197, 160, 89, 0.15);
+        }
+        .glow-gold {
+            box-shadow: 0 0 40px -10px rgba(197, 160, 89, 0.15);
+        }
+        .text-gradient {
+            background: linear-gradient(135deg, #ffffff 0%, #e2c999 50%, #c5a059 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+    </style>
+</head>
+<body class="bg-obsidian text-platinum antialiased min-h-screen flex flex-col justify-between selection:bg-gold selection:text-obsidian">
+
+    <!-- Header / Navigation -->
+    <header class="fixed top-0 left-0 right-0 z-50 glass-panel border-b border-white/5">
+        <div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+            <a href="index.html" class="flex items-center space-x-3 group">
+                <div class="w-8 h-8 rounded-full border border-gold/40 flex items-center justify-center transition-colors group-hover:border-gold">
+                    <div class="w-2 h-2 rounded-full bg-gold"></div>
+                </div>
+                <span class="font-serif tracking-[0.2em] text-lg text-platinum font-medium">MIRROR TO YOU</span>
+            </a>
+
+            <nav class="hidden md:flex items-center space-x-8 text-sm tracking-widest text-platinum/70 uppercase font-light">
+                <a href="dashboard.html" class="hover:text-gold transition-colors">Dashboard</a>
+                <a href="concierge.html" class="text-gold font-medium">Concierge</a>
+                <a href="travel.html" class="hover:text-gold transition-colors">Journeys</a>
+                <a href="profile.html" class="hover:text-gold transition-colors">My Profile</a>
+            </nav>
+
+            <div class="flex items-center space-x-4">
+                <span class="text-xs tracking-widest text-gold uppercase px-3 py-1 border border-gold/30 bg-gold/5 hidden sm:inline-block">Private Account</span>
+                <a href="settings.html" class="text-xs tracking-widest text-platinum/80 hover:text-gold uppercase px-3 py-2 transition-colors">Settings</a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-grow pt-28 pb-16 px-6">
+        <div class="max-w-4xl mx-auto">
+            
+            <!-- Page Title Section -->
+            <div class="mb-10 border-b border-white/10 pb-6 flex flex-col md:flex-row md:items-end justify-between gap-4">
+                <div>
+                    <span class="text-xs uppercase tracking-[0.25em] text-gold font-medium block mb-2">Natural Language Curation</span>
+                    <h1 class="font-serif text-3xl sm:text-4xl text-white">Private Concierge Desk</h1>
+                </div>
+                <p class="text-xs text-platinum/50 uppercase tracking-widest max-w-xs">
+                    “You don't need to search. We take care of it.”
+                </p>
+            </div>
+
+            <!-- Concierge Interaction Container -->
+            <div class="glass-panel p-6 sm:p-8 rounded-none glow-gold mb-8">
+                <form id="conciergeRequestForm" onsubmit="handleConciergeSubmit(event)" class="space-y-6">
+                    <div class="flex items-center justify-between border-b border-white/10 pb-3">
+                        <span class="text-xs tracking-widest text-gold uppercase font-medium">Secure Request Channel</span>
+                        <span class="text-[10px] text-platinum/40 uppercase tracking-wider">AI + Dedicated Human Agent</span>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs uppercase tracking-widest text-platinum/60 mb-2">Describe what you require</label>
+                        <textarea id="conciergeQuery" rows="4" required placeholder="e.g., 'Quiero pasar cinco días en Italia con mi esposa', 'Encuéntrame un hotel boutique en París', or 'Necesito un automóvil con chofer mañana'..." class="w-full bg-obsidian border border-white/10 p-4 text-sm text-platinum focus:outline-none focus:border-gold transition-colors resize-none placeholder:text-platinum/30"></textarea>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-xs uppercase tracking-widest text-platinum/60 mb-2">Urgency / Timeline</label>
+                            <select id="urgencyLevel" class="w-full bg-obsidian border border-white/10 px-4 py-3 text-sm text-platinum focus:outline-none focus:border-gold transition-colors">
+                                <option value="standard">Standard Curation (Within 24 hours)</option>
+                                <option value="priority">Priority Review (Within 4 hours)</option>
+                                <option value="immediate">Immediate Attention (Urgent Desk)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs uppercase tracking-widest text-platinum/60 mb-2">Exclusivity Level</label>
+                            <select id="exclusivityLevel" class="w-full bg-obsidian border border-white/10 px-4 py-3 text-sm text-platinum focus:outline-none focus:border-gold transition-colors">
+                                <option value="elite">Private Elite Curation</option>
+                                <option value="ultra">Ultra-Private / Closed-Door Access</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center justify-between pt-4 border-t border-white/10">
+                        <span id="conciergeFeedback" class="text-xs text-gold uppercase tracking-widest hidden">Request received. Your assigned desk is structuring options.</span>
+                        <button type="submit" class="ml-auto bg-gold text-obsidian text-xs tracking-widest uppercase px-8 py-3.5 font-medium hover:bg-gold-light transition-all flex items-center space-x-2">
+                            <span>Submit to Concierge</span>
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Structured Output Preview Section (FastAPI structured response demo) -->
+            <div id="structuredOutputSection" class="hidden glass-panel p-6 sm:p-8 rounded-none border-gold/40">
+                <div class="flex items-center justify-between mb-4 border-b border-white/10 pb-3">
+                    <span class="text-xs tracking-widest text-gold uppercase font-medium">Structured Intelligence Preview</span>
+                    <span class="text-[10px] text-platinum/40 uppercase tracking-wider">FastAPI Payload Format</span>
+                </div>
+                <div id="structuredContent" class="space-y-3 text-xs text-platinum/80 font-mono">
+                    <!-- Dynamic preview loaded via JS -->
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="border-t border-white/5 py-8 text-center text-xs tracking-widest text-platinum/40 uppercase">
+        <div class="max-w-7xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <p>&copy; 2026 Mirror To You. Private Account Only.</p>
+            <div class="flex space-x-6">
+                <a href="dashboard.html" class="hover:text-gold transition-colors">Dashboard</a>
+                <a href="travel.html" class="hover:text-gold transition-colors">Journeys</a>
+                <a href="settings.html" class="hover:text-gold transition-colors">Security</a>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Frontend Demo Handler for Natural Language Concierge Request (Ready for FastAPI endpoint integration)
+        function handleConciergeSubmit(event) {
+            event.preventDefault();
+
+            const queryText = document.getElementById('conciergeQuery').value;
+            const urgency = document.getElementById('urgencyLevel').value;
+            const exclusivity = document.getElementById('exclusivityLevel').value;
+
+            // Simulating AI structuring request into backend format
+            const structuredPayload = {
+                request_type: "natural_language_concierge",
+                raw_input: queryText,
+                urgency: urgency,
+                exclusivity_level: exclusivity,
+                timestamp: new Date().toISOString(),
+                client_status: "VERIFIED_PRINCIPAL"
+            };
+
+            // In production, this will connect via fetch('/api/v1/concierge/submit', { method: 'POST', body: JSON.stringify(structuredPayload) })
+            console.log("DEMO FastAPI Concierge Payload:", structuredPayload);
+
+            const feedback = document.getElementById('conciergeFeedback');
+            feedback.classList.remove('hidden');
+
+            // Display simulated structured output preview
+            const outputSection = document.getElementById('structuredOutputSection');
+            const contentDiv = document.getElementById('structuredContent');
+            
+            contentDiv.innerHTML = `
+                <div class="text-gold mb-2">> Successfully parsed natural language request:</div>
+                <div><span class="text-platinum/50">Intent:</span> ${queryText.substring(0, 60)}...</div>
+                <div><span class="text-platinum/50">Urgency Tier:</span> ${urgency.toUpperCase()}</div>
+                <div><span class="text-platinum/50">Exclusivity:</span> ${exclusivity.toUpperCase()}</div>
+                <div><span class="text-platinum/50">Assigned Desk:</span> Desk Alpha (Human Agent + AI Curation)</div>
+            `;
+            outputSection.classList.remove('hidden');
+
+            document.getElementById('conciergeQuery').value = '';
+
+            setTimeout(() => {
+                feedback.classList.add('hidden');
+            }, 6000);
+        }
+    </script>
+</body>
+</html>
