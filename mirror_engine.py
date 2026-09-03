@@ -1,4 +1,3 @@
-```python
 from datetime import datetime, timezone
 import re
 
@@ -333,4 +332,3 @@ def response_text(result, language="en"):
         "I'm shaping the proposal around your needs, your known preferences, "
         "and what matters right now. Nothing has been booked or purchased."
     )
-```
