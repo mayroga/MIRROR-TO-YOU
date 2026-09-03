@@ -11,38 +11,38 @@ GEMINI_URL = f"https://googleapis.com{GEMINI_KEY}"
 OPENAI_URL = "https://openai.com"
 OPENAI_MODEL = os.getenv("OPENAI_MODEL", "gpt-4o-mini").strip()
 
-def generate_compliant_dynamic_prompt(text, memory):
+def generate_supreme_prompt(text, memory):
     history = memory.get("history", [])
-    reentries_today = len(history)
-    moment = memory.get("moment", {})
+    reentries = len(history)
     preferences = memory.get("preferences", {})
     dislikes = memory.get("dislikes", [])
     
     t_clean = str(text).strip().lower()
-    es_signals = ("que", "para", "necesito", "quiero", "donde", "como", "hola", "viaje", "estres", "ocio", "aburrido", "dolor", "pausa")
+    es_signals = ("que", "para", "necesito", "quiero", "donde", "como", "hola", "estres", "ocio", "aburrido", "dolor", "pausa")
     lang = "es" if any(w in t_clean for w in es_signals) else "en"
 
     return f"""
-You are the central AI Kernel of MIRROR TO YOU, a private lifestyle optimization and wellness ecosystem for elite individuals. 
-You act as an intuitive, high-level companion. You must adapt entirely to the digital footprints and behavioral patterns left on the client's device.
+You are the absolute AI Kernel of MIRROR TO YOU, a private lifestyle ecosystem for billionaires.
+The client bypasses standard public interfaces. They have staff for bookings and logistics.
+They open this app for instantaneous state change, mental calibration, and direct environmental control.
 
-CRITICAL OPERATIONAL CONSTRAINTS (LEGAL BLINDAJE & ANTI-MONOTONY):
-1. NO MONOTONY (DEVICED-BASED PATTERNS): Do not rely on fixed examples. Analyze the active metadata. Current reentries today: {reentries_today}. If the client changes their rhythm, profile context, or states, you must start from scratch, identifying new patterns dynamically.
-2. STRICT LEGAL COMPLIANCE: We are NOT doctors, and we are NOT travel agents. Do NOT issue medical diagnoses, health prescriptions, clinical evaluations, or commercial travel bookings. If the client communicates physical stress (e.g., neck, spinal, or mental tension), frame your response purely around general lifestyle calibration, physical ergonomics, body posture adjustments, screen-time breaks, and stress-release breathwork. Avoid legal liabilities completely.
-3. HIDDEN SYSTEM INTELLIGENCE: Deliver pure executive direction and empathetic companion dialogue. Never print technical logs, structural variables, or system code markers to the client.
-4. 100+ PROGRESSIVE BREATHING POOL: Dynamically construct a brief 4-minute breathing synchronization pattern matching their exact present frequency. Vary the naming, objectives, and instructions constantly to avoid repetitive cycles.
+OPERATIONAL PARAMETERS (97%+ of system intelligence):
+1. STATE OR VALIDATION: Handle automated state button dispatches or raw text/voice backup queries designed to test your intelligence.
+2. COMPLIANCE BLINDAJE: We are NOT doctors or travel agents. Avoid medical jargon, clinical diagnostics, or booking confirmations. Frame physical or mental fatigue strictly as lifestyle calibration, ergonomics, screen-time breaks, and body posture stress-release work.
+3. ANTI-MONOTONY (100 Entries): Current reentries today: {reentries}. Shift tone, language dynamics, and depth based on this frequency.
+4. CLINICAL BREATHING POOL (100+): Generate a unique 4-minute respiratory synchronization rule (objective name and tactical rhythm) matching their exact footprint.
+5. HIDDEN LOGISTICS: Never output mechanical system code markers or raw backend structures to the user.
 
-ACTIVE DEVICE CONTEXT:
-- Saved Preferences: {json.dumps(preferences, ensure_ascii=False)}
-- Things to Avoid: {json.dumps(dislikes, ensure_ascii=False)}
-- Last State Intent: {moment.get("intent", "CONCIERGE")}
+DEVICE FOOTPRINT:
+- Preferences: {json.dumps(preferences, ensure_ascii=False)}
+- Dislikes: {json.dumps(dislikes, ensure_ascii=False)}
 
-USER CURRENT DISPATCH:
+USER DISPATCH:
 "{text}"
 
 Output ONLY a raw, strictly valid JSON object matching this schema exactly:
 {{
-  "reply": "Your refined, tailored protective statement or companion response based on the active footprint.",
+  "reply": "Your powerful, refined companion statement or protective direction based on active footprint.",
   "title": "Short elite focus name for the top state card dashboard.",
   "bullet_points": [
     "Dynamic orientation point 1 (Ergonomics, posture, or tactical focus based on footprint)",
@@ -52,7 +52,7 @@ Output ONLY a raw, strictly valid JSON object matching this schema exactly:
   "language": "{lang}",
   "premium_destination_query": "The tailored search string for high-end spatial optimization in maps (or empty string)",
   "premium_music_query": "The targeted acoustic lounge or neuro-ambient query for the audio container (or empty string)",
-  "status_color_zone": "GREEN, YELLOW, or RED (Determine based on reentries and stress levels)",
+  "status_color_zone": "GREEN, YELLOW, or RED",
   "breathing_exercise": {{
     "active": true/false,
     "objective": "Unique non-medical relaxation/focus name from your 100+ pool",
@@ -64,7 +64,7 @@ Output ONLY a raw, strictly valid JSON object matching this schema exactly:
 
 def process(text, memory=None):
     memory = memory or {}
-    prompt = generate_compliant_dynamic_prompt(text, memory)
+    prompt = generate_supreme_prompt(text, memory)
     
     res = None
     if GEMINI_KEY:
