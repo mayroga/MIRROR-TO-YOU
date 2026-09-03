@@ -75,39 +75,6 @@ async function sendTravelRequest() {
     // Añadir mensaje del usuario a la memoria local
     conversationMemory.push({ role: 'user', content: input });
     
-    if (conversationMemory.length > MAX_MEMORY_TURNS * 2) {
-        conversationMemory = conversationMemory.slice(-MAX_MEMORY_TURNS * 2);
-    }
-
-    inputField.value = '';
-
-    try {
-        const response = await fetch('/api/chat', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                messages: conversationMemory,
-                lang: currentLang
-            })
-        });
-
-        const data = await response.json();
-
-        if (response.ok && data.reply) {
-            conversationMemory.push({ role: 'assistant', content: data.reply });
-            output.innerText = data.reply;
-        } else {
-            output.innerText = data.error || (currentLang === 'es' ? 'Error al procesar la directiva.' : 'Error processing directive.');
-        }
-    } catch (error) {
-        output.innerText = currentLang === 'es' ? 'Error temporal de enlace con el servidor de asesoría.' : 'Temporary advisory server link error.';
-    }
-}
-    // Añadir mensaje del usuario a la memoria local
-    conversationMemory.push({ role: 'user', content: input });
-    
     // Limitar el historial a los últimos turnos permitidos
     if (conversationMemory.length > MAX_MEMORY_TURNS * 2) {
         conversationMemory = conversationMemory.slice(-MAX_MEMORY_TURNS * 2);
@@ -130,14 +97,14 @@ async function sendTravelRequest() {
         const data = await response.json();
 
         if (response.ok && data.reply) {
-            // Guardar la respuesta de la IA en la memoria local
+            // Guardar la respuesta del asesor en la memoria local
             conversationMemory.push({ role: 'assistant', content: data.reply });
             output.innerText = data.reply;
         } else {
-            output.innerText = data.error || (currentLang === 'es' ? 'Error al procesar la solicitud.' : 'Error processing request.');
+            output.innerText = data.error || (currentLang === 'es' ? 'Error al procesar la directiva.' : 'Error processing directive.');
         }
     } catch (error) {
-        output.innerText = currentLang === 'es' ? 'Error de conexión con el servidor.' : 'Server connection error.';
+        output.innerText = currentLang === 'es' ? 'Error temporal de enlace con el servidor de asesoría.' : 'Temporary advisory server link error.';
     }
 }
 
