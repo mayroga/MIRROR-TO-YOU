@@ -1,143 +1,124 @@
 import os
 import json
-import re
 import urllib.request
 from datetime import datetime
 
-AI_KEY = os.getenv("OPENAI_API_KEY", "").strip()
-AI_MODEL = os.getenv("OPENAI_MODEL", "gpt-4o-mini").strip()  # Modelo optimizado de alta velocidad
-AI_URL = "https://openai.com"
+GEMINI_KEY = os.getenv("GEMINI_API_KEY", "").strip()
+OPENAI_KEY = os.getenv("OPENAI_API_KEY", "").strip()
 
-INTENTS = ("TRAVEL", "ESCAPE", "STAY", "DINING", "EXPERIENCE", "MUSIC", "MAPS", "WELLBEING", "CONCIERGE")
+GEMINI_URL = f"https://googleapis.com{GEMINI_KEY}"
+OPENAI_URL = "https://openai.com"
+OPENAI_MODEL = os.getenv("OPENAI_MODEL", "gpt-4o-mini").strip()
 
 def now():
     return datetime.now().isoformat(timespec="seconds")
 
-def clean(v):
-    return str(v).strip() if v is not None else ""
-
-def detect_language(text, memory):
-    # Respeta la preferencia guardada o analiza el mensaje actual de forma robusta
-    saved_lang = memory.get("moment", {}).get("language")
-    if saved_lang in ("es", "en"):
-        return saved_lang
-    t = clean(text).lower()
-    es_signals = ("que", "para", "necesito", "quiero", "donde", "como", "buscar", "viaje", "hola")
-    es_score = sum(1 for w in es_signals if re.search(r'\b' + w + r'\b', t))
-    return "es" if es_score >= 1 else "en"
-
-def detect_intent(text):
-    t = clean(text).lower()
-    rules = {
-        "TRAVEL": ("viaje", "vuelo", "aeropuerto", "jet", "charter", "flight", "airport", "aviation", "helicoptero"),
-        "ESCAPE": ("escapar", "escape", "desconectar", "disconnect", "alejarme", "isolated", "hideaway"),
-        "STAY": ("hotel", "resort", "suite", "villa", "alojamiento", "stay", "aman", "st regis", "fours seasons"),
-        "DINING": ("restaurant", "restaurante", "cena", "comer", "chef", "food", "dinner", "michelin", "caviar"),
-        "EXPERIENCE": ("experiencia", "experience", "spa", "yacht", "yate", "golf", "art", "subasta", "gallería"),
-        "MUSIC": ("música", "musica", "music", "playlist", "soundtrack", "ambient"),
-        "MAPS": ("mapa", "maps", "donde", "ubicacion", "location", "route", "direccion", "cerca", "address"),
-        "WELLBEING": ("respirar", "calma", "relax", "estres", "stress", "breathing", "anxiety", "meditar", "peace")
-    }
-    for intent, words in rules.items():
-        if any(w in t for w in words):
-            return intent
-    return "CONCIERGE"
-
-def process(text, memory=None):
-    text = clean(text)
-    memory = memory or {}
-    
-    lang = detect_language(text, memory)
-    intent = detect_intent(text)
-    
-    # Análisis de reentrada dinámica (Manejo de las 100 entradas al día)
+def generate_absolute_ai_prompt(text, memory):
+    """
+    PROMPT MAESTRO SUPREMO: Transfiere el 90% real de la responsabilidad a la IA.
+    La IA controla los comos, porqués, cuandos, dondes, mapas, música y bienestar de ultra-lujo.
+    """
     history = memory.get("history", [])
     reentries_today = len(history)
+    core = memory.get("core", {})
+    preferences = memory.get("preferences", {})
     
-    # Filtrado premium para Google Maps (No soluciones genéricas o cotidianas)
-    raw_dest = ""
-    dest_match = re.search(r"(?:en|in|at|near|hacia|to|para)\s+([A-Z][\w\s'-]{2,30})", text)
-    if dest_match:
-        raw_dest = clean(dest_match.group(1))
-    
-    premium_context = "Luxury VIP Experience"
-    if intent == "DINING": premium_context = "Michelin Star Restaurant Fine Dining"
-    elif intent == "STAY": premium_context = "5 Star Luxury Hotel Villa Suite"
-    elif intent == "TRAVEL": premium_context = "Private Jet Airport Terminal Helipad"
-    elif intent == "EXPERIENCE": premium_context = "Exclusive Private Access Yacht Spa"
-    
-    destination_query = f"{raw_dest} {premium_context}".strip() if raw_dest else premium_context
+    # Detección del idioma Mirror nativo para responder en el mismo idioma del cliente
+    t_clean = str(text).strip().lower()
+    es_signals = ("que", "para", "necesito", "quiero", "donde", "como", "hola", "viaje", "estres", "por que")
+    lang = "es" if any(w in t_clean for w in es_signals) else "en"
 
-    # Sistema de Objetivos Dinámicos del Cliente de Alto Nivel
-    directions = {
-        "es": ["Acceso inmediato sin intermediarios", "Coordinación discreta en curso", "Detalles optimizados para su agenda"],
-        "en": ["Immediate friction-free access", "Discreet coordination in progress", "Details streamlined for your schedule"]
-    }[lang]
+    return f"""
+You are MIRROR, the private life concierge, ultimate advisor, and personal ecosystem for ultra-high-net-worth individuals, billionaires, and elite power players. 
+The client has unlimited financial resources. They can spend any amount, do anything, anywhere, anytime. 
+They do NOT want puzzles, multiple options, lists, corporate descriptions, or standard services. Time and cognitive energy are their most valuable assets.
 
-    # Configuración dinámica del círculo respiratorio profesional
-    breathing_modes = ["CALM / RESET", "FOCUS / CLARITY", "ENERGY / POWER"]
-    current_mode = breathing_modes[reentries_today % len(breathing_modes)]
+YOUR ABSOLUTE RESPONSIBILITIES (90%+ of the entire application logic):
+1. THE TOTAL CORE: You must determine the what, why, when, where, and how for every interaction. Explain the deeper reasoning behind your execution seamlessly.
+2. DYNAMIC LANGUAGE MIRROR: Match the client's language flawlessly. Current language to use: '{lang}'. Every user-facing field in the JSON MUST be in this language.
+3. 100+ BREATHING EXPERIENCE POOL: If the client shows signs of stress, fatigue, or explicitly wants to relax, generate a custom-tailored, clinical-grade breathing exercise from a conceptual pool of over 100 variations. Define its exact objective (e.g., "Cortisol Flush", "Neuro-Symmetry", "Pre-Keynote Anchoring") and a powerful, brief instruction block.
+4. ULTRA-PREMIUM EXECUTION MAPS: Do NOT output regular cities or addresses. Convert any destination intent into a hyper-exclusive search string for coordinates of high-net-worth value (e.g., FBO Private Aviation Terminals, Michelin-Starred Chef Tables with private entry, Helipads, Superyacht Marinas, or ultra-private villas).
+5. ACOUSTIC EMOTIONAL SPACE: Generate high-fidelity soundscape/ambient search queries tailored exactly to their present cognitive status and premium profile.
+6. ANTI-REPETITION (100 Entries a day): The client uses this app constantly. Current reentries today: {reentries_today}. Shift your vocabulary, tone maturity, and depth based on this frequency so it feels like a continuous, intelligent, living conversation with an equal mind.
 
-    understanding = {
-        "intent": intent,
-        "language": lang,
-        "destination": destination_query,
-        "reentries_today": reentries_today,
-        "breathing_mode": current_mode
-    }
+CLIENT PROFILE:
+- Name/Identity: {core.get("name", "Sir/Madame")}
+- Past Learning Context: {json.dumps(preferences, ensure_ascii=False)}
 
-    # Prompt ultra-exclusivo para la IA
-    ai_prompt = f"""
-You are MIRROR, the ultimate private life concierge for ultra-high-net-worth individuals.
-Speak directly as MIRROR—elegant, hyper-concise, and powerful. 
-The client values time above all else. No fluff, no robotic lists, no corporate jargon.
-Anticipate elite needs perfectly. 
-Language: {lang}
-Client current intent: {intent}
-Reentries today: {reentries_today} (Acknowledge subtly or vary tone if high)
+CLIENT COMMAND / INPUT:
+"{text}"
 
-Formulate a flawless, upscale response. 
-Return ONLY a valid JSON object matching this schema exactly:
+You MUST output ONLY a strictly valid JSON object. No markdown syntax like ```json. Match this schema exactly:
 {{
-  "reply": "Your brilliant, ultra-premium sentence response",
-  "title": "Short elite title for the current moment",
-  "directions": ["Premium actionable direction 1", "Premium actionable direction 2"]
+  "reply": "Your precise, elegant, authoritative direct response or executive confirmation.",
+  "title": "Short elite state name for the client dashboard card.",
+  "direction": [
+    "Master actionable direction (the exact what/how)",
+    "The operational timeline or strategic placement (the when/where)",
+    "The deeper psychological or logistical justification (the why)"
+  ],
+  "intent": "TRAVEL, ESCAPE, STAY, DINING, EXPERIENCE, MUSIC, MAPS, WELLBEING, or CONCIERGE",
+  "language": "{lang}",
+  "premium_destination_query": "The custom, deep-filtered search query for Google Maps to trigger elite spots directly.",
+  "premium_music_query": "The advanced, high-luxury ambient search string for YouTube.",
+  "breathing_exercise": {{
+    "active": true/false,
+    "objective": "Specific strategic name of the therapeutic exercise",
+    "instruction": "Short, powerful guide for the interface breathing orb.",
+    "duration_seconds": 240
+  }}
 }}
 """
-    
-    reply_text = "I am ready. Tell me what to streamline for you." if lang == "en" else "Estoy listo. Dígame de qué me encargo hoy."
-    title_text = "Private Lounge" if lang == "en" else "Espacio Privado"
-    
-    if AI_KEY:
+
+def call_gemini(prompt_text):
+    if not GEMINI_KEY: return None
+    try:
         payload = json.dumps({
-            "model": AI_MODEL,
-            "messages": [{"role": "system", "content": ai_prompt}, {"role": "user", "content": text}],
-            "temperature": 0.6,
+            "contents": [{"parts": [{"text": prompt_text}]}],
+            "generationConfig": {"responseMimeType": "application/json", "temperature": 0.65}
+        }).encode()
+        req = urllib.request.Request(GEMINI_URL, data=payload, headers={"Content-Type": "application/json"}, method="POST")
+        with urllib.request.urlopen(req, timeout=9) as r:
+            res = json.loads(r.read().decode())
+            return json.loads(res["candidates"][0]["content"]["parts"][0]["text"].strip())
+    except Exception:
+        return None
+
+def call_openai(prompt_text):
+    if not OPENAI_KEY: return None
+    try:
+        payload = json.dumps({
+            "model": OPENAI_MODEL,
+            "messages": [{"role": "user", "content": prompt_text}],
+            "temperature": 0.65,
             "response_format": {"type": "json_object"}
         }).encode()
-        req = urllib.request.Request(AI_URL, data=payload, headers={"Content-Type": "application/json", "Authorization": f"Bearer {AI_KEY}"}, method="POST")
-        try:
-            with urllib.request.urlopen(req, timeout=8) as r:
-                res = json.loads(r.read().decode())
-                content = json.loads(res["choices"][0]["message"]["content"])
-                reply_text = content.get("reply", reply_text)
-                title_text = content.get("title", title_text)
-                directions = content.get("directions", directions)
-        except Exception:
-            pass
+        req = urllib.request.Request(OPENAI_URL, data=payload, headers={"Content-Type": "application/json", "Authorization": f"Bearer {OPENAI_KEY}"}, method="POST")
+        with urllib.request.urlopen(req, timeout=9) as r:
+            res = json.loads(r.read().decode())
+            return json.loads(res["choices"][0]["message"]["content"].strip())
+    except Exception:
+        return None
 
-    return {
-        "understanding": understanding,
-        "personalization": {"name": memory.get("core", {}).get("name", "")},
-        "decision": {"action": "PROPOSE" if intent != "CONCIERGE" else "CONCIERGE", "confidence": 0.99},
-        "proposal": {
-            "title": title_text,
-            "reply": reply_text,
-            "direction": directions,
-            "question": ""
-        },
-        "status": "PROPOSAL" if intent != "CONCIERGE" else "CONCIERGE"
-    }
-
-def response_text(result, language="en"):
-    return result["proposal"]["reply"]
+def process(text, memory=None):
+    memory = memory or {}
+    prompt = generate_absolute_ai_prompt(text, memory)
+    
+    # Arquitectura Dual: Gemini como Primario, OpenAI como Respaldo
+    response = call_gemini(prompt)
+    if not response:
+        response = call_openai(prompt)
+        
+    if not response:
+        # Mecanismo de contingencia elegante en caso de caída de redes externas
+        response = {
+            "reply": "Ecosistema MIRROR activo en canal cifrado local. Ordene sus requerimientos.",
+            "title": "Consola Privada",
+            "direction": ["Ejecución autónoma inmediata", "Optimización de recursos y tiempo", "Coordinación discreta"],
+            "intent": "CONCIERGE",
+            "language": "es",
+            "premium_destination_query": "Elite Private Airport Terminal",
+            "premium_music_query": "Premium Minimalist Lounge Ambient",
+            "breathing_exercise": {"active": False, "objective": "", "instruction": "", "duration_seconds": 240}
+        }
+    return response
