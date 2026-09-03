@@ -1,113 +1,308 @@
-<!-- static/index.html -->
 <!DOCTYPE html>
-<html lang="es">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <meta name="theme-color" content="#05070a">
-    <title>MIRROR</title>
-    <link rel="stylesheet" href="/static/style.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MIRROR TO YOU</title>
+    <style>
+        :root {
+            --bg-color: #0b0f19;
+            --card-bg: #111827;
+            --accent-color: #38bdf8;
+            --text-main: #f3f4f6;
+            --text-muted: #9ca3af;
+            --border-color: #1f2937;
+            --danger-color: #ef4444;
+        }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 20px;
+        }
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1000px;
+            width: 100%;
+            margin: 0 auto;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .logo {
+            font-size: 1.25rem;
+            font-weight: 600;
+            letter-spacing: 2px;
+            color: var(--accent-color);
+        }
+        .controls {
+            display: flex;
+            gap: 10px;
+        }
+        button {
+            background-color: var(--card-bg);
+            color: var(--text-main);
+            border: 1px solid var(--border-color);
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.2s ease;
+        }
+        button:hover {
+            border-color: var(--accent-color);
+        }
+        .btn-danger {
+            color: var(--danger-color);
+            border-color: rgba(239, 68, 68, 0.3);
+        }
+        .btn-danger:hover {
+            border-color: var(--danger-color);
+        }
+        main {
+            max-width: 1000px;
+            width: 100%;
+            margin: 20px auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        @media (max-width: 768px) {
+            main {
+                grid-template-columns: 1fr;
+            }
+        }
+        .panel {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+        .panel h2 {
+            font-size: 1.1rem;
+            font-weight: 500;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .breathing-circle {
+            width: 120px;
+            height: 120px;
+            border: 2px solid var(--accent-color);
+            border-radius: 50%;
+            margin: 20px auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 4s ease-in-out;
+            font-size: 0.85rem;
+            color: var(--accent-color);
+        }
+        .input-group {
+            display: flex;
+            gap: 8px;
+        }
+        input, textarea {
+            flex: 1;
+            background-color: var(--bg-color);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 10px;
+            color: var(--text-main);
+            font-size: 0.95rem;
+            resize: none;
+        }
+        input:focus, textarea:focus {
+            outline: none;
+            border-color: var(--accent-color);
+        }
+        .output-box {
+            background-color: var(--bg-color);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 12px;
+            min-height: 80px;
+            font-size: 0.95rem;
+            color: var(--text-muted);
+        }
+        footer {
+            text-align: center;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            padding-top: 20px;
+            border-top: 1px solid var(--border-color);
+            max-width: 1000px;
+            width: 100%;
+            margin: 0 auto;
+        }
+        #warning-modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .modal-content {
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+        }
+    </style>
 </head>
 <body>
-    <div id="app">
-        <!-- Control bilingüe instantáneo y acceso a memoria sin fricción -->
-        <header class="luxury-header">
-            <div class="mirror-logo" onclick="window.location.reload()">
-                <span class="logo-orb"></span>
-                <span class="logo-text">MIRROR</span>
+
+    <header>
+        <div class="logo" id="app-title">MIRROR TO YOU</div>
+        <div class="controls">
+            <button id="lang-btn" onclick="toggleLanguage()">ES</button>
+            <button id="audio-btn" onclick="toggleAudio()">🔊 Audio</button>
+            <button class="btn-danger" id="clear-btn" onclick="clearData()">Clear</button>
+        </div>
+    </header>
+
+    <main>
+        <!-- Wellness & Breathing Panel -->
+        <div class="panel">
+            <h2 id="wellness-title">Wellness & Anti-Stress</h2>
+            <p id="wellness-desc" style="font-size: 0.9rem; color: var(--text-muted);">Select objective and follow the synchronized rhythm.</p>
+            <div class="breathing-circle" id="b-circle"><span id="b-text">Inhale</span></div>
+            <div style="display: flex; gap: 8px; justify-content: center;">
+                <button onclick="setBreathingMode('calm')">Calm</button>
+                <button onclick="setBreathingMode('focus')">Focus</button>
+                <button onclick="setBreathingMode('energy')">Energy</button>
             </div>
-            <div class="header-controls">
-                <button id="langToggle" class="text-btn" type="button">EN / ES</button>
-                <button id="memoryButton" class="icon-btn" type="button" aria-label="Ecosystem">◌</button>
-            </div>
-        </header>
+        </div>
 
-        <main class="luxury-main">
-            <section id="mainDeck" class="deck active">
-                
-                <!-- 1. INTERFAZ PRINCIPAL: Control de Estado de Un Solo Toque -->
-                <div class="section-label" id="sectionLabelState">ESTADO DE EJECUCIÓN</div>
-                <div class="state-grid">
-                    <button class="state-card" id="btnStatePressure" onclick="executeState('HIGH_PRESSURE')">
-                        <span class="state-icon">🏢</span>
-                        <div class="state-meta">
-                            <h3 id="lblPressureTitle">Alta Presión</h3>
-                            <p id="lblPressureSub">Enfoque de Negocios</p>
-                        </div>
-                    </button>
-                    <button class="state-card" id="btnStateTransition" onclick="executeState('TRANSITION')">
-                        <span class="state-icon">🚗</span>
-                        <div class="state-meta">
-                            <h3 id="lblTransitionTitle">Transición</h3>
-                            <p id="lblTransitionSub">Modo Familia</p>
-                        </div>
-                    </button>
-                    <button class="state-card" id="btnStateDisconnect" onclick="executeState('DISCONNECT')">
-                        <span class="state-icon">🌲</span>
-                        <div class="state-meta">
-                            <h3 id="lblDisconnectTitle">Desconexión</h3>
-                            <p id="lblDisconnectSub">Privacidad Total</p>
-                        </div>
-                    </button>
-                </div>
+        <!-- Private Travel Agent Panel -->
+        <div class="panel">
+            <h2 id="travel-title">Private Travel Agent</h2>
+            <textarea id="travel-input" rows="3" placeholder="Request private itinerary, luxury charter, or bespoke connections..."></textarea>
+            <button onclick="sendTravelRequest()">Submit Request</button>
+            <div class="output-box" id="travel-output">Secure link established. Awaiting directives...</div>
+        </div>
+    </main>
 
-                <!-- PANEL DINÁMICO: Inyectado por el 97% de la responsabilidad de la IA -->
-                <div id="planArea" class="plan-panel hidden">
-                    <div class="panel-header">
-                        <span id="statusBadge" class="status-badge">LIVE EXECUTION</span>
-                        <h2 id="planTitle"></h2>
-                    </div>
-                    <p id="planReply" class="premium-reply"></p>
-                    <div id="directions" class="premium-directions"></div>
-                    
-                    <div id="planActions" class="action-grid">
-                        <button id="mapsButton" class="luxury-action-btn hidden" type="button"></button>
-                        <button id="musicButton" class="luxury-action-btn hidden" type="button"></button>
-                        <button id="conciergeButton" class="luxury-action-btn primary-gold hidden" type="button"></button>
-                    </div>
-                </div>
+    <footer>
+        <span id="footer-text">Encrypted Volatile Session. Zero Data Retained.</span>
+    </footer>
 
-                <!-- CÍRCULO RESPIRATORIO PROFESIONAL CLINICO (Pool de 100+ Ejercicios de la IA) -->
-                <div id="breathingArea" class="breathing-panel hidden">
-                    <div class="orb-container">
-                        <div id="breathingOrb" class="professional-orb">
-                            <div class="orb-inner">
-                                <span id="breathingPhase">READY</span>
-                                <strong id="breathingTimer">04:00</strong>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="orb-meta">
-                        <p id="breathingInstruction"></p>
-                        <button id="breathingControlBtn" class="control-pill" type="button"></button>
-                    </div>
-                </div>
-            </section>
-
-            <!-- PANTALLA SECUNDARIA DE CONTEXTO -->
-            <section id="memoryScreen" class="deck">
-                <div class="deck-header">
-                    <button id="closeMemory" class="close-btn" type="button"></button>
-                    <h2 id="memoryTitle"></h2>
-                </div>
-                <div id="memorySummary" class="memory-grid"></div>
-                <div class="memory-footer">
-                    <!-- El elemento se declara limpio y vacío para que app.js asigne el texto en base a la huella de idioma actual sin duplicaciones -->
-<button id="clearMemoryButton" class="danger-pill" type="button"></button>
-                </div>
-            </section>
-        </main>
-
-        <!-- 2. INTERFAZ SECUNDARIA: Sistema de Respaldo, Chat y Validación por Voz -->
-        <footer class="luxury-footer">
-            <div class="composer-container">
-                <button id="voiceButton" class="action-trigger mic-trigger" type="button" aria-label="Comando de Voz">●</button>
-                <textarea id="messageInput" rows="1"></textarea>
-                <button id="sendButton" class="action-trigger send-trigger" type="button" aria-label="Ejecutar">↑</button>
-            </div>
-            <div id="voiceStatus" class="voice-status-bar hidden"></div>
-        </footer>
+    <!-- Inactivity Warning Modal -->
+    <div id="warning-modal">
+        <div class="modal-content">
+            <p id="modal-text" style="margin-bottom: 20px;">Inactivity detected. Touch the screen to maintain session.</p>
+            <button onclick="dismissWarning()">Continue Session</button>
+        </div>
     </div>
-    <script src="/static/app.js" defer></script>
+
+    <script>
+        let currentLang = 'en';
+
+        function toggleLanguage() {
+            currentLang = currentLang === 'en' ? 'es' : 'en';
+            const langBtn = document.getElementById('lang-btn');
+            const wellnessTitle = document.getElementById('wellness-title');
+            const wellnessDesc = document.getElementById('wellness-desc');
+            const travelTitle = document.getElementById('travel-title');
+            const travelInput = document.getElementById('travel-input');
+            const travelOutput = document.getElementById('travel-output');
+            const footerText = document.getElementById('footer-text');
+            const clearBtn = document.getElementById('clear-btn');
+            const modalText = document.getElementById('modal-text');
+
+            if (currentLang === 'es') {
+                langBtn.innerText = 'EN';
+                wellnessTitle.innerText = 'Bienestar y Antiestrés';
+                wellnessDesc.innerText = 'Seleccione objetivo y siga el ritmo sincronizado.';
+                travelTitle.innerText = 'Agente Privado de Viajes';
+                travelInput.placeholder = 'Solicite itinerario privado, chárter de lujo o conexiones a medida...';
+                travelOutput.innerText = 'Enlace seguro establecido. Esperando directivas...';
+                footerText.innerText = 'Sesión Volátil Encriptada. Cero Datos Retenidos.';
+                clearBtn.innerText = 'Borrar';
+                modalText.innerText = 'Inactividad detectada. Toque la pantalla para mantener la sesión.';
+            } else {
+                langBtn.innerText = 'ES';
+                wellnessTitle.innerText = 'Wellness & Anti-Stress';
+                wellnessDesc.innerText = 'Select objective and follow the synchronized rhythm.';
+                travelTitle.innerText = 'Private Travel Agent';
+                travelInput.placeholder = 'Request private itinerary, luxury charter, or bespoke connections...';
+                travelOutput.innerText = 'Secure link established. Awaiting directives...';
+                footerText.innerText = 'Encrypted Volatile Session. Zero Data Retained.';
+                clearBtn.innerText = 'Clear';
+                modalText.innerText = 'Inactivity detected. Touch the screen to maintain session.';
+            }
+        }
+
+        function clearData() {
+            document.getElementById('travel-input').value = '';
+            document.getElementById('travel-output').innerText = currentLang === 'es' ? 'Datos borrados.' : 'Data cleared.';
+        }
+
+        function toggleAudio() {
+            const btn = document.getElementById('audio-btn');
+            btn.style.borderColor = btn.style.borderColor === 'rgb(56, 189, 248)' ? 'var(--border-color)' : 'var(--accent-color)';
+        }
+
+        function setBreathingMode(mode) {
+            const circle = document.getElementById('b-circle');
+            const text = document.getElementById('b-text');
+            text.innerText = mode.toUpperCase();
+            circle.style.transform = 'scale(1.2)';
+            setTimeout(() => {
+                circle.style.transform = 'scale(1)';
+            }, 3000);
+        }
+
+        function sendTravelRequest() {
+            const input = document.getElementById('travel-input').value;
+            if(!input) return;
+            const output = document.getElementById('travel-output');
+            output.innerText = currentLang === 'es' ? 'Procesando directiva con agente privado...' : 'Processing directive with private agent...';
+            setTimeout(() => {
+                output.innerText = currentLang === 'es' ? 'Itinerario ajustado de forma confidencial.' : 'Itinerary adjusted confidentially.';
+            }, 1000);
+        }
+
+        // Inactivity Timer Simulation (59 seconds warning)
+        let inactivityTimer = setTimeout(() => {
+            document.getElementById('warning-modal').style.display = 'flex';
+        }, 59000);
+
+        function resetTimer() {
+            clearTimeout(inactivityTimer);
+            document.getElementById('warning-modal').style.display = 'none';
+            inactivityTimer = setTimeout(() => {
+                document.getElementById('warning-modal').style.display = 'flex';
+            }, 59000);
+        }
+
+        function dismissWarning() {
+            resetTimer();
+        }
+
+        window.onload = () => {
+            window.addEventListener('mousemove', resetTimer);
+            window.addEventListener('keypress', resetTimer);
+            window.addEventListener('touchstart', resetTimer);
+        };
+    </script>
 </body>
 </html>
