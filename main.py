@@ -1,5 +1,4 @@
 from fastapi import FastAPI, HTTPException, status
-from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field
 from typing import List, Optional, Dict, Any
@@ -8,12 +7,9 @@ import os
 
 app = FastAPI(
     title="MIRROR TO YOU — The Private Life Concierge",
-    description="Backend API and Static Server for MIRROR TO YOU private platform.",
+    description="Backend API and HTML Server for MIRROR TO YOU private platform.",
     version="1.0.0"
 )
-
-# Mount static directory for frontend assets (HTML, CSS, JS)
-app.mount("/static", StaticFiles(directory="static"), name="static")
 
 # ==========================================
 # PYDANTIC MODELS (Data Validation & Schemas)
@@ -121,24 +117,47 @@ DEMO_EXPERIENCES = [
 ]
 
 # ==========================================
-# FRONTEND HTML ROUTING ENDPOINTS
+# FRONTEND HTML ROUTING ENDPOINTS (Root Level)
 # ==========================================
 
 @app.get("/", response_class=FileResponse)
 def serve_index():
-    return FileResponse("static/index.html")
+    return FileResponse("index.html")
 
+@app.get("/dashboard.html", response_class=FileResponse)
 @app.get("/dashboard", response_class=FileResponse)
 def serve_dashboard():
-    return FileResponse("static/dashboard.html")
+    return FileResponse("dashboard.html")
 
+@app.get("/profile.html", response_class=FileResponse)
 @app.get("/profile", response_class=FileResponse)
 def serve_profile():
-    return FileResponse("static/profile.html")
+    return FileResponse("profile.html")
 
+@app.get("/concierge.html", response_class=FileResponse)
 @app.get("/concierge", response_class=FileResponse)
 def serve_concierge():
-    return FileResponse("static/concierge.html")
+    return FileResponse("concierge.html")
+
+@app.get("/requests.html", response_class=FileResponse)
+@app.get("/requests", response_class=FileResponse)
+def serve_requests():
+    return FileResponse("requests.html")
+
+@app.get("/history.html", response_class=FileResponse)
+@app.get("/history", response_class=FileResponse)
+def serve_history():
+    return FileResponse("history.html")
+
+@app.get("/settings.html", response_class=FileResponse)
+@app.get("/settings", response_class=FileResponse)
+def serve_settings():
+    return FileResponse("settings.html")
+
+@app.get("/admin.html", response_class=FileResponse)
+@app.get("/admin", response_class=FileResponse)
+def serve_admin():
+    return FileResponse("admin.html")
 
 # ==========================================
 # REST API ENDPOINTS
