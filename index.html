@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MIRROR TO YOU — The Private Life Concierge</title>
+    <title>Journeys & Private Sanctuary — MIRROR TO YOU</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -42,126 +42,214 @@
         .glow-gold {
             box-shadow: 0 0 50px -15px rgba(197, 160, 89, 0.12);
         }
-        textarea::-webkit-scrollbar {
-            width: 4px;
+        /* Breathing Circle Animations */
+        @keyframes breathe {
+            0%, 100% { transform: scale(1); border-color: rgba(197, 160, 89, 0.3); box-shadow: 0 0 20px rgba(197, 160, 89, 0.1); }
+            40% { transform: scale(1.35); border-color: rgba(197, 160, 89, 0.9); box-shadow: 0 0 50px rgba(197, 160, 89, 0.4); }
+            60% { transform: scale(1.35); border-color: rgba(197, 160, 89, 0.9); box-shadow: 0 0 50px rgba(197, 160, 89, 0.4); }
         }
-        textarea::-webkit-scrollbar-thumb {
-            background: rgba(197, 160, 89, 0.3);
+        .breathing-ring {
+            animation: breathe 8s infinite ease-in-out;
         }
     </style>
 </head>
 <body class="bg-obsidian text-platinum antialiased min-h-screen flex flex-col justify-between selection:bg-gold selection:text-obsidian">
 
-    <!-- Minimalist Header -->
-    <header class="w-full px-8 py-6 flex items-center justify-between border-b border-white/5">
-        <a href="/" class="flex items-center space-x-3 group">
-            <div class="w-7 h-7 rounded-full border border-gold/40 flex items-center justify-center transition-colors group-hover:border-gold">
-                <div class="w-1.5 h-1.5 rounded-full bg-gold"></div>
+    <!-- Header / Navigation -->
+    <header class="fixed top-0 left-0 right-0 z-50 glass-panel border-b border-white/5">
+        <div class="max-w-7xl mx-auto px-8 h-20 flex items-center justify-between">
+            <a href="/" class="flex items-center space-x-3 group">
+                <div class="w-8 h-8 rounded-full border border-gold/40 flex items-center justify-center transition-colors group-hover:border-gold">
+                    <div class="w-2 h-2 rounded-full bg-gold"></div>
+                </div>
+                <span class="font-serif tracking-[0.25em] text-sm text-platinum font-medium">MIRROR TO YOU</span>
+            </a>
+
+            <nav class="hidden md:flex items-center space-x-8 text-xs tracking-widest text-platinum/70 uppercase font-light">
+                <a href="/dashboard" class="hover:text-gold transition-colors">Dashboard</a>
+                <a href="/concierge" class="hover:text-gold transition-colors">Concierge</a>
+                <a href="/travel" class="text-gold font-medium">Journeys</a>
+                <a href="/profile" class="hover:text-gold transition-colors">Profile</a>
+            </nav>
+
+            <div class="flex items-center space-x-4">
+                <span class="text-[10px] tracking-widest text-gold uppercase px-3 py-1 border border-gold/30 bg-gold/5 hidden sm:inline-block">Private Account</span>
             </div>
-            <span class="font-serif tracking-[0.25em] text-sm text-platinum font-medium">MIRROR TO YOU</span>
-        </a>
-        <div class="flex items-center space-x-6 text-xs uppercase tracking-widest font-light">
-            <a href="/dashboard" class="text-platinum/60 hover:text-gold transition-colors">Dashboard</a>
-            <a href="/profile" class="text-platinum/60 hover:text-gold transition-colors">Profile</a>
         </div>
     </header>
 
-    <!-- Main Conversational Interface -->
-    <main class="flex-grow flex items-center justify-center px-6 py-12">
-        <div class="w-full max-w-2xl mx-auto text-center space-y-8">
+    <!-- Main Content -->
+    <main class="flex-grow pt-28 pb-20 px-6 sm:px-8">
+        <div class="max-w-6xl mx-auto space-y-12">
             
-            <!-- Greeting / Manifesto -->
-            <div class="space-y-3">
-                <span class="text-[10px] uppercase tracking-[0.3em] text-gold font-medium block">Private Concierge Service</span>
-                <h1 class="font-serif text-3xl sm:text-5xl text-white tracking-wide font-normal">What do you need today?</h1>
-                <p class="text-xs sm:text-sm text-platinum/50 font-light max-w-md mx-auto tracking-wide">
-                    You don't need to search. Share your requirement, and our team will take care of the rest.
-                </p>
+            <!-- Page Title Section -->
+            <div class="border-b border-white/10 pb-6 flex flex-col md:flex-row md:items-end justify-between gap-4">
+                <div>
+                    <span class="text-[10px] uppercase tracking-[0.3em] text-gold font-medium block mb-2">Private Travel & Sanctuary</span>
+                    <h1 class="font-serif text-3xl sm:text-4xl text-white font-normal">Journeys & Coordinates</h1>
+                </div>
+                <span class="text-[10px] uppercase tracking-widest bg-gold/10 text-gold px-3 py-1.5 border border-gold/30">Global Secure Routing</span>
             </div>
 
-            <!-- Conversational Input Box -->
-            <div class="glass-panel p-4 sm:p-6 rounded-none glow-gold text-left space-y-4">
-                <form id="conciergeForm" onsubmit="handleDirectiveSubmit(event)" class="space-y-4">
-                    <div class="relative">
-                        <textarea id="queryInput" rows="4" required placeholder="e.g., Plan a private 5-day escape to Italy for two, or secure a table at a secluded coastal retreat..." class="w-full bg-obsidian/80 border border-white/10 p-4 text-sm text-platinum placeholder-platinum/30 focus:outline-none focus:border-gold transition-colors resize-none"></textarea>
-                    </div>
-
-                    <div class="flex flex-col sm:flex-row items-center justify-between gap-4 pt-2 border-t border-white/5">
-                        <div class="text-[11px] text-platinum/40 tracking-wider flex items-center space-x-2">
-                            <span class="w-1.5 h-1.5 rounded-full bg-gold"></span>
-                            <span>Desk Alpha &bull; Secure Encrypted Relay</span>
+            <!-- SECTION 1: Active Itineraries -->
+            <div class="space-y-6">
+                <h2 class="text-xs uppercase tracking-[0.2em] text-gold font-medium">Curated Active Itineraries</h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Journey Card 1 -->
+                    <div class="glass-panel p-6 sm:p-8 rounded-none border-l-2 border-gold space-y-4 glow-gold">
+                        <div class="flex items-center justify-between">
+                            <span class="text-[10px] uppercase tracking-widest bg-gold/10 text-gold px-2.5 py-0.5 border border-gold/30">Confirmed Itinerary</span>
+                            <span class="text-xs text-platinum/50 font-mono">5 Days &bull; Italy</span>
                         </div>
-                        <button type="submit" id="submitBtn" class="w-full sm:w-auto bg-gold text-obsidian text-xs tracking-[0.2em] uppercase px-8 py-3 font-medium hover:bg-gold-light transition-all flex items-center justify-center space-x-2">
-                            <span>Submit Directive</span>
-                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
-                        </button>
+                        <h3 class="font-serif text-xl text-white">Lake Como Estate & Private Riva Navigation</h3>
+                        <p class="text-xs text-platinum/60 leading-relaxed font-light">
+                            Private aviation transfer into Milan Malpensa, chauffeured Maybach S-Class conveyance to historic lakeside villa, and reserved after-hours watercraft access.
+                        </p>
+                        <div class="pt-4 border-t border-white/5 flex items-center justify-between text-xs">
+                            <span class="text-platinum/40">Status: Logistics Finalized</span>
+                            <a href="/concierge" class="text-gold uppercase tracking-widest hover:underline text-[10px]">Modify Directive &rarr;</a>
+                        </div>
                     </div>
-                </form>
 
-                <!-- Response Status View (Hidden by default) -->
-                <div id="responseContainer" class="hidden pt-4 border-t border-gold/20 space-y-3 animate-fade-in">
-                    <div class="flex items-center justify-between text-xs">
-                        <span id="resId" class="text-gold font-mono tracking-widest"></span>
-                        <span id="resStatus" class="text-emerald-400 uppercase tracking-widest text-[10px] bg-emerald-500/10 px-2 py-0.5 border border-emerald-500/30"></span>
+                    <!-- Journey Card 2 -->
+                    <div class="glass-panel p-6 sm:p-8 rounded-none border-l-2 border-white/20 space-y-4">
+                        <div class="flex items-center justify-between">
+                            <span class="text-[10px] uppercase tracking-widest bg-surface text-platinum/70 px-2.5 py-0.5 border border-white/10">In Curation</span>
+                            <span class="text-xs text-platinum/50 font-mono">3 Days &bull; France</span>
+                        </div>
+                        <h3 class="font-serif text-xl text-white">Parisian Private Culinary & Art Sanctuary</h3>
+                        <p class="text-xs text-platinum/60 leading-relaxed font-light">
+                            Boutique residence near Place Vendôme, private curator-led gallery access after hours, and customized Michelin-tier dining preparation.
+                        </p>
+                        <div class="pt-4 border-t border-white/5 flex items-center justify-between text-xs">
+                            <span class="text-platinum/40">Status: Reviewing Options</span>
+                            <a href="/concierge" class="text-gold uppercase tracking-widest hover:underline text-[10px]">View Details &rarr;</a>
+                        </div>
                     </div>
-                    <p id="resMessage" class="text-xs text-platinum/80 leading-relaxed font-light"></p>
-                    <div class="flex justify-end pt-2">
-                        <a href="/dashboard" class="text-[10px] uppercase tracking-widest text-gold hover:underline">View in Dashboard &rarr;</a>
+                </div>
+            </div>
+
+            <!-- SECTION 2: Interactive Destination Matrix (Replacing Google Maps with Clean Luxury UI) -->
+            <div class="space-y-6">
+                <div class="flex items-center justify-between">
+                    <h2 class="text-xs uppercase tracking-[0.2em] text-gold font-medium">Global Secure Destination Matrix</h2>
+                    <span class="text-[10px] text-platinum/40 uppercase tracking-widest">Select region for coordinate lock</span>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <button onclick="selectDestination('Lake Como, Italy', '45.9833° N, 9.2667° E', 'Private Villa & Lake Access')" class="glass-panel p-5 text-left rounded-none hover:border-gold transition-all group">
+                        <span class="text-[10px] uppercase tracking-widest text-gold block mb-1 font-mono">Europe &bull; 01</span>
+                        <h4 class="font-serif text-lg text-white group-hover:text-gold transition-colors">Lake Como, Italy</h4>
+                        <p class="text-[11px] text-platinum/50 mt-1">Coordinates: 45.98° N, 9.27° E</p>
+                    </button>
+
+                    <button onclick="selectDestination('Paris, France', '48.8566° N, 2.3522° E', 'Private Residence & Culture')" class="glass-panel p-5 text-left rounded-none hover:border-gold transition-all group">
+                        <span class="text-[10px] uppercase tracking-widest text-gold block mb-1 font-mono">Europe &bull; 02</span>
+                        <h4 class="font-serif text-lg text-white group-hover:text-gold transition-colors">Paris, France</h4>
+                        <p class="text-[11px] text-platinum/50 mt-1">Coordinates: 48.86° N, 2.35° E</p>
+                    </button>
+
+                    <button onclick="selectDestination('Miami, Florida', '25.7617° N, 80.1918° W', 'Coastal Estate & Yacht Dock')" class="glass-panel p-5 text-left rounded-none hover:border-gold transition-all group">
+                        <span class="text-[10px] uppercase tracking-widest text-gold block mb-1 font-mono">Americas &bull; 03</span>
+                        <h4 class="font-serif text-lg text-white group-hover:text-gold transition-colors">Miami, Florida</h4>
+                        <p class="text-[11px] text-platinum/50 mt-1">Coordinates: 25.76° N, 80.19° W</p>
+                    </button>
+                </div>
+
+                <!-- Destination Status Display -->
+                <div id="destinationDisplay" class="glass-panel p-6 rounded-none border border-gold/30 flex flex-col sm:flex-row items-center justify-between gap-4">
+                    <div>
+                        <span class="text-[10px] uppercase tracking-widest text-gold block mb-1">Active Coordinate Focus</span>
+                        <h3 id="selectedDestName" class="font-serif text-xl text-white">Lake Como, Italy</h3>
+                        <p id="selectedDestMeta" class="text-xs text-platinum/60 mt-0.5">Private Villa & Lake Access &bull; Secure Relay Connected</p>
                     </div>
+                    <div class="text-right">
+                        <span id="selectedDestCoords" class="text-xs font-mono text-gold bg-gold/10 px-3 py-1.5 border border-gold/30 block">45.9833° N, 9.2667° E</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECTION 3: Private Sanctuary (Assisted Breathing Circle) -->
+            <div class="glass-panel p-8 rounded-none glow-gold flex flex-col items-center text-center space-y-6">
+                <div class="space-y-2">
+                    <span class="text-[10px] uppercase tracking-[0.3em] text-gold font-medium block">Private Sanctuary</span>
+                    <h2 class="font-serif text-2xl text-white">Centered Composure</h2>
+                    <p class="text-xs text-platinum/50 max-w-md mx-auto font-light">
+                        Follow the rhythmic expansion and contraction to harmonize focus before your next journey.
+                    </p>
+                </div>
+
+                <!-- Well-Made Breathing Circle Container -->
+                <div class="relative w-48 h-48 flex items-center justify-center my-4">
+                    <!-- Outer pulsating ring -->
+                    <div class="absolute inset-0 rounded-full border-2 border-gold/40 breathing-ring pointer-events-none"></div>
+                    <!-- Inner core circle -->
+                    <div class="w-32 h-32 rounded-full bg-gradient-to-br from-gold/20 to-gold/5 border border-gold flex flex-col items-center justify-center shadow-lg">
+                        <span id="breathInstruction" class="text-xs uppercase tracking-widest text-white font-medium">Inhale</span>
+                        <span id="breathTimer" class="text-[10px] font-mono text-gold mt-1">4s</span>
+                    </div>
+                </div>
+
+                <div class="flex items-center space-x-4">
+                    <button onclick="toggleBreathing()" id="breathToggleBtn" class="bg-obsidian border border-gold/40 text-xs tracking-widest uppercase px-6 py-2.5 text-gold hover:border-gold transition-colors">Pause Sanctuary</button>
                 </div>
             </div>
 
         </div>
     </main>
 
-    <!-- Minimal Footer -->
+    <!-- Footer -->
     <footer class="w-full py-6 text-center text-[10px] tracking-widest text-platinum/30 uppercase border-t border-white/5">
         <p>&copy; 2026 Mirror To You. Private Account Only.</p>
     </footer>
 
     <script>
-        async function handleDirectiveSubmit(event) {
-            event.preventDefault();
+        // Destination Matrix Selector
+        function selectDestination(name, coords, meta) {
+            document.getElementById('selectedDestName').textContent = name;
+            document.getElementById('selectedDestCoords').textContent = coords;
+            document.getElementById('selectedDestMeta').textContent = meta + " • Secure Relay Connected";
+        }
+
+        // Breathing Circle Logic
+        let breathingActive = true;
+        let breathInterval;
+        
+        const instructions = ["Inhale", "Hold", "Exhale", "Hold"];
+        const timers = ["4s", "4s", "4s", "4s"];
+        let step = 0;
+
+        function startBreathingCycle() {
+            if (!breathingActive) return;
             
-            const query = document.getElementById('queryInput').value.trim();
-            const submitBtn = document.getElementById('submitBtn');
-            const responseContainer = document.getElementById('responseContainer');
+            const instrEl = document.getElementById('breathInstruction');
+            const timerEl = document.getElementById('breathTimer');
             
-            if (!query) return;
+            instrEl.textContent = instructions[step];
+            timerEl.textContent = timers[step];
+            
+            step = (step + 1) % instructions.length;
+        }
 
-            submitBtn.disabled = true;
-            submitBtn.textContent = "Securing Directive...";
+        // Run interval every 4 seconds for a natural cadence (4s inhale, 4s hold, 4s exhale, 4s hold)
+        breathInterval = setInterval(startBreathingCycle, 4000);
 
-            try {
-                const response = await fetch('/api/concierge/request', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        query: query,
-                        category: "Bespoke Directive"
-                    })
-                });
-
-                if (!response.ok) {
-                    throw new Error('Communication error with secure relay.');
-                }
-
-                const data = await response.json();
-
-                document.getElementById('resId').textContent = `Reference: ${data.request_id}`;
-                document.getElementById('resStatus').textContent = data.status;
-                document.getElementById('resMessage').textContent = data.message;
-                
-                responseContainer.classList.remove('hidden');
-                document.getElementById('queryInput').value = '';
-
-            } catch (error) {
-                alert('Unable to transmit directive at this moment. Please verify your secure session.');
-            } finally {
-                submitBtn.disabled = false;
-                submitBtn.innerHTML = `<span>Submit Directive</span><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>`;
+        function toggleBreathing() {
+            breathingActive = !breathingActive;
+            const btn = document.getElementById('breathToggleBtn');
+            const ring = document.querySelector('.breathing-ring');
+            
+            if (!breathingActive) {
+                clearInterval(breathInterval);
+                btn.textContent = "Resume Sanctuary";
+                btn.classList.replace('text-gold', 'text-platinum/50');
+                ring.style.animationPlayState = 'paused';
+            } else {
+                breathInterval = setInterval(startBreathingCycle, 4000);
+                btn.textContent = "Pause Sanctuary";
+                btn.classList.replace('text-platinum/50', 'text-gold');
+                ring.style.animationPlayState = 'running';
             }
         }
     </script>
