@@ -4,7 +4,6 @@ let currentLanguage = "es";
 let currentResult = null;
 let recognition = null;
 let listening = false;
-let speaking = false;
 
 let breathingTimer = null;
 let breathingSeconds = 240;
@@ -15,70 +14,51 @@ const $ = id => document.getElementById(id);
 function applyInitialState(lang) {
     currentLanguage = lang;
     if (lang === "es") {
-        $("messageInput").placeholder = "Validar o consultar requerimiento alternativo...";
+        $("messageInput").placeholder = "Romper monotonía, consultar o validar comando...";
         $("closeMemory").textContent = "← Volver";
-        $("memoryTitle").textContent = "Ecosistema Confidencial";
-        $("clearMemoryButton").textContent = "Purgar Contexto Local";
-        $("breathingControlBtn").textContent = "Iniciar Reset";
+        $("memoryTitle").textContent = "Ecosistema Encriptado";
+        $("clearMemoryButton").textContent = "Purgar Memoria Local";
+        $("breathingControlBtn").textContent = "Iniciar Calibración";
     } else {
-        $("messageInput").placeholder = "Validate or query alternative requirement...";
+        $("messageInput").placeholder = "Break monotony, query or validate command...";
         $("closeMemory").textContent = "← Back";
-        $("memoryTitle").textContent = "Confidential Ecosystem";
+        $("memoryTitle").textContent = "Encrypted Ecosystem";
         $("clearMemoryButton").textContent = "Purge Local Context";
-        $("breathingControlBtn").textContent = "Begin Reset";
+        $("breathingControlBtn").textContent = "Begin Calibration";
     }
 }
 
-/**
- * MODO 1: Ejecución de Estado Absoluto por un Solo Toque (Primario)
- */
 async function executeState(stateType) {
-    // Desactivar activaciones visuales anteriores
     document.querySelectorAll(".state-card").forEach(c => c.classList.remove("active"));
-    
-    let commandText = "";
+    let cmd = "";
     if (stateType === "HIGH_PRESSURE") {
         $("btnStatePressure").classList.add("active");
-        commandText = currentLanguage === "es" ? "ACTIVAR ESTADO ALTA PRESION MENTAL" : "ACTIVATE HIGH BUSINESS PRESSURE STATE";
+        cmd = currentLanguage === "es" ? "EJECUCION DIRECTA ALTA PRESION CORPORATIVA" : "DIRECT EXECUTION HIGH BUSINESS PRESSURE";
     } else if (stateType === "TRANSITION") {
         $("btnStateTransition").classList.add("active");
-        commandText = currentLanguage === "es" ? "ACTIVAR TRANSICION FAMILIAR DESCONEXION" : "ACTIVATE FAMILY TRANSITION DISCONNECT STATE";
+        cmd = currentLanguage === "es" ? "ACTIVAR TRANSICION FUERA DEL RADAR MODO FAMILIA" : "ACTIVATE FAMILY MODE OFF THE RADAR TRANSITION";
     } else if (stateType === "DISCONNECT") {
         $("btnStateDisconnect").classList.add("active");
-        commandText = currentLanguage === "es" ? "ACTIVAR PRIVACIDAD ABSOLUTA FUERA DEL RADAR" : "ACTIVATE OFF THE RADAR ABSOLUTE PRIVACY STATE";
+        cmd = currentLanguage === "es" ? "MATAR ABURRIMIENTO OCIO EXPERIENCIA DE SORPRESA EXCLUSIVA" : "KILL BOREDOM OCCUPATION EXCLUSIVE SURPRISE EXPERIENCE";
     }
-    
-    await requestEcosystemAPI(commandText);
+    await requestEcosystemAPI(cmd);
 }
 
-/**
- * MODO 2: Interfaz de Validación Conversacional de Respaldo (Secundario)
- */
 async function askMirror() {
     const input = $("messageInput");
     const text = input.value.trim();
     if (!text) return;
     input.value = "";
-    input.style.height = "auto";
     await requestEcosystemAPI(text);
 }
 
-/**
- * Canal de Comunicación Unificado con el Backend Dual (Gemini / OpenAI Fallback)
- */
 async function requestEcosystemAPI(payloadText) {
     try {
         const response = await fetch("/api/mirror", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                message: payloadText,
-                language: currentLanguage,
-                device_id: localStorage.getItem("mirror_device_id") || "secure_vip_terminal",
-                memory: memory
-            })
+            body: JSON.stringify({ message: payloadText, language: currentLanguage, memory: memory })
         });
-        
         const data = await response.json();
         if (data.ok) {
             memory = data.memory;
@@ -88,15 +68,15 @@ async function requestEcosystemAPI(payloadText) {
             renderEcosystem(data);
         }
     } catch (e) {
-        console.error("Anomaly updating dynamic console parameters.");
+        console.error("Critical interface synchronization anomaly.");
     }
 }
 
 function renderEcosystem(data) {
     const plan = data.plan;
     
-    $("statusBadge").textContent = currentLanguage === "es" ? "EJECUCIÓN EN VIVO" : "LIVE EXECUTION";
-    $("planTitle").textContent = plan.title || "CONSOLA DE MANDO";
+    $("statusBadge").textContent = currentLanguage === "es" ? "EJECUCIÓN INMEDIATA" : "IMMEDIATE EXECUTION";
+    $("planTitle").textContent = plan.title || "KERNEL CONFIGURATION";
     $("planReply").textContent = plan.reply;
     
     const dirBox = $("directions");
@@ -112,7 +92,7 @@ function renderEcosystem(data) {
     
     $("planArea").classList.remove("hidden");
 
-    // Despliegue del Círculo Clínico de Respiración Variable (Pool de 100+ de la IA)
+    // Inyección e inicialización automática del círculo respiratorio dinámico (Pool 100+)
     const breath = plan.breathing_exercise;
     if (breath && breath.active) {
         clearInterval(breathingTimer);
@@ -121,14 +101,13 @@ function renderEcosystem(data) {
         
         $("breathingPhase").textContent = breath.objective.toUpperCase();
         $("breathingInstruction").textContent = breath.instruction;
-        $("breathingControlBtn").textContent = currentLanguage === "es" ? "Iniciar" : "Begin";
         $("breathingTimer").textContent = formatTime(breathingSeconds);
         $("breathingArea").classList.remove("hidden");
     } else {
         $("breathingArea").classList.add("hidden");
     }
 
-    // Configuración Automática de Botones Premium con Consultas Exactas de la IA
+    // Vinculación directa de las URLs exclusivas calculadas por la IA
     $("mapsButton").classList.toggle("hidden", !plan.premium_destination_query);
     $("mapsButton").textContent = currentLanguage === "es" ? "✨ Dirección Destino" : "✨ Target Destination";
     
@@ -136,10 +115,15 @@ function renderEcosystem(data) {
     $("musicButton").textContent = currentLanguage === "es" ? "🎵 Entorno Acústico" : "🎵 Acoustic Environment";
 
     $("conciergeButton").classList.remove("hidden");
-    $("conciergeButton").textContent = currentLanguage === "es" ? "✦ Notificar Staff" : "✦ Notify Staff";
+    $("conciergeButton").textContent = currentLanguage === "es" ? "✦ Solicitar Conserje" : "✦ Request Concierge";
 
-    if (plan.reply && !speaking) {
-        speakHighFidelity(plan.reply);
+    if (plan.reply) {
+        if ("speechSynthesis" in window) {
+            window.speechSynthesis.cancel();
+            const utter = new SpeechSynthesisUtterance(plan.reply);
+            utter.lang = currentLanguage === "es" ? "es-US" : "en-US";
+            window.speechSynthesis.speak(utter);
+        }
     }
 }
 
@@ -201,30 +185,6 @@ async function playPremiumMusic() {
     if (data.url) window.open(data.url, "_blank", "noopener,noreferrer");
 }
 
-function speakHighFidelity(text) {
-    if (!("speechSynthesis" in window)) return;
-    window.speechSynthesis.cancel();
-    const utter = new SpeechSynthesisUtterance(text);
-    utter.lang = currentLanguage === "es" ? "es-US" : "en-US";
-    utter.rate = 1.0;
-    window.speechSynthesis.speak(utter);
-}
-
-function toggleVoiceRecognition() {
-    if (!recognition) {
-        const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-        if (!SR) return;
-        recognition = new SR();
-        recognition.continuous = false;
-        recognition.interimResults = false;
-        recognition.lang = currentLanguage === "es" ? "es-US" : "en-US";
-        recognition.onstart = () => { listening = true; $("voiceButton").classList.add("active-mic"); };
-        recognition.onresult = (e) => { $("messageInput").value = e.results[0][0].transcript; askMirror(); };
-        recognition.onend = () => { listening = false; $("voiceButton").classList.remove("active-mic"); };
-    }
-    if (listening) recognition.stop(); else recognition.start();
-}
-
 function formatTime(seconds) {
     const m = Math.floor(seconds / 60);
     const s = seconds % 60;
@@ -232,13 +192,22 @@ function formatTime(seconds) {
 }
 
 function init() {
-    if (!localStorage.getItem("mirror_device_id")) {
-        localStorage.setItem("mirror_device_id", "vip_" + Math.random().toString(36).substring(2, 15));
-    }
     applyInitialState("es");
     $("langToggle").onclick = () => applyInitialState(currentLanguage === "en" ? "es" : "en");
     $("sendButton").onclick = askMirror;
-    $("voiceButton").onclick = toggleVoiceRecognition;
+    $("voiceButton").onclick = () => {
+        const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (!SR) return;
+        if (listening) { recognition.stop(); listening = false; $("voiceButton").classList.remove("active-mic"); }
+        else {
+            recognition = new SR(); recognition.continuous = false; recognition.interimResults = false;
+            recognition.lang = currentLanguage === "es" ? "es-US" : "en-US";
+            recognition.onstart = () => { listening = true; $("voiceButton").classList.add("active-mic"); };
+            recognition.onresult = (e) => { $("messageInput").value = e.results[0][0].transcript; askMirror(); };
+            recognition.onend = () => { listening = false; $("voiceButton").classList.remove("active-mic"); };
+            recognition.start();
+        }
+    };
     $("breathingControlBtn").onclick = toggleBreathing;
     $("mapsButton").onclick = openPremiumMap;
     $("musicButton").onclick = playPremiumMusic;
