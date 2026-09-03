@@ -1,236 +1,91 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#0b0d12">
-<meta name="description" content="MIRROR TO YOU — The Private Life Concierge">
-<title>MIRROR TO YOU</title>
-<link rel="stylesheet" href="/static/style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#05070a">
+    <title>MIRROR</title>
+    <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
-<div id="app">
+    <div id="app">
+        <!-- Control bilingüe instantáneo y acceso a memoria sin fricción -->
+        <header class="luxury-header">
+            <div class="mirror-logo" onclick="window.location.reload()">
+                <span class="logo-orb"></span>
+                <span class="logo-text">MIRROR</span>
+            </div>
+            <div class="header-controls">
+                <button id="langToggle" class="text-btn" type="button">EN / ES</button>
+                <button id="memoryButton" class="icon-btn" type="button" aria-label="Context">◌</button>
+            </div>
+        </header>
 
-<header class="topbar">
-  <div class="brand">
-    <span class="brand-mark">M</span>
-    <div>
-      <div class="brand-name">MIRROR</div>
-      <div class="brand-sub">TO YOU</div>
-    </div>
-  </div>
-  <button id="memoryButton" class="icon-button" type="button" aria-label="Memory">◌</button>
-</header>
+        <main class="luxury-main">
+            <!-- PANTALLA PRINCIPAL: Enfocada, limpia, directa -->
+            <section id="mainDeck" class="deck active">
+                <div class="hero-section">
+                    <h1 id="heroTitle">Streamlined Execution.</h1>
+                    <p id="heroSub">Your private ecosystem. Speak or input your requirements below.</p>
+                </div>
 
-<main>
+                <!-- Objetivos Dinámicos del Cliente (Aparece fluidamente) -->
+                <div id="planArea" class="plan-panel hidden">
+                    <div class="panel-header">
+                        <span class="status-badge">LIVE DIRECTION</span>
+                        <h2 id="planTitle">Autonomous Coordination</h2>
+                    </div>
+                    <p id="planReply" class="premium-reply"></p>
+                    <div id="directions" class="premium-directions"></div>
+                    
+                    <div id="planActions" class="action-grid">
+                        <button id="mapsButton" class="luxury-action-btn" type="button">✨ Exclusive Maps</button>
+                        <button id="musicButton" class="luxury-action-btn" type="button">🎵 Acoustic Space</button>
+                        <button id="conciergeButton" class="luxury-action-btn primary-gold" type="button">✦ Request Concierge</button>
+                    </div>
+                </div>
 
-<section id="welcome" class="screen active">
-  <div class="welcome-content">
-    <div class="welcome-mark" aria-hidden="true">
-      <span></span>
-    </div>
-    <p class="eyebrow">PRIVATE LIFE CONCIERGE</p>
-    <h1>What can I take care of for you?</h1>
-    <p class="welcome-text">
-      Tell me what you need. You can write it or simply speak.
-    </p>
-    <button id="startButton" class="primary-button" type="button">Begin</button>
-  </div>
-</section>
+                <!-- Círculo Respiratorio Profesional Integrado y Variable (No intrusivo) -->
+                <div id="breathingArea" class="breathing-panel hidden">
+                    <div class="orb-container">
+                        <div id="breathingOrb" class="professional-orb">
+                            <div class="orb-inner">
+                                <span id="breathingPhase">READY</span>
+                                <strong id="breathingTimer">04:00</strong>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="orb-meta">
+                        <p id="breathingInstruction">Tap to sync your rhythm.</p>
+                        <button id="breathingControlBtn" class="control-pill" type="button">Begin</button>
+                    </div>
+                </div>
+            </section>
 
-<section id="conversation" class="screen">
-  <div class="conversation-wrap">
+            <!-- PANTALLA DE MEMORIA Y PREFERENCIAS -->
+            <section id="memoryScreen" class="deck">
+                <div class="deck-header">
+                    <button id="closeMemory" class="close-btn" type="button">← Back</button>
+                    <h2>System Memory & Ecosystem</h2>
+                </div>
+                <div id="memorySummary" class="memory-grid"></div>
+                <div class="memory-footer">
+                    <button id="clearMemoryButton" class="danger-pill" type="button">Purge Local Context</button>
+                </div>
+            </section>
+        </main>
 
-    <div id="conversationMessages" class="conversation-messages" aria-live="polite"></div>
-
-    <div id="thinking" class="thinking hidden" aria-live="polite">
-      <span></span><span></span><span></span>
-    </div>
-
-    <div id="planArea" class="plan-area hidden">
-
-      <div class="mirror-heading">
-        <p class="eyebrow">MIRROR</p>
-        <h2 id="planTitle">Let MIRROR take care of it</h2>
-      </div>
-
-      <p id="planReply" class="plan-reply"></p>
-
-      <div id="directions" class="directions"></div>
-
-      <div id="questionArea" class="question-area hidden">
-        <p id="mirrorQuestion"></p>
-      </div>
-
-      <div id="planActions" class="plan-actions hidden">
-        <button id="mapsButton" class="secondary-button hidden" type="button">
-          Open Maps
-        </button>
-        <button id="musicButton" class="secondary-button hidden" type="button">
-          Play Music
-        </button>
-        <button id="conciergeButton" class="primary-button hidden" type="button">
-          Let MIRROR Handle It
-        </button>
-      </div>
-
-    </div>
-
-    <div id="breathingArea" class="breathing-area hidden">
-      <div class="breathing-top">
-        <p class="eyebrow">A MOMENT FOR YOU</p>
-        <button id="closeBreathing" class="small-button" type="button">Close</button>
-      </div>
-
-      <div class="breathing-stage">
-        <div id="breathingOrb" class="breathing-orb">
-          <div class="breathing-core">
-            <span id="breathingPhase">READY</span>
-            <strong id="breathingTimer">10:00</strong>
-          </div>
-        </div>
-      </div>
-
-      <p id="breathingInstruction" class="breathing-instruction">
-        When you're ready, begin.
-      </p>
-
-      <div class="breathing-controls">
-        <button id="breathingStart" class="primary-button" type="button">
-          Begin
-        </button>
-        <button id="breathingStop" class="secondary-button hidden" type="button">
-          Pause
-        </button>
-      </div>
+        <!-- COMPOSER BAR: La única barra permanente para control fluido por voz o texto -->
+        <footer class="luxury-footer">
+            <div class="composer-container">
+                <button id="voiceButton" class="action-trigger mic-trigger" type="button" aria-label="Voice Command">●</button>
+                <textarea id="messageInput" rows="1" placeholder="Command your rhythm..." aria-label="Context entry"></textarea>
+                <button id="sendButton" class="action-trigger send-trigger" type="button" aria-label="Execute">↑</button>
+            </div>
+            <div id="voiceStatus" class="voice-status-bar hidden"></div>
+        </footer>
     </div>
 
-    <div class="composer">
-
-      <button id="voiceButton" class="round-button" type="button" aria-label="Speak">
-        <span class="mic-icon">●</span>
-      </button>
-
-      <textarea
-        id="messageInput"
-        rows="1"
-        maxlength="2000"
-        autocomplete="off"
-        spellcheck="true"
-        placeholder="Tell MIRROR what you need..."
-        aria-label="Tell MIRROR what you need"
-      ></textarea>
-
-      <button id="sendButton" class="round-button send-button" type="button" aria-label="Send">
-        ↑
-      </button>
-
-    </div>
-
-    <div id="voiceStatus" class="voice-status hidden" aria-live="polite"></div>
-
-  </div>
-</section>
-
-<section id="memoryScreen" class="screen">
-  <div class="memory-wrap">
-
-    <div class="section-header">
-      <button id="closeMemory" class="small-button" type="button">Close</button>
-      <p class="eyebrow">YOUR MIRROR</p>
-      <h2>What MIRROR knows</h2>
-      <p>
-        Your personal context stays on this device unless you choose to share
-        something during a conversation.
-      </p>
-    </div>
-
-    <div id="memorySummary" class="memory-summary">
-      <div class="memory-empty">
-        MIRROR is still getting to know your rhythm.
-      </div>
-    </div>
-
-    <div class="memory-actions">
-      <button id="recoveryButton" class="primary-button" type="button">
-        Reconnect My Context
-      </button>
-      <button id="backupButton" class="secondary-button" type="button">
-        Export Memory
-      </button>
-      <button id="clearMemoryButton" class="danger-button" type="button">
-        Clear Local Memory
-      </button>
-    </div>
-
-  </div>
-</section>
-
-</main>
-
-<div id="recoveryModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="recoveryTitle">
-  <div class="modal-card">
-
-    <button id="closeRecovery" class="modal-close" type="button" aria-label="Close">
-      ×
-    </button>
-
-    <p class="eyebrow">WELCOME BACK</p>
-    <h2 id="recoveryTitle">Let's reconnect.</h2>
-    <p class="modal-intro">
-      A few answers can help MIRROR understand your preferences again.
-    </p>
-
-    <div class="recovery-form">
-
-      <label>
-        <span>What should MIRROR call you?</span>
-        <input id="recoveryName" type="text" maxlength="80" autocomplete="off">
-      </label>
-
-      <label>
-        <span>What matters most to you right now?</span>
-        <input id="recoveryPriority" type="text" maxlength="160" autocomplete="off">
-      </label>
-
-      <label>
-        <span>What kind of atmosphere do you prefer?</span>
-        <input id="recoveryAtmosphere" type="text" maxlength="160" autocomplete="off">
-      </label>
-
-      <label>
-        <span>Anything MIRROR should avoid?</span>
-        <input id="recoveryAvoid" type="text" maxlength="160" autocomplete="off">
-      </label>
-
-    </div>
-
-    <button id="saveRecovery" class="primary-button full-button" type="button">
-      Save
-    </button>
-
-    <p id="recoveryStatus" class="form-status" aria-live="polite"></p>
-
-  </div>
-</div>
-
-<div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
-
-<div id="confirmModal" class="modal hidden" role="dialog" aria-modal="true">
-  <div class="modal-card compact-card">
-    <button id="closeConfirm" class="modal-close" type="button" aria-label="Close">×</button>
-    <p class="eyebrow">CONFIRM</p>
-    <h2 id="confirmTitle">Are you sure?</h2>
-    <p id="confirmText"></p>
-    <div class="confirm-actions">
-      <button id="confirmCancel" class="secondary-button" type="button">Cancel</button>
-      <button id="confirmProceed" class="primary-button" type="button">Continue</button>
-    </div>
-  </div>
-</div>
-
-</div>
-
-<script src="/static/app.js" defer></script>
+    <script src="/static/app.js" defer></script>
 </body>
 </html>
