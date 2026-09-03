@@ -1,16 +1,16 @@
-static/index.html
+<!-- static/index.html -->
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="theme-color" content="#05070a">
-    <title>MIRROR</title>
+    <title>MIRROR TO YOU</title>
     <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
     <div id="app">
-        <!-- Barra superior ultra-limpia sin textos corporativos explicativos -->
+        <!-- Encabezado Discreto -->
         <header class="luxury-header">
             <div class="mirror-logo" onclick="window.location.reload()">
                 <span class="logo-orb"></span>
@@ -18,23 +18,44 @@ static/index.html
             </div>
             <div class="header-controls">
                 <button id="langToggle" class="text-btn" type="button">EN / ES</button>
-                <button id="memoryButton" class="icon-btn" type="button" aria-label="Context">◌</button>
+                <button id="memoryButton" class="icon-btn" type="button" aria-label="Ecosystem">◌</button>
             </div>
         </header>
 
         <main class="luxury-main">
-            <!-- PANTALLA PRINCIPAL: Consola de control directa y fluida -->
             <section id="mainDeck" class="deck active">
-                <div class="hero-section">
-                    <h1 id="heroTitle"></h1>
-                    <p id="heroSub"></p>
+                
+                <!-- 1. INTERFAZ PRINCIPAL: Control de Estado de Un Solo Toque -->
+                <div class="section-label">ESTADO DE EJECUCIÓN</div>
+                <div class="state-grid">
+                    <button class="state-card" id="btnStatePressure" onclick="executeState('HIGH_PRESSURE')">
+                        <span class="state-icon">🏢</span>
+                        <div class="state-meta">
+                            <h3>Alta Presión</h3>
+                            <p>Enfoque de Negocios</p>
+                        </div>
+                    </button>
+                    <button class="state-card" id="btnStateTransition" onclick="executeState('TRANSITION')">
+                        <span class="state-icon">🚗</span>
+                        <div class="state-meta">
+                            <h3>Transición</h3>
+                            <p>Modo Familiar</p>
+                        </div>
+                    </button>
+                    <button class="state-card" id="btnStateDisconnect" onclick="executeState('DISCONNECT')">
+                        <span class="state-icon">🌲</span>
+                        <div class="state-meta">
+                            <h3>Desconexión</h3>
+                            <p>Privacidad Total</p>
+                        </div>
+                    </button>
                 </div>
 
-                <!-- Panel de Objetivos Dinámicos: La IA controla y escribe todo aquí -->
+                <!-- PANEL DINÁMICO: Inyectado por el 90% de la responsabilidad de la IA -->
                 <div id="planArea" class="plan-panel hidden">
                     <div class="panel-header">
-                        <span id="statusBadge" class="status-badge"></span>
-                        <h2 id="planTitle"></h2>
+                        <span id="statusBadge" class="status-badge">LIVE EXECUTION</span>
+                        <h2 id="planTitle">Consola Activa</h2>
                     </div>
                     <p id="planReply" class="premium-reply"></p>
                     <div id="directions" class="premium-directions"></div>
@@ -46,47 +67,46 @@ static/index.html
                     </div>
                 </div>
 
-                <!-- Círculo Respiratorio Profesional: Sin textos fijos, los objetivos cambian dinámicamente -->
+                <!-- CÍRCULO RESPIRATORIO PROFESIONAL CLINICO (Pool de 100+ Ejercicios de la IA) -->
                 <div id="breathingArea" class="breathing-panel hidden">
                     <div class="orb-container">
                         <div id="breathingOrb" class="professional-orb">
                             <div class="orb-inner">
-                                <span id="breathingPhase"></span>
+                                <span id="breathingPhase">READY</span>
                                 <strong id="breathingTimer">04:00</strong>
                             </div>
                         </div>
                     </div>
                     <div class="orb-meta">
                         <p id="breathingInstruction"></p>
-                        <button id="breathingControlBtn" class="control-pill" type="button"></button>
+                        <button id="breathingControlBtn" class="control-pill" type="button">Iniciar</button>
                     </div>
                 </div>
             </section>
 
-            <!-- PANTALLA DE CONTEXTO SEGURO Y PREFERENCIAS -->
+            <!-- PANTALLA SECUNDARIA DE CONTEXTO -->
             <section id="memoryScreen" class="deck">
                 <div class="deck-header">
-                    <button id="closeMemory" class="close-btn" type="button"></button>
-                    <h2 id="memoryTitle"></h2>
+                    <button id="closeMemory" class="close-btn" type="button">← Volver</button>
+                    <h2 id="memoryTitle">Ecosistema Confidencial</h2>
                 </div>
                 <div id="memorySummary" class="memory-grid"></div>
                 <div class="memory-footer">
-                    <button id="clearMemoryButton" class="danger-pill" type="button"></button>
+                    <button id="clearMemoryButton" class="danger-pill" type="button">Purga de Memoria Local</button>
                 </div>
             </section>
         </main>
 
-        <!-- BARRA DE COMANDO PERMANENTE: Control absoluto por voz o escritura -->
+        <!-- 2. INTERFAZ SECUNDARIA: Sistema de Respaldo, Chat y Validación por Voz -->
         <footer class="luxury-footer">
             <div class="composer-container">
-                <button id="voiceButton" class="action-trigger mic-trigger" type="button" aria-label="Voice Command">●</button>
-                <textarea id="messageInput" rows="1" aria-label="Context entry"></textarea>
-                <button id="sendButton" class="action-trigger send-trigger" type="button" aria-label="Execute">↑</button>
+                <button id="voiceButton" class="action-trigger mic-trigger" type="button" aria-label="Comando de Voz">●</button>
+                <textarea id="messageInput" rows="1" placeholder="Validar o consultar requerimiento alternativo..."></textarea>
+                <button id="sendButton" class="action-trigger send-trigger" type="button" aria-label="Ejecutar">↑</button>
             </div>
             <div id="voiceStatus" class="voice-status-bar hidden"></div>
         </footer>
     </div>
-
     <script src="/static/app.js" defer></script>
 </body>
 </html>
