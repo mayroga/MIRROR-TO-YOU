@@ -1,3 +1,4 @@
+# main.py
 import os
 import uuid
 import urllib.parse
@@ -7,17 +8,15 @@ from fastapi import FastAPI, HTTPException
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
-from mirror_engine import process, response_text
+from mirror_engine import process
 
 BASE = Path(__file__).resolve().parent
 STATIC = BASE / "static"
 
-app = FastAPI(title="MIRROR TO YOU", version="3.0")
+app = FastAPI(title="MIRROR TO YOU", version="4.0")
 
 if STATIC.exists():
-    app.mount("/static", StaticFiles(directory=str(STATIC)),name="static")
-
-MISSIONS = {}
+    app.mount("/static", StaticFiles(directory=str(STATIC)), name="static")
 
 class Memory(BaseModel):
     core: dict = Field(default_factory=dict)
@@ -29,7 +28,7 @@ class Memory(BaseModel):
 
 class MirrorRequest(BaseModel):
     message: str = ""
-    language: str = "en"
+    language: str = "es"
     device_id: str = ""
     memory: Memory = Field(default_factory=Memory)
 
@@ -47,32 +46,43 @@ async def mirror(data: MirrorRequest):
         return JSONResponse({"ok": False, "error": "Empty contextual message."}, status_code=400)
 
     memory_dict = data.memory.model_dump()
-    result = process(message, memory_dict)
     
-    # Guardar historial para medir reentradas y fijar objetivos dinámicos
+    # Procesar la instrucción delegando el control lógico absoluto a la IA
+    ai_plan = process(message, memory_dict)
+    
+    # Sincronización limpia de historial y reentradas en base al mapeo directo de la IA
     memory_dict["history"].append({
         "at": datetime.now().isoformat(),
-        "intent": result["understanding"]["intent"]
+        "intent": ai_plan.get("intent", "CONCIERGE")
     })
-    memory_dict["moment"] = result["understanding"]
+    
+    memory_dict["moment"] = {
+        "intent": ai_plan.get("intent"),
+        "language": ai_plan.get("language"),
+        "destination": ai_plan.get("premium_destination_query")
+    }
 
     mission_id = "premium_" + uuid.uuid4().hex[:12]
+    
     return {
         "ok": True,
-        "message": result["proposal"]["reply"],
-        "understanding": result["understanding"],
-        "plan": result["proposal"],
-        "mission": {"id": mission_id, "status": result["status"]},
+        "message": ai_plan.get("reply"),
+        "understanding": memory_dict["moment"],
+        "plan": ai_plan,
+        "mission": {"id": mission_id, "status": ai_plan.get("intent")},
         "memory": memory_dict
     }
 
 @app.get("/api/maps")
 async def maps(destination: str = ""):
-    # Redirección directa hacia la experiencia o coordenadas premium filtradas
-    q = urllib.parse.quote(destination.strip() or "Luxury Elite Experiences")
+    # Ruta de geolocalización premium exacta e integrada a la API de mapas
+    target = destination.strip() or "Luxury Elite Hub Private Lounge"
+    q = urllib.parse.quote(target)
     return {"ok": True, "url": f"https://google.com{q}"}
 
 @app.get("/api/music")
 async def music(query: str = ""):
-    q = urllib.parse.quote(query.strip() or "Premium Private Lounge Ambient")
+    # Canal de audio premium exacto e integrado a las listas acústicas
+    target = query.strip() or "Premium Private Lounge Ambient"
+    q = urllib.parse.quote(target)
     return {"ok": True, "url": f"https://youtube.com{q}"}
