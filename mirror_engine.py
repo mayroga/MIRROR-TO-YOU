@@ -1,9 +1,9 @@
 import os
-import re
 import json
-import uuid
+import re
+import random
 import urllib.request
-import urllib.error
+import urllib.parse
 from datetime import datetime, timezone
 
 OPENAI_API_KEY=os.getenv("OPENAI_API_KEY","").strip()
@@ -12,914 +12,1697 @@ OPENAI_MODEL=os.getenv("OPENAI_MODEL","gpt-5-mini").strip()
 GEMINI_MODEL=os.getenv("GEMINI_MODEL","gemini-2.5-flash").strip()
 
 try:
-AI_TIMEOUT=float(os.getenv("MIRROR_AI_TIMEOUT","35"))
-except:
-AI_TIMEOUT=35.0
+    AI_TIMEOUT=float(os.getenv("MIRROR_AI_TIMEOUT","35"))
+except (TypeError,ValueError):
+    AI_TIMEOUT=35.0
 
-MAX_HISTORY=100
-MAX_DAILY_HISTORY=120
-MAX_TEXT=6000
+SYSTEM_MEMORY_RULES=[
+    "daily_priority",
+    "today_first",
+    "avoid_same_day_repetition",
+    "adapt_when_similar",
+    "respect_explicit_request",
+    "learn_from_feedback",
+    "never_claim_unconfirmed_execution",
+    "ai_invisible_to_client",
+    "use_memory_before_decision",
+    "breathing_available_when_context_supports_it"
+]
 
 BREATHING_PATTERNS=[
-{"id":"breath_01","pattern":"4-4","inhale":4,"hold":0,"exhale":4,"pause":0,"style":"steady"},
-{"id":"breath_02","pattern":"4-6","inhale":4,"hold":0,"exhale":6,"pause":0,"style":"calming"},
-{"id":"breath_03","pattern":"3-5","inhale":3,"hold":0,"exhale":5,"pause":0,"style":"gentle"},
-{"id":"breath_04","pattern":"4-2-6","inhale":4,"hold":2,"exhale":6,"pause":0,"style":"slow"},
-{"id":"breath_05","pattern":"4-4-6","inhale":4,"hold":4,"exhale":6,"pause":0,"style":"grounding"},
-{"id":"breath_06","pattern":"5-5","inhale":5,"hold":0,"exhale":5,"pause":0,"style":"balanced"},
-{"id":"breath_07","pattern":"3-3-6","inhale":3,"hold":3,"exhale":6,"pause":0,"style":"release"},
-{"id":"breath_08","pattern":"4-7","inhale":4,"hold":0,"exhale":7,"pause":0,"style":"quiet"},
-{"id":"breath_09","pattern":"5-7","inhale":5,"hold":0,"exhale":7,"pause":0,"style":"deep"},
-{"id":"breath_10","pattern":"4-1-5","inhale":4,"hold":1,"exhale":5,"pause":0,"style":"reset"}
+    {"id":"breath_01","name":"Calma suave","inhale":4,"hold":0,"exhale":4,"pause":0},
+    {"id":"breath_02","name":"Exhalación larga","inhale":4,"hold":0,"exhale":6,"pause":0},
+    {"id":"breath_03","name":"Ritmo ligero","inhale":3,"hold":0,"exhale":5,"pause":0},
+    {"id":"breath_04","name":"Soltar tensión","inhale":4,"hold":2,"exhale":6,"pause":0},
+    {"id":"breath_05","name":"Equilibrio","inhale":4,"hold":4,"exhale":6,"pause":0},
+    {"id":"breath_06","name":"Respiración estable","inhale":5,"hold":0,"exhale":5,"pause":0},
+    {"id":"breath_07","name":"Descarga","inhale":3,"hold":3,"exhale":6,"pause":0},
+    {"id":"breath_08","name":"Preparación tranquila","inhale":4,"hold":7,"exhale":4,"pause":0},
+    {"id":"breath_09","name":"Recuperación","inhale":5,"hold":0,"exhale":7,"pause":0},
+    {"id":"breath_10","name":"Espacio","inhale":4,"hold":1,"exhale":5,"pause":0}
 ]
 
 BREATHING_NEEDS=[
-"calm","slow_down","release_tension","regain_focus","prepare_for_sleep",
-"wake_gently","recover_energy","create_space","ground_attention",
-"prepare_for_travel","wait_patiently","transition","clear_mind",
-"change_mood","feel_present","reduce_overwhelm","pause","reset",
-"quiet_moment","restore_balance","recover_after_stress","prepare_for_meeting",
-"prepare_for_social_moment","prepare_for_rest","recover_from_rush",
-"reconnect_with_self","create_confidence","soften_the_day","start_again",
-"finish_the_day","enjoy_the_moment","settle_before_decision",
-"recover_after_disappointment","prepare_for_change","reduce_restlessness",
-"create_focus","slow_thoughts","feel_centered","find_rhythm",
-"private_pause","personal_reset","emotional_space","gentle_recovery",
-"mental_refresh","body_awareness","attention_shift","comfort",
-"anticipation","uncertainty","frustration","impatience","loneliness",
-"social_fatigue","travel_fatigue","jet_lag_adjustment","busy_day",
-"quiet_start","quiet_finish","creative_space","decision_space",
-"confidence_before_action","recovery_between_tasks","recovery_between_places",
-"return_to_present","enjoyment","gratitude","curiosity","motivation",
-"patience","clarity","composure","lightness","relaxation",
-"reconnection","self_attention","personal_time","digital_pause",
-"sensory_reset","mental_distance","fresh_start","slow_evening",
-"gentle_morning","private_reflection","anticipatory_calm","focus_transition",
-"rest_transition","travel_transition","social_transition","work_free_reset",
-"personal_ritual","micro_pause","longer_pause","moment_of_choice",
-"moment_of_uncertainty","moment_of_change","moment_of_recovery",
-"moment_of_presence","moment_of_discovery","moment_of_rest"
+    "calm",
+    "slow_down",
+    "release_tension",
+    "regain_focus",
+    "prepare_for_sleep",
+    "wake_gently",
+    "recover_energy",
+    "create_space",
+    "reset_attention",
+    "reduce_overload",
+    "clear_the_mind",
+    "pause",
+    "ground",
+    "feel_present",
+    "transition",
+    "prepare_for_day",
+    "prepare_for_meeting",
+    "prepare_for_trip",
+    "recover_after_travel",
+    "settle_emotions",
+    "reduce_rushing",
+    "restore_patience",
+    "soften_frustration",
+    "recover_from_disappointment",
+    "create_distance",
+    "think_clearly",
+    "make_a_decision",
+    "before_important_message",
+    "after_difficult_message",
+    "reduce_social_pressure",
+    "prepare_to_speak",
+    "prepare_to_listen",
+    "recover_after_conversation",
+    "quiet_the_day",
+    "start_again",
+    "end_the_day",
+    "change_scene",
+    "leave_a_bad_moment",
+    "enter_a_new_moment",
+    "restore_balance",
+    "slow_thoughts",
+    "organize_thoughts",
+    "reduce_distraction",
+    "support_concentration",
+    "prepare_for_creativity",
+    "open_imagination",
+    "restore_curiosity",
+    "make_room_for_ideas",
+    "recover_motivation",
+    "begin_small",
+    "finish_something",
+    "release_perfectionism",
+    "accept_uncertainty",
+    "reduce_control",
+    "create_confidence",
+    "prepare_for_change",
+    "adapt_to_change",
+    "recover_after_surprise",
+    "restore_composure",
+    "before_travel",
+    "during_travel",
+    "after_arrival",
+    "before_rest",
+    "during_rest",
+    "after_rest",
+    "morning_reset",
+    "afternoon_reset",
+    "evening_reset",
+    "night_reset",
+    "between_tasks",
+    "before_sleep",
+    "after_waking",
+    "after_long_screen_time",
+    "after_noise",
+    "after_crowd",
+    "after_waiting",
+    "before_choice",
+    "after_choice",
+    "before_purchase_decision",
+    "before_planning",
+    "after_planning",
+    "when_time_feels_short",
+    "when_day_feels_full",
+    "when_everything_feels_same",
+    "when_need_is_unclear",
+    "when_words_are_difficult",
+    "when_attention_is_scattered",
+    "when_energy_is_low",
+    "when_energy_is_high",
+    "when_needing_a_pause",
+    "when_needing_movement",
+    "when_needing_stillness",
+    "when_needing_privacy",
+    "when_needing_connection",
+    "when_needing_a_fresh_start",
+    "when_needing_closure",
+    "when_needing_a_small_win",
+    "when_needing_a_new_view"
 ]
 
-SYSTEM_MEMORY_RULES={
-"daily_priority":True,
-"today_first":True,
-"avoid_same_day_repetition":True,
-"adapt_when_similar":True,
-"respect_explicit_request":True,
-"learn_from_feedback":True,
-"never_claim_unconfirmed_execution":True,
-"ai_invisible_to_client":True,
-"use_memory_before_decision":True,
-"breathing_available_when_context_supports_it":True
-}
-
-def now():
-return datetime.now(timezone.utc).isoformat()
+def now_utc():
+    return datetime.now(timezone.utc)
 
 def today_key():
-return datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    return now_utc().strftime("%Y-%m-%d")
 
-def clean(value,max_len=MAX_TEXT):
-if value is None:
-return ""
-if not isinstance(value,str):
-value=str(value)
-return " ".join(value.strip().split())[:max_len]
+def safe_text(value,default=""):
+    if value is None:
+        return default
+    if isinstance(value,str):
+        return value.strip()
+    return str(value).strip()
 
-def language_of(text):
-text=clean(text).lower()
-spanish=[
-" que "," necesito "," quiero "," estoy "," para "," con "," una ",
-" por "," hoy "," donde "," dónde "," ayuda "," necesito"
-]
-score=sum(1 for x in spanish if x in f" {text} ")
-return "es" if score>=2 else "en"
+def clean_list(value):
+    if not isinstance(value,list):
+        return []
+    return [safe_text(x) for x in value if safe_text(x)]
 
 def normalize_memory(memory):
-m=memory if isinstance(memory,dict) else {}
-core=m.get("core",{})
-moment=m.get("moment",{})
-preferences=m.get("preferences",{})
-dislikes=m.get("dislikes",[])
-history=m.get("history",[])
-learning=m.get("learning",{})
-daily=m.get("daily",{})
+    if not isinstance(memory,dict):
+        memory={}
 
-```
-if not isinstance(core,dict):
-    core={}
-if not isinstance(moment,dict):
-    moment={}
-if not isinstance(preferences,dict):
-    preferences={}
-if not isinstance(dislikes,list):
-    dislikes=[]
-if not isinstance(history,list):
-    history=[]
-if not isinstance(learning,dict):
-    learning={}
-if not isinstance(daily,dict):
-    daily={}
+    memory.setdefault("core",{})
+    memory.setdefault("preferences",{})
+    memory.setdefault("dislikes",[])
+    memory.setdefault("history",[])
+    memory.setdefault("daily",{})
+    memory.setdefault("feedback",[])
+    memory.setdefault("profile",{})
 
-daily_today=daily.get(today_key(),[])
-if not isinstance(daily_today,list):
-    daily_today=[]
+    if not isinstance(memory["core"],dict):
+        memory["core"]={}
 
-return{
-    "core":core,
-    "moment":moment,
-    "preferences":preferences,
-    "dislikes":dislikes[-100:],
-    "history":history[-MAX_HISTORY:],
-    "learning":learning,
-    "daily":{today_key():daily_today[-MAX_DAILY_HISTORY:]},
-    "system":SYSTEM_MEMORY_RULES
-}
-```
+    if not isinstance(memory["preferences"],dict):
+        memory["preferences"]={}
 
-def remember_today(memory,entry):
-m=normalize_memory(memory)
-key=today_key()
-daily=m["daily"].setdefault(key,[])
-daily.append(entry)
-m["daily"][key]=daily[-MAX_DAILY_HISTORY:]
-m["history"]=(m.get("history",[])+[entry])[-MAX_HISTORY:]
-return m
+    if not isinstance(memory["dislikes"],list):
+        memory["dislikes"]=[]
+
+    if not isinstance(memory["history"],list):
+        memory["history"]=[]
+
+    if not isinstance(memory["daily"],dict):
+        memory["daily"]={}
+
+    if not isinstance(memory["feedback"],list):
+        memory["feedback"]=[]
+
+    if not isinstance(memory["profile"],dict):
+        memory["profile"]={}
+
+    key=today_key()
+
+    if not isinstance(memory["daily"].get(key),list):
+        memory["daily"][key]=[]
+
+    memory["daily"][key]=memory["daily"][key][-120:]
+    memory["history"]=memory["history"][-100:]
+    memory["feedback"]=memory["feedback"][-50:]
+
+    return memory
 
 def today_history(memory):
-m=normalize_memory(memory)
-return m.get("daily",{}).get(today_key(),[])
+    memory=normalize_memory(memory)
+    return memory["daily"].get(today_key(),[])
 
-def recent_experiences(memory,limit=30):
-history=today_history(memory)
-return history[-limit:]
+def used_today(memory):
+    history=today_history(memory)
 
-def used_today(memory,field):
-values=[]
-for item in today_history(memory):
-value=item.get(field)
-if value:
-values.append(str(value).lower())
-return values
+    result={
+        "exercise_ids":set(),
+        "patterns":set(),
+        "actions":set(),
+        "phrases":set(),
+        "titles":set(),
+        "experience_ids":set()
+    }
 
-def detect_signals(text):
-t=clean(text).lower()
-groups={
-"calm":["stress","stressed","tense","tension","anxious","overwhelmed","overloaded","nervous","agitated","calma","estrés","estresado","tenso","tensión","ansioso","abrumado","nervioso"],
-"fatigue":["tired","exhausted","drained","fatigue","sleepy","cansado","agotado","fatiga","sueño"],
-"focus":["focus","concentrate","concentration","clarity","focus","concentración","concentrarme","claridad"],
-"rest":["rest","relax","quiet","peace","sleep","descansar","relajar","tranquilo","paz","dormir"],
-"energy":["energy","energize","awake","motivation","energía","despertar","motivado"],
-"travel":["travel","trip","flight","hotel","destination","viaje","vuelo","hotel","destino"],
-"privacy":["private","discreet","quiet","alone","privado","discreto","tranquilo","solo"],
-"surprise":["surprise","unexpected","different","sorpréndeme","sorpresa","diferente"],
-"decision":["decide","decision","choose","choice","decidir","decisión","elegir"],
-"social":["family","friend","partner","friends","familia","amigo","pareja","amigos"],
-"rush":["quick","quickly","busy","hurry","fast","rápido","apurado","prisa"],
-"sadness":["sad","down","low","lonely","triste","solo","bajoneado","decaído"],
-"joy":["happy","excited","celebrate","fun","feliz","emocionado","celebrar","diversión"]
-}
-found=[]
-for key,words in groups.items():
-if any(word in t for word in words):
-found.append(key)
-return found[:10]
+    for item in history:
+        if not isinstance(item,dict):
+            continue
 
-def detect_duration(text):
-t=clean(text).lower()
-patterns=[
-(r"(\d+)\s*(?:min|mins|minute|minutes|minuto|minutos)",1),
-(r"(\d+)\s*(?:h|hr|hour|hours|hora|horas)",60)
-]
-for pattern,mult in patterns:
-match=re.search(pattern,t)
-if match:
-try:
-return int(match.group(1))*mult
-except:
-pass
-return None
+        for key in result:
+            value=item.get(key)
 
-def detect_companion(text):
-t=clean(text).lower()
-mapping=[
-(["alone","myself","solo","sola"],"alone"),
-(["partner","spouse","wife","husband","pareja","esposa","esposo"],"partner"),
-(["family","familia"],"family"),
-(["friend","friends","amigo","amiga","amigos"],"friends"),
-(["children","kids","hijos","niños"],"family")
-]
-for words,value in mapping:
-if any(x in t for x in words):
-return value
-return None
+            if isinstance(value,list):
+                for entry in value:
+                    if safe_text(entry):
+                        result[key].add(
+                            safe_text(entry).lower()
+                        )
+            elif safe_text(value):
+                result[key].add(
+                    safe_text(value).lower()
+                )
 
-def detect_budget(text):
-match=re.search(r"(?:$|usd\s*)?(\d{2,6}(?:[.,]\d{1,2})?)\s*(?:usd|dollars|dólares)?",clean(text).lower())
-if not match:
-return None
-try:
-return float(match.group(1).replace(",",""))
-except:
-return None
+        breathing=item.get("breathing")
 
-def detect_destination(text):
-t=clean(text)
-patterns=[
-r"(?:to|in|at|for|hacia|en|para)\s+([A-Z][A-Za-zÀ-ÿ]*(?:\s+[A-Z][A-Za-zÀ-ÿ]*){0,3})",
-r"(?:miami|new york|orlando|los angeles|paris|london|madrid|mexico|cuba|guatemala)"
-]
-for pattern in patterns:
-match=re.search(pattern,t,re.I)
-if match:
-if match.lastindex:
-value=clean(match.group(1))
-else:
-value=clean(match.group(0))
-if len(value)>2:
-return value
-return None
+        if isinstance(breathing,dict):
+            exercise_id=safe_text(
+                breathing.get("exercise_id")
+            ).lower()
 
-def infer_intent(text,signals):
-t=clean(text).lower()
-if any(x in t for x in ["music","playlist","song","música","canción"]):
-return "mood"
-if any(x in t for x in ["breathe","breathing","breath","respira","respiración","respirar"]):
-return "breathing"
-if any(x in t for x in ["hotel","flight","trip","travel","destination","hotel","vuelo","viaje","destino"]):
-return "travel"
-if any(x in t for x in ["restaurant","dinner","lunch","eat","food","restaurante","cena","almuerzo","comer","comida"]):
-return "dining"
-if any(x in t for x in ["surprise","something special","sorprende","algo especial"]):
-return "discovery"
-if any(x in t for x in ["what should i","where should i","help me choose","qué hago","qué debería","ayúdame a elegir"]):
-return "decision"
-if "calm" in signals or "rest" in signals or "sadness" in signals or "rush" in signals:
-return "wellbeing_moment"
-return "concierge"
+            pattern=safe_text(
+                breathing.get("pattern")
+            ).lower()
 
-def understand_local(text,memory):
-signals=detect_signals(text)
-return{
-"language":language_of(text),
-"intent":infer_intent(text,signals),
-"signals":signals,
-"duration":detect_duration(text),
-"companion":detect_companion(text),
-"budget":detect_budget(text),
-"destination":detect_destination(text),
-"today_count":len(today_history(memory))
-}
+            if exercise_id:
+                result["exercise_ids"].add(exercise_id)
+
+            if pattern:
+                result["patterns"].add(pattern)
+
+    return result
+
+def remember_today(memory,experience):
+    memory=normalize_memory(memory)
+
+    key=today_key()
+
+    memory["daily"].setdefault(key,[])
+    memory["daily"][key].append(experience)
+    memory["daily"][key]=memory["daily"][key][-120:]
+
+    memory["history"].append(experience)
+    memory["history"]=memory["history"][-100:]
+
+    return memory
+
+def extract_signals(message):
+    text=safe_text(message).lower()
+    signals=[]
+
+    mapping={
+        "stress":[
+            "stress","estres","tension","tenso",
+            "overwhelmed","agobiad","pressure","presion"
+        ],
+        "anxiety":[
+            "anxious","ansiedad","nervous",
+            "nervioso","worried","preocup"
+        ],
+        "fatigue":[
+            "tired","cansado","fatiga",
+            "exhausted","agotado","low energy"
+        ],
+        "sleep":[
+            "sleep","dormir","insomnia",
+            "insomnio","night","noche","bed","cama"
+        ],
+        "focus":[
+            "focus","concentr","attention",
+            "atencion","distracted","distraido"
+        ],
+        "calm":[
+            "calm","calma","relax",
+            "relajar","peace","tranquilo"
+        ],
+        "decision":[
+            "decision","decidir","choose",
+            "elegir","choice","opcion"
+        ],
+        "travel":[
+            "travel","viaje","trip","vacation",
+            "vacaciones","flight","vuelo"
+        ],
+        "music":[
+            "music","musica","song",
+            "cancion","youtube"
+        ],
+        "map":[
+            "map","mapa","location",
+            "ubicacion","place","lugar"
+        ],
+        "privacy":[
+            "private","privado","privacy",
+            "privacidad","discreet","discreto"
+        ],
+        "urgent":[
+            "urgent","urgente","asap",
+            "immediately","ahora"
+        ],
+        "rest":[
+            "rest","descanso","break",
+            "pausa","pause"
+        ],
+        "energy":[
+            "energy","energia","wake",
+            "despertar","active","activo"
+        ],
+        "money":[
+            "budget","presupuesto",
+            "cost","precio","expensive","caro"
+        ]
+    }
+
+    for signal,words in mapping.items():
+        if any(word in text for word in words):
+            signals.append(signal)
+
+    return signals
+
+def detect_intent(message):
+    text=safe_text(message).lower()
+
+    if any(x in text for x in [
+        "map","mapa","where","donde",
+        "location","ubicacion"
+    ]):
+        return "location"
+
+    if any(x in text for x in [
+        "music","musica","song",
+        "cancion","listen","escuchar"
+    ]):
+        return "music"
+
+    if any(x in text for x in [
+        "hotel","flight","vuelo",
+        "trip","viaje","travel",
+        "vacation","vacaciones"
+    ]):
+        return "travel"
+
+    if any(x in text for x in [
+        "book","reserve",
+        "reservation","reservar","reserva"
+    ]):
+        return "reservation"
+
+    if any(x in text for x in [
+        "decide","decision",
+        "choose","elegir",
+        "should i","deberia"
+    ]):
+        return "decision"
+
+    if any(x in text for x in [
+        "breathe","breathing",
+        "respirar","respiracion"
+    ]):
+        return "breathing"
+
+    if any(x in text for x in [
+        "sleep","dormir",
+        "rest","descanso"
+    ]):
+        return "rest"
+
+    return "concierge"
+
+def detect_duration(message):
+    text=safe_text(message)
+
+    matches=re.findall(
+        r"(\d+)\s*(?:min|mins|minute|minutes|minuto|minutos)",
+        text,
+        re.I
+    )
+
+    if matches:
+        try:
+            return int(matches[0])
+        except (TypeError,ValueError):
+            pass
+
+    return None
+
+def detect_budget(message):
+    text=safe_text(message)
+
+    patterns=[
+        r"\$\s?(\d+(?:[.,]\d+)?)",
+        r"(?:under|menos de|hasta|maximo|máximo)\s+\$?\s?(\d+(?:[.,]\d+)?)"
+    ]
+
+    for pattern in patterns:
+        match=re.search(pattern,text,re.I)
+
+        if match:
+            try:
+                return float(
+                    match.group(1).replace(",","")
+                )
+            except (TypeError,ValueError):
+                pass
+
+    return None
+
+def detect_destination(message):
+    text=safe_text(message)
+
+    patterns=[
+        r"(?:to|en|para|from|desde)\s+([A-Za-zÀ-ÿ0-9 .,'-]{2,50})"
+    ]
+
+    for pattern in patterns:
+        match=re.search(pattern,text,re.I)
+
+        if match:
+            value=match.group(1).strip(
+                " .,!?:;"
+            )
+
+            if value:
+                return value
+
+    return None
+
+def detect_companion(message):
+    text=safe_text(message).lower()
+
+    if any(x in text for x in [
+        "alone","solo","sola",
+        "myself","yo solo"
+    ]):
+        return "alone"
+
+    if any(x in text for x in [
+        "wife","esposa","husband",
+        "esposo","partner","pareja"
+    ]):
+        return "partner"
+
+    if any(x in text for x in [
+        "family","familia","children",
+        "hijos","kids","niños"
+    ]):
+        return "family"
+
+    if any(x in text for x in [
+        "friend","amigo","amiga",
+        "friends","amigos"
+    ]):
+        return "friends"
+
+    return None
+
+def understand(message):
+    message=safe_text(message)
+
+    return {
+        "message":message,
+        "intent":detect_intent(message),
+        "signals":extract_signals(message),
+        "duration":detect_duration(message),
+        "budget":detect_budget(message),
+        "destination":detect_destination(message),
+        "companion":detect_companion(message)
+    }
 
 def personalize_local(understanding,memory):
-m=normalize_memory(memory)
-preferences=m.get("preferences",{})
-core=m.get("core",{})
-dislikes=m.get("dislikes",[])
-today=today_history(m)
+    memory=normalize_memory(memory)
+    history=today_history(memory)
+    used=used_today(memory)
 
-```
-return{
-    "known_preferences":preferences,
-    "core":core,
-    "dislikes":dislikes[-20:],
-    "today_experiences":today[-30:],
-    "today_count":len(today),
-    "avoid_today":{
-        "exercise_ids":used_today(m,"exercise_id"),
-        "patterns":used_today(m,"pattern"),
-        "actions":used_today(m,"action"),
-        "phrases":used_today(m,"phrase"),
-        "titles":used_today(m,"title"),
-        "experience_ids":used_today(m,"experience_id")
-    }
-}
-```
-
-def local_decision(understanding,personalization):
-signals=understanding.get("signals",[])
-intent=understanding.get("intent","concierge")
-
-```
-breathing_needed=(
-    intent=="breathing" or
-    intent=="wellbeing_moment" or
-    any(x in signals for x in ["calm","fatigue","focus","rest","rush","sadness","energy"])
-)
-
-return{
-    "intent":intent,
-    "priority":"high" if any(x in signals for x in ["calm","rush","decision"]) else "normal",
-    "breathing_recommended":breathing_needed,
-    "needs_more_information":False,
-    "human_coordination":intent in ["travel","dining","concierge"],
-    "reason":"Current need and today's experience history should guide the next action."
-}
-```
-
-def select_breathing_local(understanding,personalization):
-used_patterns=set(personalization.get("avoid_today",{}).get("patterns",[]))
-used_ids=set(personalization.get("avoid_today",{}).get("exercise_ids",[]))
-
-```
-signals=understanding.get("signals",[])
-need="calm"
-
-if "focus" in signals:
-    need="regain_focus"
-elif "fatigue" in signals:
-    need="recover_energy"
-elif "rest" in signals:
-    need="prepare_for_sleep"
-elif "rush" in signals:
-    need="slow_down"
-elif "sadness" in signals:
-    need="create_space"
-elif "energy" in signals:
-    need="wake_gently"
-
-candidates=[
-    x for x in BREATHING_PATTERNS
-    if x["id"] not in used_ids and x["pattern"].lower() not in used_patterns
-]
-
-if not candidates:
-    candidates=BREATHING_PATTERNS[:]
-
-index=len(today_history(personalization.get("_memory",{})))%len(candidates) if candidates else 0
-selected=candidates[index]
-
-return{
-    "enabled":True,
-    "exercise_id":selected["id"],
-    "need":need,
-    "pattern":selected["pattern"],
-    "inhale":selected["inhale"],
-    "hold":selected["hold"],
-    "exhale":selected["exhale"],
-    "pause":selected["pause"],
-    "style":selected["style"],
-    "duration_minutes":understanding.get("duration") or 3,
-    "circle":True
-}
-```
-
-def local_proposal(understanding,personalization,decision):
-breathing=None
-if decision.get("breathing_recommended"):
-breathing=select_breathing_local(
-understanding,
-{**personalization,"_memory":{}}
-)
-
-```
-destination=understanding.get("destination")
-intent=understanding.get("intent","concierge")
-
-titles={
-    "breathing":"A moment made for you",
-    "wellbeing_moment":"A moment made for you",
-    "travel":"A direction worth exploring",
-    "dining":"Something worth discovering",
-    "mood":"The right atmosphere",
-    "discovery":"Something different",
-    "decision":"A clearer next step",
-    "concierge":"Let MIRROR take the next step"
-}
-
-return{
-    "title":titles.get(intent,titles["concierge"]),
-    "direction":"I’m shaping this around what you need right now.",
-    "category":intent,
-    "privacy":"private",
-    "priority":decision.get("priority","normal"),
-    "budget":understanding.get("budget"),
-    "destination":destination,
-    "duration":understanding.get("duration"),
-    "companion":understanding.get("companion"),
-    "signals":understanding.get("signals",[]),
-    "confidence":0.55,
-    "status":"proposed",
-    "questions":[],
-    "steps":[],
-    "breathing":breathing
-}
-```
-
-def build_prompt(text,understanding,personalization,decision):
-language=understanding.get("language","en")
-today=personalization.get("today_experiences",[])
-avoid=personalization.get("avoid_today",{})
-
-```
-prompt={
-    "role":"MIRROR TO YOU",
-    "mission":"Be a private, highly personalized presence that understands the client and moves the current need forward.",
-    "language":language,
-    "client_message":clean(text),
-    "understanding":understanding,
-    "core_memory":personalization.get("core",{}),
-    "preferences":personalization.get("known_preferences",{}),
-    "dislikes":personalization.get("dislikes",[]),
-    "today_count":personalization.get("today_count",0),
-    "today_history":today[-40:],
-    "avoid_today":avoid,
-    "decision":decision,
-    "permanent_rules":[
-        "Always consult memory before deciding.",
-        "Today's experiences have priority over older history.",
-        "Treat every new entry today as a new moment.",
-        "If the same client enters many times today, create a different experience whenever reasonably possible.",
-        "Avoid repeating today's exercises, breathing patterns, actions, titles, phrases, or experience structures.",
-        "A repeated need does not require a repeated experience.",
-        "If today's need is genuinely similar, adapt the experience rather than mechanically repeating it.",
-        "If the client explicitly asks for a previous experience, it may be brought back.",
-        "If the current pattern and need are almost identical, continuity may be more valuable than novelty.",
-        "Use breathing when it genuinely fits the current moment.",
-        "Breathing experiences should use the visual breathing circle.",
-        "Select or create an appropriate breathing experience based on the current need and today's history.",
-        "Do not describe internal AI, models, prompts, memory architecture, algorithms, providers, or technical systems to the client.",
-        "Never claim a reservation, booking, purchase, delivery, or external action was completed unless the system actually confirms it.",
-        "Ask only questions that are truly necessary.",
-        "Make the client feel understood without sounding robotic.",
-        "Do not turn every interaction into a travel search or marketplace result.",
-        "The goal is resolution, not merely conversation."
-    ],
-    "breathing_library":BREATHING_PATTERNS,
-    "breathing_needs":BREATHING_NEEDS
-}
-
-return json.dumps(prompt,ensure_ascii=False)
-```
-
-def parse_json(text):
-if not text:
-return None
-
-````
-raw=text.strip()
-
-if raw.startswith("```"):
-    raw=re.sub(r"^```(?:json)?\s*","",raw,flags=re.I)
-    raw=re.sub(r"\s*```$","",raw)
-
-try:
-    return json.loads(raw)
-except:
-    match=re.search(r"\{.*\}",raw,re.S)
-    if match:
-        try:
-            return json.loads(match.group(0))
-        except:
-            return None
-return None
-````
-
-def valid_ai_result(data):
-if not isinstance(data,dict):
-return False
-
-```
-required=["language","intent","action","title","direction"]
-if not all(key in data for key in required):
-    return False
-
-return bool(clean(data.get("title")) and clean(data.get("direction")))
-```
-
-def http_json(url,payload,headers=None,timeout=AI_TIMEOUT):
-body=json.dumps(payload,ensure_ascii=False).encode("utf-8")
-request=urllib.request.Request(
-url,
-data=body,
-headers={
-"Content-Type":"application/json",
-**(headers or {})
-},
-method="POST"
-)
-
-```
-with urllib.request.urlopen(request,timeout=timeout) as response:
-    raw=response.read().decode("utf-8")
-    return json.loads(raw)
-```
-
-def openai_call(prompt):
-if not OPENAI_API_KEY:
-return None
-
-```
-payload={
-    "model":OPENAI_MODEL,
-    "messages":[
-        {
-            "role":"system",
-            "content":(
-                "You are the invisible intelligence behind MIRROR TO YOU. "
-                "Return only valid JSON. Never mention being an AI or the underlying provider. "
-                "Follow the memory and same-day non-repetition rules."
+    return {
+        "core":memory.get("core",{}),
+        "preferences":memory.get("preferences",{}),
+        "dislikes":memory.get("dislikes",[]),
+        "profile":memory.get("profile",{}),
+        "today_experiences":history[-30:],
+        "today_count":len(history),
+        "avoid_today":{
+            "exercise_ids":list(
+                used["exercise_ids"]
+            ),
+            "patterns":list(
+                used["patterns"]
+            ),
+            "actions":list(
+                used["actions"]
+            ),
+            "phrases":list(
+                used["phrases"]
+            ),
+            "titles":list(
+                used["titles"]
+            ),
+            "experience_ids":list(
+                used["experience_ids"]
             )
-        },
-        {
-            "role":"user",
-            "content":prompt
         }
-    ],
-    "temperature":0.85,
-    "response_format":{"type":"json_object"}
-}
-
-try:
-    data=http_json(
-        "https://api.openai.com/v1/chat/completions",
-        payload,
-        {"Authorization":f"Bearer {OPENAI_API_KEY}"}
-    )
-    choices=data.get("choices",[])
-    if not choices:
-        return None
-    content=choices[0].get("message",{}).get("content","")
-    return parse_json(content)
-except Exception:
-    return None
-```
-
-def gemini_call(prompt):
-if not GEMINI_API_KEY:
-return None
-
-```
-url=f"https://generativelanguage.googleapis.com/v1beta/models/{GEMINI_MODEL}:generateContent"
-
-payload={
-    "contents":[
-        {
-            "role":"user",
-            "parts":[
-                {
-                    "text":(
-                        "You are the invisible intelligence behind MIRROR TO YOU. "
-                        "Return only valid JSON. Never mention AI, providers, models, prompts, "
-                        "or technical implementation. Follow all memory and same-day "
-                        "non-repetition rules.\n\n"+prompt
-                    )
-                }
-            ]
-        }
-    ],
-    "generationConfig":{
-        "temperature":0.85,
-        "responseMimeType":"application/json"
     }
-}
 
-try:
-    data=http_json(
-        url,
-        payload,
-        {"x-goog-api-key":GEMINI_API_KEY}
+def decide(understanding,personalization):
+    signals=set(
+        understanding.get("signals",[])
     )
-    candidates=data.get("candidates",[])
+
+    intent=understanding.get(
+        "intent",
+        "concierge"
+    )
+
+    breathing_needed=(
+        intent=="breathing"
+        or bool(
+            signals.intersection({
+                "stress",
+                "anxiety",
+                "fatigue",
+                "sleep",
+                "focus",
+                "calm",
+                "rest",
+                "energy"
+            })
+        )
+    )
+
+    if intent=="travel":
+        category="travel"
+    elif intent=="location":
+        category="location"
+    elif intent=="music":
+        category="music"
+    elif intent=="reservation":
+        category="reservation"
+    elif intent=="decision":
+        category="decision"
+    else:
+        category="concierge"
+
+    priority="high" if "urgent" in signals else "normal"
+
+    return {
+        "category":category,
+        "priority":priority,
+        "breathing_recommended":breathing_needed,
+        "reason":"context_match",
+        "today_count":personalization.get(
+            "today_count",
+            0
+        )
+    }
+
+def build_breathing_exercises():
+    purposes=[
+        "calm",
+        "focus",
+        "reset",
+        "rest",
+        "energy",
+        "grounding",
+        "transition",
+        "clarity",
+        "patience",
+        "space",
+        "confidence",
+        "presence",
+        "release",
+        "renewal"
+    ]
+
+    exercises=[]
+
+    for pattern in BREATHING_PATTERNS:
+        for purpose in purposes:
+            exercises.append({
+                "exercise_id":(
+                    f'{pattern["id"]}_{purpose}'
+                ),
+                "pattern_id":pattern["id"],
+                "purpose":purpose,
+                "name":(
+                    f'{pattern["name"]} · {purpose}'
+                ),
+                "inhale":pattern["inhale"],
+                "hold":pattern["hold"],
+                "exhale":pattern["exhale"],
+                "pause":pattern["pause"]
+            })
+
+    return exercises
+
+BREATHING_EXERCISES=build_breathing_exercises()
+
+def choose_need(understanding):
+    signals=set(
+        understanding.get("signals",[])
+    )
+
+    if "sleep" in signals:
+        return "prepare_for_sleep"
+
+    if "focus" in signals:
+        return "regain_focus"
+
+    if "fatigue" in signals:
+        return "recover_energy"
+
+    if "stress" in signals or "anxiety" in signals:
+        return "calm"
+
+    if "rest" in signals:
+        return "create_space"
+
+    if "energy" in signals:
+        return "wake_gently"
+
+    if "decision" in signals:
+        return "make_a_decision"
+
+    return random.choice(
+        BREATHING_NEEDS
+    )
+
+def select_breathing_from_library(
+    understanding,
+    personalization
+):
+    used=personalization.get(
+        "avoid_today",
+        {}
+    )
+
+    used_ids={
+        safe_text(x).lower()
+        for x in used.get(
+            "exercise_ids",
+            []
+        )
+    }
+
+    used_patterns={
+        safe_text(x).lower()
+        for x in used.get(
+            "patterns",
+            []
+        )
+    }
+
+    need=choose_need(
+        understanding
+    )
+
+    candidates=[
+        x for x in BREATHING_EXERCISES
+        if x["exercise_id"].lower()
+        not in used_ids
+        and x["pattern_id"].lower()
+        not in used_patterns
+    ]
+
     if not candidates:
-        return None
+        candidates=[
+            x for x in BREATHING_EXERCISES
+            if x["exercise_id"].lower()
+            not in used_ids
+        ]
 
-    parts=candidates[0].get("content",{}).get("parts",[])
-    content="".join(
-        p.get("text","") for p in parts if isinstance(p,dict)
+    if not candidates:
+        candidates=list(
+            BREATHING_EXERCISES
+        )
+
+    preferred=[
+        x for x in candidates
+        if x["purpose"].lower()
+        ==need.lower()
+    ]
+
+    choice=random.choice(
+        preferred or candidates
     )
-    return parse_json(content)
-except Exception:
-    return None
-```
 
-def breathing_from_ai(ai,understanding,personalization):
-raw=ai.get("breathing")
-
-```
-if not isinstance(raw,dict):
-    return None
-
-enabled=raw.get("enabled",False)
-if not enabled:
-    return None
-
-used_ids=set(personalization.get("avoid_today",{}).get("exercise_ids",[]))
-used_patterns=set(personalization.get("avoid_today",{}).get("patterns",[]))
-
-exercise_id=clean(raw.get("exercise_id"))
-pattern=clean(raw.get("pattern"))
-
-if exercise_id in used_ids or pattern.lower() in used_patterns:
-    alternative=select_breathing_from_library(understanding,personalization)
-    if alternative:
-        return alternative
-
-return{
-    "enabled":True,
-    "exercise_id":exercise_id or str(uuid.uuid4()),
-    "need":clean(raw.get("need")) or "current_moment",
-    "pattern":pattern or "4-6",
-    "inhale":int(raw.get("inhale",4) or 4),
-    "hold":int(raw.get("hold",0) or 0),
-    "exhale":int(raw.get("exhale",6) or 6),
-    "pause":int(raw.get("pause",0) or 0),
-    "style":clean(raw.get("style")) or "personalized",
-    "duration_minutes":int(raw.get("duration_minutes") or understanding.get("duration") or 3),
-    "circle":True,
-    "guidance":clean(raw.get("guidance")),
-    "opening":clean(raw.get("opening")),
-    "closing":clean(raw.get("closing"))
-}
-```
-
-def select_breathing_from_library(understanding,personalization):
-used_ids=set(personalization.get("avoid_today",{}).get("exercise_ids",[]))
-used_patterns=set(personalization.get("avoid_today",{}).get("patterns",[]))
-
-```
-available=[
-    item for item in BREATHING_PATTERNS
-    if item["id"] not in used_ids and item["pattern"].lower() not in used_patterns
-]
-
-if not available:
-    available=BREATHING_PATTERNS[:]
-
-signals=understanding.get("signals",[])
-
-if "focus" in signals:
-    order=["steady","balanced","grounding"]
-elif "fatigue" in signals:
-    order=["gentle","balanced","quiet"]
-elif "rest" in signals:
-    order=["quiet","calming","slow"]
-elif "rush" in signals:
-    order=["calming","slow","release"]
-else:
-    order=["calming","gentle","balanced","grounding"]
-
-selected=None
-
-for style in order:
-    selected=next((x for x in available if x["style"]==style),None)
-    if selected:
-        break
-
-if not selected:
-    selected=available[0]
-
-return{
-    "enabled":True,
-    "exercise_id":selected["id"],
-    "need":signals[0] if signals else "current_moment",
-    "pattern":selected["pattern"],
-    "inhale":selected["inhale"],
-    "hold":selected["hold"],
-    "exhale":selected["exhale"],
-    "pause":selected["pause"],
-    "style":selected["style"],
-    "duration_minutes":understanding.get("duration") or 3,
-    "circle":True
-}
-```
-
-def sanitize_ai(ai,understanding,personalization,decision):
-ai=ai if isinstance(ai,dict) else {}
-
-```
-breathing=breathing_from_ai(ai,understanding,personalization)
-
-if not breathing and decision.get("breathing_recommended"):
-    breathing=select_breathing_from_library(understanding,personalization)
-
-questions=ai.get("questions",[])
-if not isinstance(questions,list):
-    questions=[]
-
-steps=ai.get("steps",[])
-if not isinstance(steps,list):
-    steps=[]
-
-return{
-    "language":clean(ai.get("language")) or understanding.get("language","en"),
-    "intent":clean(ai.get("intent")) or understanding.get("intent","concierge"),
-    "privacy":clean(ai.get("privacy")) or "private",
-    "priority":clean(ai.get("priority")) or decision.get("priority","normal"),
-    "companion":clean(ai.get("companion")) or understanding.get("companion"),
-    "duration":ai.get("duration") or understanding.get("duration"),
-    "budget":ai.get("budget") or understanding.get("budget"),
-    "destination":clean(ai.get("destination")) or understanding.get("destination"),
-    "signals":ai.get("signals") if isinstance(ai.get("signals"),list) else understanding.get("signals",[]),
-    "action":clean(ai.get("action")) or "personalized_next_step",
-    "confidence":float(ai.get("confidence",0.7) or 0.7),
-    "title":clean(ai.get("title")) or "A moment made for you",
-    "direction":clean(ai.get("direction")) or "I’m shaping this around what you need right now.",
-    "questions":[clean(x) for x in questions if clean(x)][:4],
-    "steps":[clean(x) for x in steps if clean(x)][:6],
-    "next_move":clean(ai.get("next_move")),
-    "breathing":breathing
-}
-```
-
-def build_experience_record(text,understanding,proposal,response):
-breathing=proposal.get("breathing") if isinstance(proposal,dict) else None
-
-```
-record={
-    "id":str(uuid.uuid4()),
-    "timestamp":now(),
-    "date":today_key(),
-    "message":clean(text,1200),
-    "intent":understanding.get("intent"),
-    "signals":understanding.get("signals",[]),
-    "action":clean(proposal.get("action") or proposal.get("title")),
-    "title":clean(proposal.get("title")),
-    "phrase":clean(response,500),
-    "destination":clean(understanding.get("destination")),
-    "exercise_id":clean(breathing.get("exercise_id")) if breathing else "",
-    "pattern":clean(breathing.get("pattern")) if breathing else "",
-    "need":clean(breathing.get("need")) if breathing else "",
-    "experience_id":clean(proposal.get("experience_id")),
-    "result":"presented"
-}
-
-return record
-```
-
-def process(text,memory=None):
-text=clean(text)
-m=normalize_memory(memory)
-
-```
-if not text:
-    understanding={
-        "language":"en",
-        "intent":"concierge",
-        "signals":[],
-        "duration":None,
-        "companion":None,
-        "budget":None,
-        "destination":None,
-        "today_count":len(today_history(m))
+    return {
+        "enabled":True,
+        "exercise_id":choice["exercise_id"],
+        "pattern":choice["pattern_id"],
+        "purpose":choice["purpose"],
+        "name":choice["name"],
+        "inhale":choice["inhale"],
+        "hold":choice["hold"],
+        "exhale":choice["exhale"],
+        "pause":choice["pause"],
+        "cycles":5,
+        "need":need,
+        "instruction":(
+            "Follow the circle and let the rhythm become natural."
+        )
     }
-else:
-    understanding=understand_local(text,m)
 
-personalization=personalize_local(understanding,m)
-decision=local_decision(understanding,personalization)
-
-prompt=build_prompt(
-    text,
+def local_proposal(
     understanding,
     personalization,
     decision
-)
+):
+    breathing=None
 
-ai=openai_call(prompt)
+    if decision.get(
+        "breathing_recommended"
+    ):
+        breathing=select_breathing_from_library(
+            understanding,
+            personalization
+        )
 
-if not valid_ai_result(ai):
-    ai=gemini_call(prompt)
-
-if valid_ai_result(ai):
-    sanitized=sanitize_ai(
-        ai,
-        understanding,
-        personalization,
-        decision
+    intent=understanding.get(
+        "intent",
+        "concierge"
     )
 
-    proposal={
-        "title":sanitized["title"],
-        "direction":sanitized["direction"],
-        "category":sanitized["intent"],
-        "privacy":sanitized["privacy"],
-        "priority":sanitized["priority"],
-        "budget":sanitized["budget"],
-        "destination":sanitized["destination"],
-        "duration":sanitized["duration"],
-        "companion":sanitized["companion"],
-        "signals":sanitized["signals"],
-        "confidence":sanitized["confidence"],
-        "status":"proposed",
-        "questions":sanitized["questions"],
-        "steps":sanitized["steps"],
-        "action":sanitized["action"],
-        "next_move":sanitized["next_move"],
-        "breathing":sanitized["breathing"],
-        "experience_id":str(uuid.uuid4())
+    if intent=="travel":
+        title=(
+            "I can take care of the next part of your trip."
+        )
+        direction=(
+            "Tell me what matters most, "
+            "and I will organize the next useful step around you."
+        )
+
+    elif intent=="location":
+        title=(
+            "Let's make the place easy to reach."
+        )
+        direction=(
+            "I can help turn the place you have in mind "
+            "into a clear next step."
+        )
+
+    elif intent=="music":
+        title=(
+            "Let's find the right atmosphere."
+        )
+        direction=(
+            "I can help choose something "
+            "that fits this moment."
+        )
+
+    elif intent=="decision":
+        title=(
+            "Let's make the decision lighter."
+        )
+        direction=(
+            "Give me the situation and I will help "
+            "you reduce it to the clearest next move."
+        )
+
+    elif breathing:
+        title=(
+            "Let's create a little space."
+        )
+        direction=(
+            "Stay here for a moment. "
+            "The next step does not need to be complicated."
+        )
+
+    else:
+        title="I'm listening."
+        direction=(
+            "Tell me what you need, in your own words. "
+            "I will take it from there."
+        )
+
+    return {
+        "title":title,
+        "direction":direction,
+        "category":decision.get(
+            "category",
+            "concierge"
+        ),
+        "priority":decision.get(
+            "priority",
+            "normal"
+        ),
+        "privacy":"private",
+        "status":"ready",
+        "action":"continue",
+        "next_move":"continue",
+        "questions":[],
+        "steps":[],
+        "breathing":breathing
     }
 
-    result={
-        "understanding":understanding,
-        "personalization":personalization,
-        "decision":decision,
-        "proposal":proposal,
-        "ai_used":True
-    }
+def ai_system_prompt():
+    return """
+You are the invisible intelligence behind MIRROR TO YOU.
 
-else:
-    proposal=local_proposal(
-        understanding,
-        personalization,
-        decision
-    )
-    proposal["experience_id"]=str(uuid.uuid4())
+MIRROR is a private premium personal concierge
+and personalization experience.
 
-    result={
-        "understanding":understanding,
-        "personalization":personalization,
-        "decision":decision,
-        "proposal":proposal,
-        "ai_used":False
-    }
+The client should never see technical AI language,
+model names, prompts, APIs, system instructions,
+artificial intelligence references, or internal architecture.
 
-response=response_text(result,m)
-record=build_experience_record(
-    text,
+Your job is not simply to answer.
+
+Your job is to understand what the client needs
+and move toward resolution.
+
+CORE RULES:
+
+1. TODAY COMES FIRST.
+2. Use permanent memory before making decisions.
+3. Use today's history before creating a new experience.
+4. Every new entry today should feel meaningfully different.
+5. Do not repeat today's exercise, breathing experience,
+action, title, phrase, or experience structure unless:
+the client explicitly asks for it, continuity is clearly
+more valuable, or the situation is substantially the same
+and adaptation is appropriate.
+6. A repeated need does NOT require a repeated experience.
+7. Adapt rather than mechanically repeat.
+8. Learn from client feedback.
+9. Never claim that a reservation, purchase, delivery,
+booking, payment, cancellation or external action has
+actually happened unless the system has confirmed it.
+10. Keep the experience discreet, elegant and human.
+11. Ask only the minimum question necessary.
+12. When appropriate, create a small action or breathing experience.
+13. Breathing experiences should be varied using today's history.
+14. Every entry today is a new moment.
+15. Combine CORE MEMORY with TODAY'S MOMENT.
+16. Do not mention prices or payment unless the client explicitly asks.
+17. MIRROR TO YOU is currently free.
+18. Do not describe MIRROR as medical treatment or medical care.
+"""
+
+def build_ai_prompt(
+    message,
     understanding,
-    proposal,
-    response
-)
+    personalization,
+    decision
+):
+    payload={
+        "message":message,
+        "understanding":understanding,
+        "personalization":personalization,
+        "decision":decision,
+        "today_history":personalization.get(
+            "today_experiences",
+            []
+        )[-30:],
+        "breathing_library":{
+            "needs":BREATHING_NEEDS,
+            "available_exercises":BREATHING_EXERCISES
+        }
+    }
 
-result["memory"]=remember_today(m,record)
-result["today"]=result["memory"].get("daily",{}).get(today_key(),[])
-result["record"]=record
+    return (
+        ai_system_prompt()
+        +
+        """
+Return ONLY valid JSON.
 
-return result
-```
+Structure:
 
-def response_text(result,memory=None):
-understanding=result.get("understanding",{})
-proposal=result.get("proposal",{})
-language=understanding.get("language","en")
-questions=proposal.get("questions",[])
-breathing=proposal.get("breathing")
+{
+  "title":"",
+  "direction":"",
+  "category":"",
+  "priority":"",
+  "privacy":"private",
+  "status":"ready",
+  "action":"",
+  "next_move":"",
+  "questions":[],
+  "steps":[],
+  "breathing":null
+}
 
-```
-if questions:
-    return questions[0]
+If breathing is appropriate:
 
-if breathing and breathing.get("enabled"):
-    opening=clean(breathing.get("opening"))
+{
+  "enabled":true,
+  "exercise_id":"",
+  "pattern":"",
+  "purpose":"",
+  "name":"",
+  "inhale":4,
+  "hold":0,
+  "exhale":6,
+  "pause":0,
+  "cycles":5,
+  "need":"",
+  "instruction":""
+}
 
-    if opening:
-        return opening
+Never repeat an exercise_id or pattern already
+used today unless adaptation or explicit continuity
+is necessary.
 
-    if language=="es":
-        return "Quédate aquí un momento. MIRROR ha elegido una respiración diferente para este momento. Sigue el círculo y deja que el ritmo haga el resto."
+CLIENT DATA:
 
-    return "Stay here for a moment. MIRROR has chosen a different breathing experience for this moment. Follow the circle and let the rhythm do the rest."
+"""
+        +
+        json.dumps(
+            payload,
+            ensure_ascii=False
+        )
+    )
 
-direction=clean(proposal.get("direction"))
+def http_json(
+    url,
+    payload,
+    headers=None,
+    timeout=None
+):
+    data=json.dumps(
+        payload,
+        ensure_ascii=False
+    ).encode("utf-8")
 
-if direction:
-    return direction
+    request=urllib.request.Request(
+        url,
+        data=data,
+        headers={
+            "Content-Type":"application/json",
+            **(headers or {})
+        },
+        method="POST"
+    )
 
-if language=="es":
-    return "Estoy aquí. Vamos a ocuparnos de lo que necesitas ahora."
+    try:
+        with urllib.request.urlopen(
+            request,
+            timeout=timeout or AI_TIMEOUT
+        ) as response:
+            raw=response.read().decode(
+                "utf-8"
+            )
+            return json.loads(raw)
+    except Exception:
+        return None
 
-return "I’m here. Let’s take care of what you need right now."
-```
+def call_openai(prompt):
+    if not OPENAI_API_KEY:
+        return None
+
+    payload={
+        "model":OPENAI_MODEL,
+        "messages":[
+            {
+                "role":"system",
+                "content":ai_system_prompt()
+            },
+            {
+                "role":"user",
+                "content":prompt
+            }
+        ],
+        "temperature":0.85,
+        "response_format":{
+            "type":"json_object"
+        }
+    }
+
+    result=http_json(
+        "https://api.openai.com/v1/chat/completions",
+        payload,
+        headers={
+            "Authorization":
+            f"Bearer {OPENAI_API_KEY}"
+        }
+    )
+
+    if not result:
+        return None
+
+    try:
+        content=(
+            result
+            ["choices"]
+            [0]
+            ["message"]
+            ["content"]
+        )
+
+        return json.loads(content)
+
+    except Exception:
+        return None
+
+def call_gemini(prompt):
+    if not GEMINI_API_KEY:
+        return None
+
+    url=(
+        "https://generativelanguage.googleapis.com/"
+        "v1beta/models/"
+        f"{GEMINI_MODEL}:generateContent"
+    )
+
+    payload={
+        "contents":[
+            {
+                "role":"user",
+                "parts":[
+                    {
+                        "text":prompt
+                    }
+                ]
+            }
+        ],
+        "generationConfig":{
+            "temperature":0.85,
+            "responseMimeType":"application/json"
+        }
+    }
+
+    result=http_json(
+        url,
+        payload,
+        headers={
+            "x-goog-api-key":GEMINI_API_KEY
+        }
+    )
+
+    if not result:
+        return None
+
+    try:
+        text=(
+            result
+            ["candidates"]
+            [0]
+            ["content"]
+            ["parts"]
+            [0]
+            ["text"]
+        )
+
+        return json.loads(text)
+
+    except Exception:
+        return None
+
+def sanitize_ai(
+    ai_result,
+    understanding,
+    personalization,
+    decision
+):
+    local=local_proposal(
+        understanding,
+        personalization,
+        decision
+    )
+
+    if not isinstance(
+        ai_result,
+        dict
+    ):
+        return local
+
+    result={
+        "title":safe_text(
+            ai_result.get("title")
+        ) or local["title"],
+        "direction":safe_text(
+            ai_result.get("direction")
+        ) or local["direction"],
+        "category":safe_text(
+            ai_result.get("category")
+        ) or local["category"],
+        "priority":safe_text(
+            ai_result.get("priority")
+        ) or local["priority"],
+        "privacy":"private",
+        "status":safe_text(
+            ai_result.get("status")
+        ) or "ready",
+        "action":safe_text(
+            ai_result.get("action")
+        ) or "continue",
+        "next_move":safe_text(
+            ai_result.get("next_move")
+        ) or "continue",
+        "questions":clean_list(
+            ai_result.get("questions")
+        ),
+        "steps":clean_list(
+            ai_result.get("steps")
+        ),
+        "breathing":None
+    }
+
+    breathing=ai_result.get(
+        "breathing"
+    )
+
+    if (
+        isinstance(breathing,dict)
+        and breathing.get("enabled")
+    ):
+        breathing_id=safe_text(
+            breathing.get("exercise_id")
+        )
+
+        pattern=safe_text(
+            breathing.get("pattern")
+        )
+
+        used=personalization.get(
+            "avoid_today",
+            {}
+        )
+
+        used_ids={
+            safe_text(x).lower()
+            for x in used.get(
+                "exercise_ids",
+                []
+            )
+        }
+
+        used_patterns={
+            safe_text(x).lower()
+            for x in used.get(
+                "patterns",
+                []
+            )
+        }
+
+        valid_id=(
+            breathing_id
+            and breathing_id.lower()
+            not in used_ids
+        )
+
+        valid_pattern=(
+            not pattern
+            or pattern.lower()
+            not in used_patterns
+        )
+
+        if valid_id and valid_pattern:
+            try:
+                inhale=int(
+                    breathing.get(
+                        "inhale",
+                        4
+                    )
+                )
+            except Exception:
+                inhale=4
+
+            try:
+                hold=int(
+                    breathing.get(
+                        "hold",
+                        0
+                    )
+                )
+            except Exception:
+                hold=0
+
+            try:
+                exhale=int(
+                    breathing.get(
+                        "exhale",
+                        6
+                    )
+                )
+            except Exception:
+                exhale=6
+
+            try:
+                pause=int(
+                    breathing.get(
+                        "pause",
+                        0
+                    )
+                )
+            except Exception:
+                pause=0
+
+            try:
+                cycles=int(
+                    breathing.get(
+                        "cycles",
+                        5
+                    )
+                )
+            except Exception:
+                cycles=5
+
+            result["breathing"]={
+                "enabled":True,
+                "exercise_id":breathing_id,
+                "pattern":pattern or "custom",
+                "purpose":(
+                    safe_text(
+                        breathing.get(
+                            "purpose"
+                        )
+                    ) or "reset"
+                ),
+                "name":(
+                    safe_text(
+                        breathing.get(
+                            "name"
+                        )
+                    ) or "A moment for you"
+                ),
+                "inhale":max(
+                    1,
+                    min(inhale,10)
+                ),
+                "hold":max(
+                    0,
+                    min(hold,10)
+                ),
+                "exhale":max(
+                    1,
+                    min(exhale,12)
+                ),
+                "pause":max(
+                    0,
+                    min(pause,10)
+                ),
+                "cycles":max(
+                    1,
+                    min(cycles,12)
+                ),
+                "need":(
+                    safe_text(
+                        breathing.get(
+                            "need"
+                        )
+                    ) or choose_need(
+                        understanding
+                    )
+                ),
+                "instruction":(
+                    safe_text(
+                        breathing.get(
+                            "instruction"
+                        )
+                    )
+                    or
+                    "Follow the circle and let the rhythm become natural."
+                )
+            }
+
+    if (
+        decision.get(
+            "breathing_recommended"
+        )
+        and result["breathing"] is None
+    ):
+        result["breathing"]=_select_unique_breathing(
+            understanding,
+            personalization
+        )
+
+    return result
+
+def _select_unique_breathing(
+    understanding,
+    personalization
+):
+    return select_breathing_from_library(
+        understanding,
+        personalization
+    )
+
+def make_experience_record(
+    message,
+    understanding,
+    decision,
+    proposal
+):
+    breathing=proposal.get(
+        "breathing"
+    )
+
+    timestamp=now_utc().isoformat()
+
+    experience_id=(
+        "exp_"
+        +
+        now_utc().strftime(
+            "%Y%m%d%H%M%S%f"
+        )
+    )
+
+    record={
+        "experience_id":experience_id,
+        "timestamp":timestamp,
+        "date":today_key(),
+        "message":safe_text(message),
+        "category":proposal.get(
+            "category"
+        ),
+        "title":proposal.get(
+            "title"
+        ),
+        "action":proposal.get(
+            "action"
+        ),
+        "intent":understanding.get(
+            "intent"
+        ),
+        "signals":understanding.get(
+            "signals",
+            []
+        ),
+        "experience_ids":[
+            experience_id
+        ],
+        "exercise_ids":[],
+        "patterns":[],
+        "actions":[
+            proposal.get(
+                "action",
+                ""
+            )
+        ],
+        "phrases":[
+            proposal.get(
+                "direction",
+                ""
+            )
+        ],
+        "titles":[
+            proposal.get(
+                "title",
+                ""
+            )
+        ],
+        "breathing":breathing
+    }
+
+    if breathing:
+        exercise_id=safe_text(
+            breathing.get(
+                "exercise_id"
+            )
+        )
+
+        pattern=safe_text(
+            breathing.get(
+                "pattern"
+            )
+        )
+
+        if exercise_id:
+            record["exercise_ids"].append(
+                exercise_id
+            )
+
+        if pattern:
+            record["patterns"].append(
+                pattern
+            )
+
+    return record
+
+def update_learning(
+    memory,
+    understanding,
+    proposal
+):
+    memory=normalize_memory(
+        memory
+    )
+
+    profile=memory.setdefault(
+        "profile",
+        {}
+    )
+
+    intent=understanding.get(
+        "intent"
+    )
+
+    if intent:
+        profile["last_intent"]=intent
+
+    signals=understanding.get(
+        "signals",
+        []
+    )
+
+    if signals:
+        profile["recent_signals"]=signals[-10:]
+
+    destination=understanding.get(
+        "destination"
+    )
+
+    if destination:
+        profile["last_destination"]=destination
+
+    companion=understanding.get(
+        "companion"
+    )
+
+    if companion:
+        profile["last_companion"]=companion
+
+    budget=understanding.get(
+        "budget"
+    )
+
+    if budget is not None:
+        profile["last_budget"]=budget
+
+    category=proposal.get(
+        "category"
+    )
+
+    if category:
+        profile["last_category"]=category
+
+    return memory
+
+def process(
+    message,
+    memory=None
+):
+    message=safe_text(
+        message
+    )
+
+    memory=normalize_memory(
+        memory
+    )
+
+    understanding=understand(
+        message
+    )
+
+    personalization=personalize_local(
+        understanding,
+        memory
+    )
+
+    decision=decide(
+        understanding,
+        personalization
+    )
+
+    prompt=build_ai_prompt(
+        message,
+        understanding,
+        personalization,
+        decision
+    )
+
+    ai_result=None
+
+    try:
+        ai_result=call_openai(
+            prompt
+        )
+    except Exception:
+        ai_result=None
+
+    if ai_result is None:
+        try:
+            ai_result=call_gemini(
+                prompt
+            )
+        except Exception:
+            ai_result=None
+
+    proposal=sanitize_ai(
+        ai_result,
+        understanding,
+        personalization,
+        decision
+    )
+
+    record=make_experience_record(
+        message,
+        understanding,
+        decision,
+        proposal
+    )
+
+    memory=remember_today(
+        memory,
+        record
+    )
+
+    memory=update_learning(
+        memory,
+        understanding,
+        proposal
+    )
+
+    return {
+        "message":message,
+        "understanding":understanding,
+        "personalization":personalization,
+        "decision":decision,
+        "proposal":proposal,
+        "memory":memory,
+        "today":{
+            "date":today_key(),
+            "count":len(
+                today_history(memory)
+            ),
+            "used":used_today(
+                memory
+            )
+        }
+    }
+
+def response_text(result):
+    if not isinstance(
+        result,
+        dict
+    ):
+        return (
+            "I'm here. "
+            "Tell me what you need."
+        )
+
+    proposal=result.get(
+        "proposal",
+        {}
+    )
+
+    breathing=proposal.get(
+        "breathing"
+    )
+
+    if (
+        isinstance(breathing,dict)
+        and breathing.get("enabled")
+    ):
+        direction=safe_text(
+            proposal.get(
+                "direction"
+            ),
+            "Let's create a little space."
+        )
+
+        instruction=safe_text(
+            breathing.get(
+                "instruction"
+            ),
+            "Follow the circle and let the rhythm become natural."
+        )
+
+        return (
+            f"{direction} "
+            f"{instruction}"
+        )
+
+    return safe_text(
+        proposal.get(
+            "direction"
+        ),
+        "Tell me what you need, in your own words."
+    )
 
 def engine_status():
-return{
-"ready":True,
-"openai_configured":bool(OPENAI_API_KEY),
-"gemini_configured":bool(GEMINI_API_KEY),
-"primary":"openai",
-"fallback":"gemini",
-"local_fallback":True,
-"today_first_memory":True,
-"same_day_non_repetition":True,
-"breathing_library":len(BREATHING_PATTERNS),
-"breathing_needs":len(BREATHING_NEEDS)
-}
+    return {
+        "status":"ready",
+        "ai_primary":(
+            "openai"
+            if OPENAI_API_KEY
+            else "local"
+        ),
+        "ai_fallback":(
+            "gemini"
+            if GEMINI_API_KEY
+            else "local"
+        ),
+        "ai_invisible":True,
+        "today_first":True,
+        "anti_repetition":True,
+        "breathing_library":len(
+            BREATHING_EXERCISES
+        ),
+        "breathing_patterns":len(
+            BREATHING_PATTERNS
+        ),
+        "breathing_needs":len(
+            BREATHING_NEEDS
+        ),
+        "memory_mode":"client_memory_supported",
+        "payments":False,
+        "free":True
+    }
 
-def understand(text,memory=None):
-m=normalize_memory(memory)
-understanding=understand_local(text,m)
-personalization=personalize_local(understanding,m)
-return{
-"understanding":understanding,
-"personalization":personalization
-}
+def feedback(
+    memory,
+    experience_id,
+    value,
+    message=""
+):
+    memory=normalize_memory(
+        memory
+    )
 
-def personalize(text,memory=None):
-m=normalize_memory(memory)
-understanding=understand_local(text,m)
-return personalize_local(understanding,m)
+    item={
+        "timestamp":now_utc().isoformat(),
+        "experience_id":safe_text(
+            experience_id
+        ),
+        "value":safe_text(
+            value
+        ),
+        "message":safe_text(
+            message
+        )
+    }
 
-def decide(text,memory=None):
-m=normalize_memory(memory)
-understanding=understand_local(text,m)
-personalization=personalize_local(understanding,m)
-return local_decision(understanding,personalization)
+    memory["feedback"].append(
+        item
+    )
 
-def propose(text,memory=None):
-m=normalize_memory(memory)
-understanding=understand_local(text,m)
-personalization=personalize_local(understanding,m)
-decision=local_decision(understanding,personalization)
-return local_proposal(understanding,personalization,decision)
+    memory["feedback"]=memory[
+        "feedback"
+    ][-50:]
+
+    return memory
+
+def revise(
+    memory,
+    experience_id,
+    instruction
+):
+    memory=normalize_memory(
+        memory
+    )
+
+    return {
+        "memory":memory,
+        "revision":{
+            "experience_id":safe_text(
+                experience_id
+            ),
+            "instruction":safe_text(
+                instruction
+            ),
+            "status":"ready"
+        }
+    }
+
+def understand_message(message):
+    return understand(
+        message
+    )
+
+def personalize(
+    understanding,
+    memory
+):
+    return personalize_local(
+        understanding,
+        normalize_memory(
+            memory
+        )
+    )
+
+def propose(
+    understanding,
+    personalization,
+    decision
+):
+    return local_proposal(
+        understanding,
+        personalization,
+        decision
+    )
