@@ -1,55 +1,58 @@
+// static/app.js
+
 let memory = { core: {}, moment: {}, preferences: {}, dislikes: [], history: [], learning: {} };
-let currentLanguage = "en";
+let currentLanguage = "es"; 
 let currentResult = null;
 let recognition = null;
 let listening = false;
 let speaking = false;
 
-// Configuración del Círculo Respiratorio Variable Profesional (Ciclos eficientes de 4 minutos)
+// Variables de control para el Círculo Respiratorio Profesional
 let breathingTimer = null;
 let breathingSeconds = 240; 
 let breathingActive = false;
 
 const $ = id => document.getElementById(id);
 
-const TRANSLATIONS = {
-    en: {
-        heroTitle: "Streamlined Execution.",
-        heroSub: "Your private ecosystem. Speak or input your requirements below.",
-        placeholder: "Command your rhythm...",
-        mapsBtn: "✨ Exclusive Maps",
-        musicBtn: "🎵 Acoustic Space",
-        conciergeBtn: "✦ Request Concierge",
-        back: "← Back"
-    },
-    es: {
-        heroTitle: "Ejecución Inmediata.",
-        heroSub: "Su ecosistema privado. Hable o escriba sus requerimientos.",
-        placeholder: "Ordene su ritmo...",
-        mapsBtn: "✨ Mapas Exclusivos",
-        musicBtn: "🎵 Espacio Acústico",
-        conciergeBtn: "✦ Solicitar Conserje",
-        back: "← Volver"
-    }
-};
-
-function applyLanguageUI(lang) {
+/**
+ * Establece el estado de inicialización visual en el idioma nativo seleccionado.
+ * Evita textos huérfanos fijos y limpia la interfaz para la IA.
+ */
+function applyInitialState(lang) {
     currentLanguage = lang;
-    const t = TRANSLATIONS[lang];
-    $("heroTitle").textContent = t.heroTitle;
-    $("heroSub").textContent = t.heroSub;
-    $("messageInput").placeholder = t.placeholder;
-    $("mapsButton").textContent = t.mapsBtn;
-    $("musicButton").textContent = t.musicBtn;
-    $("conciergeButton").textContent = t.conciergeBtn;
-    $("closeMemory").textContent = t.back;
+    if (lang === "es") {
+        $("heroTitle").textContent = "Ejecución Inmediata.";
+        $("heroSub").textContent = "Su ecosistema privado. Indique sus requerimientos por voz o texto.";
+        $("messageInput").placeholder = "Ordene su ritmo...";
+        $("closeMemory").textContent = "← Volver";
+        $("memoryTitle").textContent = "Memoria del Sistema & Contexto";
+        $("clearMemoryButton").textContent = "Purgar Contexto Local";
+        $("breathingControlBtn").textContent = "Iniciar";
+    } else {
+        $("heroTitle").textContent = "Streamlined Execution.";
+        $("heroSub").textContent = "Your private ecosystem. Speak or input your requirements below.";
+        $("messageInput").placeholder = "Command your rhythm...";
+        $("closeMemory").textContent = "← Back";
+        $("memoryTitle").textContent = "Ecosystem Memory & Context";
+        $("clearMemoryButton").textContent = "Purge Local Context";
+        $("breathingControlBtn").textContent = "Begin";
+    }
 }
 
 function showDeck(id) {
     document.querySelectorAll(".deck").forEach(d => d.classList.remove("active"));
-    $(id).classList.add("active");
+    const el = $(id);
+    if (el) el.classList.add("active");
 }
 
+function setThinking(on) {
+    const el = $("thinking");
+    if (el) el.classList.toggle("hidden", !on);
+}
+
+/**
+ * Envío de comandos directos al ecosistema de IA (Gemini / OpenAI Fallback)
+ */
 async function askMirror() {
     const input = $("messageInput");
     const text = input.value.trim();
@@ -57,55 +60,96 @@ async function askMirror() {
 
     input.value = "";
     input.style.height = "auto";
+    setThinking(true);
     
     try {
         const response = await fetch("/api/mirror", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ message: text, language: currentLanguage, memory: memory })
+            body: JSON.stringify({
+                message: text,
+                language: currentLanguage,
+                device_id: localStorage.getItem("mirror_device_id") || "vip_secure_handset",
+                memory: memory
+            })
         });
+        
         const data = await response.json();
         if (data.ok) {
             memory = data.memory;
-            currentResult = data.plan;
-            currentLanguage = data.understanding.language;
-            applyLanguageUI(currentLanguage);
+            currentResult = data.plan; // Captura el JSON de control absoluto de la IA
+            currentLanguage = data.understanding.language || currentLanguage;
+            
+            // Re-adaptar entorno bilingüe según decisión de la IA
+            applyInitialState(currentLanguage);
             renderEcosystem(data);
         }
     } catch (e) {
-        console.error("Execution anomaly");
+        console.error("Anomaly detecting client directive.");
+    } finally {
+        setThinking(false);
     }
 }
 
+/**
+ * Renderizado dinámico de la Consola de Mando. 
+ * El 100% de los comos, porqués y cuandos son inyectados desde la IA.
+ */
 function renderEcosystem(data) {
-    $("planTitle").textContent = data.plan.title;
-    $("planReply").textContent = data.plan.reply;
+    const plan = data.plan;
+    
+    // Inyección de textos y justificaciones de la IA
+    $("statusBadge").textContent = (currentLanguage === "es" ? "DIRECCIÓN EN VIVO" : "LIVE DIRECTION");
+    $("planTitle").textContent = plan.title || "MIRROR CONSOLE";
+    $("planReply").textContent = plan.reply;
     
     const dirBox = $("directions");
     dirBox.innerHTML = "";
-    data.plan.direction.forEach(d => {
-        const el = document.createElement("div");
-        el.className = "premium-direction-item";
-        el.textContent = d;
-        dirBox.appendChild(el);
-    });
-
-    $("planArea").classList.remove("hidden");
+    if (Array.isArray(plan.direction)) {
+        plan.direction.forEach(d => {
+            const el = document.createElement("div");
+            el.className = "premium-direction-item";
+            el.textContent = d;
+            dirBox.appendChild(el);
+        });
+    }
     
-    // Si la intención es bienestar, despliega y autoconfigura el círculo respiratorio profesional
-    if (data.understanding.intent === "WELLBEING") {
-        $("breathingPhase").textContent = data.understanding.breathing_mode || "CALM";
+    $("planArea").classList.remove("hidden");
+
+    // Gestión del Círculo de Respiración Profesional Terapéutico (Pool de 100+ Objetivos)
+    const breath = plan.breathing_exercise;
+    if (breath && breath.active) {
+        clearInterval(breathingTimer);
+        breathingActive = false;
+        breathingSeconds = breath.duration_seconds || 240;
+        
+        $("breathingPhase").textContent = breath.objective.toUpperCase();
+        $("breathingInstruction").textContent = breath.instruction;
+        $("breathingControlBtn").textContent = currentLanguage === "es" ? "Iniciar" : "Begin";
+        $("breathingTimer").textContent = formatTime(breathingSeconds);
         $("breathingArea").classList.remove("hidden");
     } else {
         $("breathingArea").classList.add("hidden");
     }
 
-    if (data.plan.reply && !speaking) {
-        speakHighFidelity(data.plan.reply);
+    // Visibilidad Condicional Inteligente de Botones según la IA determine los porqués
+    $("mapsButton").classList.toggle("hidden", !plan.premium_destination_query);
+    $("mapsButton").textContent = currentLanguage === "es" ? "✨ Mapas Exclusivos" : "✨ Exclusive Maps";
+    
+    $("musicButton").classList.toggle("hidden", !plan.premium_music_query);
+    $("musicButton").textContent = currentLanguage === "es" ? "🎵 Espacio Acústico" : "🎵 Acoustic Space";
+
+    $("conciergeButton").classList.remove("hidden");
+    $("conciergeButton").textContent = currentLanguage === "es" ? "✦ Solicitar Conserje" : "✦ Request Concierge";
+
+    if (plan.reply && !speaking) {
+        speakHighFidelity(plan.reply);
     }
 }
 
-// Círculo Respiratorio Profesional Variable de Relación Cuadrada Rápida (Inhala 4s, Retiene 4s, Exhala 4s, Rest 4s)
+/**
+ * Lógica del Círculo Respiratorio Profesional (Relación Cuadrada: Inhala, Retiene, Exhala, Recupera)
+ */
 function syncBreathingCycle() {
     const elapsed = 240 - breathingSeconds;
     const step = elapsed % 16;
@@ -126,38 +170,58 @@ function syncBreathingCycle() {
         orb.classList.add("rest");
     }
     
-    const mins = Math.floor(breathingSeconds / 60);
-    const secs = breathingSeconds % 60;
-    $("breathingTimer").textContent = `${String(mins).padStart(2,"0")}:${String(secs).padStart(2,"0")}`;
+    $("breathingTimer").textContent = formatTime(breathingSeconds);
 }
 
 function toggleBreathing() {
     if (breathingActive) {
         clearInterval(breathingTimer);
         breathingActive = false;
-        $("breathingControlBtn").textContent = "Resume";
+        $("breathingControlBtn").textContent = currentLanguage === "es" ? "Reanudar" : "Resume";
     } else {
         breathingActive = true;
-        $("breathingControlBtn").textContent = "Pause";
+        $("breathingControlBtn").textContent = currentLanguage === "es" ? "Pausa" : "Pause";
         breathingTimer = setInterval(() => {
             breathingSeconds--;
             if (breathingSeconds <= 0) {
                 clearInterval(breathingTimer);
                 breathingActive = false;
                 breathingSeconds = 240;
+                $("breathingPhase").textContent = currentLanguage === "es" ? "COMPLETO" : "SUCCESS";
+            } else {
+                syncBreathingCycle();
             }
-            syncBreathingCycle();
         }, 1000);
     }
 }
 
+/**
+ * Redirecciones de Ejecución Real y Filtrado de Ultra-Lujo provistos por la IA
+ */
+async function openPremiumMap() {
+    if (!currentResult || !currentResult.premium_destination_query) return;
+    const res = await fetch(`/api/maps?destination=${encodeURIComponent(currentResult.premium_destination_query)}`);
+    const data = await res.json();
+    if (data.url) window.open(data.url, "_blank", "noopener,noreferrer");
+}
+
+async function playPremiumMusic() {
+    if (!currentResult || !currentResult.premium_music_query) return;
+    const res = await fetch(`/api/music?query=${encodeURIComponent(currentResult.premium_music_query)}`);
+    const data = await res.json();
+    if (data.url) window.open(data.url, "_blank", "noopener,noreferrer");
+}
+
+/**
+ * Modulo de Voz Bidireccional de Alta Fidelidad
+ */
 function speakHighFidelity(text) {
     if (!("speechSynthesis" in window)) return;
     window.speechSynthesis.cancel();
     const utter = new SpeechSynthesisUtterance(text);
     utter.lang = currentLanguage === "es" ? "es-US" : "en-US";
-    utter.rate = 1.0; 
-    utter.pitch = 0.95; // Tono elegante, profundo y maduro
+    utter.rate = 0.95;
+    utter.pitch = 0.95; 
     utter.onstart = () => speaking = true;
     utter.onend = () => speaking = false;
     window.speechSynthesis.speak(utter);
@@ -170,6 +234,8 @@ function toggleVoiceRecognition() {
         recognition = new SR();
         recognition.continuous = false;
         recognition.interimResults = false;
+        recognition.lang = currentLanguage === "es" ? "es-US" : "en-US";
+        
         recognition.onstart = () => {
             listening = true;
             $("voiceButton").classList.add("active-mic");
@@ -186,41 +252,76 @@ function toggleVoiceRecognition() {
     if (listening) recognition.stop(); else recognition.start();
 }
 
-function init() {
-    applyLanguageUI("en");
-    
-    $("langToggle").onclick = () => {
-        applyLanguageUI(currentLanguage === "en" ? "es" : "en");
-    };
-    $("memoryButton").onclick = () => showDeck("memoryScreen");
-    $("closeMemory").onclick = () => showDeck("mainDeck");
-    $("sendButton").onclick = askMirror;
-    $("voiceButton").onclick = toggleVoiceRecognition;
-    $("breathingControlBtn").onclick = toggleBreathing;
-    
-    $("mapsButton").onclick = async () => {
-        const dest = currentResult?.destination || "";
-        const res = await fetch(`/api/maps?destination=${encodeURIComponent(dest)}`);
-        const data = await res.json();
-        window.open(data.url, "_blank");
-    };
-    
-    $("musicButton").onclick = async () => {
-        const res = await fetch(`/api/music`);
-        const data = await res.json();
-        window.open(data.url, "_blank");
-    };
-
-    $("conciergeButton").onclick = () => {
-        speakHighFidelity(currentLanguage === "es" ? "Contacto directo establecido con su Conserje de Línea Ejecutiva." : "Direct contact established with your Executive Line Concierge.");
-    };
-
-    $("messageInput").addEventListener("keydown", e => {
-        if (e.key === "Enter" && !e.shiftKey) {
-            e.preventDefault();
-            askMirror();
-        }
+/**
+ * Renderizado de Memoria Persistente sin fricciones
+ */
+function renderMemorySummary() {
+    const box = $("memorySummary");
+    box.innerHTML = "";
+    const items = [
+        ["Identidad", memory.core?.name || "Premium Client"],
+        ["Enfoque Actual", memory.moment?.intent || "CONCIERGE"],
+        ["Idioma Fijo", currentLanguage.toUpperCase()]
+    ];
+    items.forEach(([k, v]) => {
+        const div = document.createElement("div");
+        div.className = "memory-item";
+        div.innerHTML = `<span>${k}</span><strong>${v}</strong>`;
+        box.appendChild(div);
     });
+}
+function formatTime(seconds) {
+  const m = Math.floor(seconds / 60);
+  const s = seconds % 60;
+  return `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+}
+
+function autoResize() {
+  const el = $("messageInput");
+  el.style.height = "auto";
+  el.style.height = Math.min(el.scrollHeight, 140) + "px";
+}
+
+/**
+ * Inicialización Global y Enlace de Eventos Directos
+ */
+function init() {
+  // Generar ID único discreto si no existe
+  if (!localStorage.getItem("mirror_device_id")) {
+    localStorage.setItem("mirror_device_id", "vip_" + Math.random().toString(36).substring(2, 15));
+  }
+
+  applyInitialState("es"); // Por defecto inicia de forma limpia en español
+
+  $("langToggle").onclick = () => {
+    applyInitialState(currentLanguage === "en" ? "es" : "en");
+  };
+  $("memoryButton").onclick = () => {
+    renderMemorySummary();
+    showDeck("memoryScreen");
+  };
+  $("closeMemory").onclick = () => showDeck("mainDeck");
+  $("sendButton").onclick = askMirror;
+  $("voiceButton").onclick = toggleVoiceRecognition;
+  $("breathingControlBtn").onclick = toggleBreathing;
+  $("mapsButton").onclick = openPremiumMap;
+  $("musicButton").onclick = playPremiumMusic;
+  $("conciergeButton").onclick = () => {
+    speakHighFidelity(currentLanguage === "es" ? "Línea directa con su conserje privado enlazada." : "Private concierge direct connection locked in.");
+  };
+  $("clearMemoryButton").onclick = () => {
+    memory = { core: {}, moment: {}, preferences: {}, dislikes: [], history: [], learning: {} };
+    localStorage.removeItem("mirror_memory");
+    renderMemorySummary();
+    showDeck("mainDeck");
+  };
+  $("messageInput").addEventListener("input", autoResize);
+  $("messageInput").addEventListener("keydown", e => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      askMirror();
+    }
+  });
 }
 
 document.addEventListener("DOMContentLoaded", init);
