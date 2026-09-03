@@ -1,995 +1,925 @@
 import os
-import json
 import re
+import json
+import uuid
 import urllib.request
 import urllib.error
 from datetime import datetime, timezone
 
+OPENAI_API_KEY=os.getenv("OPENAI_API_KEY","").strip()
+GEMINI_API_KEY=os.getenv("GEMINI_API_KEY","").strip()
+OPENAI_MODEL=os.getenv("OPENAI_MODEL","gpt-5-mini").strip()
+GEMINI_MODEL=os.getenv("GEMINI_MODEL","gemini-2.5-flash").strip()
 
-OPENAI_KEY = os.getenv("OPENAI_API_KEY", "").strip()
-GEMINI_KEY = os.getenv("GEMINI_API_KEY", "").strip()
+try:
+AI_TIMEOUT=float(os.getenv("MIRROR_AI_TIMEOUT","35"))
+except:
+AI_TIMEOUT=35.0
 
-OPENAI_MODEL = os.getenv("OPENAI_MODEL", "gpt-5-mini")
-GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
+MAX_HISTORY=100
+MAX_DAILY_HISTORY=120
+MAX_TEXT=6000
 
-TIMEOUT = int(os.getenv("MIRROR_AI_TIMEOUT", "18"))
+BREATHING_PATTERNS=[
+{"id":"breath_01","pattern":"4-4","inhale":4,"hold":0,"exhale":4,"pause":0,"style":"steady"},
+{"id":"breath_02","pattern":"4-6","inhale":4,"hold":0,"exhale":6,"pause":0,"style":"calming"},
+{"id":"breath_03","pattern":"3-5","inhale":3,"hold":0,"exhale":5,"pause":0,"style":"gentle"},
+{"id":"breath_04","pattern":"4-2-6","inhale":4,"hold":2,"exhale":6,"pause":0,"style":"slow"},
+{"id":"breath_05","pattern":"4-4-6","inhale":4,"hold":4,"exhale":6,"pause":0,"style":"grounding"},
+{"id":"breath_06","pattern":"5-5","inhale":5,"hold":0,"exhale":5,"pause":0,"style":"balanced"},
+{"id":"breath_07","pattern":"3-3-6","inhale":3,"hold":3,"exhale":6,"pause":0,"style":"release"},
+{"id":"breath_08","pattern":"4-7","inhale":4,"hold":0,"exhale":7,"pause":0,"style":"quiet"},
+{"id":"breath_09","pattern":"5-7","inhale":5,"hold":0,"exhale":7,"pause":0,"style":"deep"},
+{"id":"breath_10","pattern":"4-1-5","inhale":4,"hold":1,"exhale":5,"pause":0,"style":"reset"}
+]
 
+BREATHING_NEEDS=[
+"calm","slow_down","release_tension","regain_focus","prepare_for_sleep",
+"wake_gently","recover_energy","create_space","ground_attention",
+"prepare_for_travel","wait_patiently","transition","clear_mind",
+"change_mood","feel_present","reduce_overwhelm","pause","reset",
+"quiet_moment","restore_balance","recover_after_stress","prepare_for_meeting",
+"prepare_for_social_moment","prepare_for_rest","recover_from_rush",
+"reconnect_with_self","create_confidence","soften_the_day","start_again",
+"finish_the_day","enjoy_the_moment","settle_before_decision",
+"recover_after_disappointment","prepare_for_change","reduce_restlessness",
+"create_focus","slow_thoughts","feel_centered","find_rhythm",
+"private_pause","personal_reset","emotional_space","gentle_recovery",
+"mental_refresh","body_awareness","attention_shift","comfort",
+"anticipation","uncertainty","frustration","impatience","loneliness",
+"social_fatigue","travel_fatigue","jet_lag_adjustment","busy_day",
+"quiet_start","quiet_finish","creative_space","decision_space",
+"confidence_before_action","recovery_between_tasks","recovery_between_places",
+"return_to_present","enjoyment","gratitude","curiosity","motivation",
+"patience","clarity","composure","lightness","relaxation",
+"reconnection","self_attention","personal_time","digital_pause",
+"sensory_reset","mental_distance","fresh_start","slow_evening",
+"gentle_morning","private_reflection","anticipatory_calm","focus_transition",
+"rest_transition","travel_transition","social_transition","work_free_reset",
+"personal_ritual","micro_pause","longer_pause","moment_of_choice",
+"moment_of_uncertainty","moment_of_change","moment_of_recovery",
+"moment_of_presence","moment_of_discovery","moment_of_rest"
+]
+
+SYSTEM_MEMORY_RULES={
+"daily_priority":True,
+"today_first":True,
+"avoid_same_day_repetition":True,
+"adapt_when_similar":True,
+"respect_explicit_request":True,
+"learn_from_feedback":True,
+"never_claim_unconfirmed_execution":True,
+"ai_invisible_to_client":True,
+"use_memory_before_decision":True,
+"breathing_available_when_context_supports_it":True
+}
 
 def now():
-    return datetime.now(timezone.utc).isoformat()
+return datetime.now(timezone.utc).isoformat()
 
+def today_key():
+return datetime.now(timezone.utc).strftime("%Y-%m-%d")
 
-def clean(value, default=None):
-    if value is None:
-        return default
-    if isinstance(value, str):
-        value = value.strip()
-        return value or default
-    return value
-
+def clean(value,max_len=MAX_TEXT):
+if value is None:
+return ""
+if not isinstance(value,str):
+value=str(value)
+return " ".join(value.strip().split())[:max_len]
 
 def language_of(text):
-    t = (text or "").lower()
-    spanish = re.search(
-        r"\b(quiero|necesito|hoy|mañana|viaje|hotel|solo|sola|"
-        r"descansar|escaparme|comida|silencio|tranquilo|días|"
-        r"qué|como|dónde|hacer|buscar|ayuda)\b",
-        t
-    )
-    return "es" if spanish else "en"
-
+text=clean(text).lower()
+spanish=[
+" que "," necesito "," quiero "," estoy "," para "," con "," una ",
+" por "," hoy "," donde "," dónde "," ayuda "," necesito"
+]
+score=sum(1 for x in spanish if x in f" {text} ")
+return "es" if score>=2 else "en"
 
 def normalize_memory(memory):
-    memory = memory if isinstance(memory, dict) else {}
-    return {
-        "core": memory.get("core") or {},
-        "moment": memory.get("moment") or {},
-        "preferences": memory.get("preferences") or {},
-        "dislikes": memory.get("dislikes") or [],
-        "history": memory.get("history") or [],
-        "learning": memory.get("learning") or {}
-    }
+m=memory if isinstance(memory,dict) else {}
+core=m.get("core",{})
+moment=m.get("moment",{})
+preferences=m.get("preferences",{})
+dislikes=m.get("dislikes",[])
+history=m.get("history",[])
+learning=m.get("learning",{})
+daily=m.get("daily",{})
 
+```
+if not isinstance(core,dict):
+    core={}
+if not isinstance(moment,dict):
+    moment={}
+if not isinstance(preferences,dict):
+    preferences={}
+if not isinstance(dislikes,list):
+    dislikes=[]
+if not isinstance(history,list):
+    history=[]
+if not isinstance(learning,dict):
+    learning={}
+if not isinstance(daily,dict):
+    daily={}
+
+daily_today=daily.get(today_key(),[])
+if not isinstance(daily_today,list):
+    daily_today=[]
+
+return{
+    "core":core,
+    "moment":moment,
+    "preferences":preferences,
+    "dislikes":dislikes[-100:],
+    "history":history[-MAX_HISTORY:],
+    "learning":learning,
+    "daily":{today_key():daily_today[-MAX_DAILY_HISTORY:]},
+    "system":SYSTEM_MEMORY_RULES
+}
+```
+
+def remember_today(memory,entry):
+m=normalize_memory(memory)
+key=today_key()
+daily=m["daily"].setdefault(key,[])
+daily.append(entry)
+m["daily"][key]=daily[-MAX_DAILY_HISTORY:]
+m["history"]=(m.get("history",[])+[entry])[-MAX_HISTORY:]
+return m
+
+def today_history(memory):
+m=normalize_memory(memory)
+return m.get("daily",{}).get(today_key(),[])
+
+def recent_experiences(memory,limit=30):
+history=today_history(memory)
+return history[-limit:]
+
+def used_today(memory,field):
+values=[]
+for item in today_history(memory):
+value=item.get(field)
+if value:
+values.append(str(value).lower())
+return values
 
 def detect_signals(text):
-    t = (text or "").lower()
-    signals = []
-
-    patterns = {
-        "privacy": r"\b(privado|privacidad|private|privacy|nadie|alone|solo|sola)\b",
-        "quiet": r"\b(silencio|tranquilo|tranquila|quiet|peaceful|calm|quieto)\b",
-        "luxury": r"\b(lujo|lujoso|lujosa|luxury|exclusive|exclusivo|premium|elegante)\b",
-        "nature": r"\b(naturaleza|nature|playa|beach|montaña|mountain|bosque|forest)\b",
-        "water": r"\b(agua|water|mar|sea|océano|ocean|piscina|pool)\b",
-        "food": r"\b(comida|gastronomía|gastronomia|restaurant|restaurante|food|dining|chef)\b",
-        "music": r"\b(música|musica|music|canción|song)\b",
-        "disconnect": r"\b(desconectar|desconexión|desconexion|disconnect|desaparecer|desaparezco|away)\b",
-        "adventure": r"\b(aventura|adventure|explorar|explore|descubrir|discover)\b",
-        "wellbeing": r"\b(respirar|breath|breathing|respiración|respiracion|relajar|relax|calma)\b",
-        "spontaneous": r"\b(sorpresa|sorpréndeme|sorprendeme|surprise|spontaneous|espontáneo|espontaneo)\b"
-    }
-
-    for name, pattern in patterns.items():
-        if re.search(pattern, t):
-            signals.append(name)
-
-    return signals
-
+t=clean(text).lower()
+groups={
+"calm":["stress","stressed","tense","tension","anxious","overwhelmed","overloaded","nervous","agitated","calma","estrés","estresado","tenso","tensión","ansioso","abrumado","nervioso"],
+"fatigue":["tired","exhausted","drained","fatigue","sleepy","cansado","agotado","fatiga","sueño"],
+"focus":["focus","concentrate","concentration","clarity","focus","concentración","concentrarme","claridad"],
+"rest":["rest","relax","quiet","peace","sleep","descansar","relajar","tranquilo","paz","dormir"],
+"energy":["energy","energize","awake","motivation","energía","despertar","motivado"],
+"travel":["travel","trip","flight","hotel","destination","viaje","vuelo","hotel","destino"],
+"privacy":["private","discreet","quiet","alone","privado","discreto","tranquilo","solo"],
+"surprise":["surprise","unexpected","different","sorpréndeme","sorpresa","diferente"],
+"decision":["decide","decision","choose","choice","decidir","decisión","elegir"],
+"social":["family","friend","partner","friends","familia","amigo","pareja","amigos"],
+"rush":["quick","quickly","busy","hurry","fast","rápido","apurado","prisa"],
+"sadness":["sad","down","low","lonely","triste","solo","bajoneado","decaído"],
+"joy":["happy","excited","celebrate","fun","feliz","emocionado","celebrar","diversión"]
+}
+found=[]
+for key,words in groups.items():
+if any(word in t for word in words):
+found.append(key)
+return found[:10]
 
 def detect_duration(text):
-    t = (text or "").lower()
-
-    m = re.search(r"\b(\d+)\s*(?:d[ií]a|d[ií]as|days?)\b", t)
-    if m:
-        return f"{m.group(1)} days"
-
-    if "fin de semana" in t or "weekend" in t:
-        return "weekend"
-
-    if "una semana" in t or "one week" in t:
-        return "one week"
-
-    if "hoy" in t or "today" in t:
-        return "today"
-
-    return None
-
+t=clean(text).lower()
+patterns=[
+(r"(\d+)\s*(?:min|mins|minute|minutes|minuto|minutos)",1),
+(r"(\d+)\s*(?:h|hr|hour|hours|hora|horas)",60)
+]
+for pattern,mult in patterns:
+match=re.search(pattern,t)
+if match:
+try:
+return int(match.group(1))*mult
+except:
+pass
+return None
 
 def detect_companion(text):
-    t = (text or "").lower()
-
-    if re.search(r"\bsolo\b|\bsola\b|\balone\b|\bby myself\b", t):
-        return "alone"
-
-    if re.search(r"\bpareja\b|\bpartner\b|\bspouse\b", t):
-        return "partner"
-
-    if re.search(r"\bfamilia\b|\bfamily\b|\bchildren\b|\bhijos\b", t):
-        return "family"
-
-    if re.search(r"\bamigos\b|\bamigas\b|\bfriends\b", t):
-        return "friends"
-
-    return None
-
+t=clean(text).lower()
+mapping=[
+(["alone","myself","solo","sola"],"alone"),
+(["partner","spouse","wife","husband","pareja","esposa","esposo"],"partner"),
+(["family","familia"],"family"),
+(["friend","friends","amigo","amiga","amigos"],"friends"),
+(["children","kids","hijos","niños"],"family")
+]
+for words,value in mapping:
+if any(x in t for x in words):
+return value
+return None
 
 def detect_budget(text):
-    t = (text or "").lower()
-
-    m = re.search(r"\$?\s?([\d,]+(?:\.\d+)?)", t)
-    if m:
-        try:
-            return float(m.group(1).replace(",", ""))
-        except Exception:
-            pass
-
-    if re.search(r"\b(sin límite|sin limite|no limit|whatever it costs)\b", t):
-        return "flexible"
-
-    if re.search(r"\b(barato|cheap|económico|economico|budget)\b", t):
-        return "value"
-
-    if re.search(r"\b(lujo|luxury|premium|exclusive|exclusivo)\b", t):
-        return "premium"
-
-    return None
-
+match=re.search(r"(?:$|usd\s*)?(\d{2,6}(?:[.,]\d{1,2})?)\s*(?:usd|dollars|dólares)?",clean(text).lower())
+if not match:
+return None
+try:
+return float(match.group(1).replace(",",""))
+except:
+return None
 
 def detect_destination(text):
-    t = (text or "").strip()
+t=clean(text)
+patterns=[
+r"(?:to|in|at|for|hacia|en|para)\s+([A-Z][A-Za-zÀ-ÿ]*(?:\s+[A-Z][A-Za-zÀ-ÿ]*){0,3})",
+r"(?:miami|new york|orlando|los angeles|paris|london|madrid|mexico|cuba|guatemala)"
+]
+for pattern in patterns:
+match=re.search(pattern,t,re.I)
+if match:
+if match.lastindex:
+value=clean(match.group(1))
+else:
+value=clean(match.group(0))
+if len(value)>2:
+return value
+return None
 
-    patterns = [
-        r"\b(?:en|a|para|in|to)\s+([A-ZÁÉÍÓÚÑ][A-Za-zÁÉÍÓÚÑáéíóúñ' -]{2,40})",
-        r"\b(?:near|cerca de)\s+([A-ZÁÉÍÓÚÑ][A-Za-zÁÉÍÓÚÑáéíóúñ' -]{2,40})"
-    ]
+def infer_intent(text,signals):
+t=clean(text).lower()
+if any(x in t for x in ["music","playlist","song","música","canción"]):
+return "mood"
+if any(x in t for x in ["breathe","breathing","breath","respira","respiración","respirar"]):
+return "breathing"
+if any(x in t for x in ["hotel","flight","trip","travel","destination","hotel","vuelo","viaje","destino"]):
+return "travel"
+if any(x in t for x in ["restaurant","dinner","lunch","eat","food","restaurante","cena","almuerzo","comer","comida"]):
+return "dining"
+if any(x in t for x in ["surprise","something special","sorprende","algo especial"]):
+return "discovery"
+if any(x in t for x in ["what should i","where should i","help me choose","qué hago","qué debería","ayúdame a elegir"]):
+return "decision"
+if "calm" in signals or "rest" in signals or "sadness" in signals or "rush" in signals:
+return "wellbeing_moment"
+return "concierge"
 
-    stop = {
-        "quiero", "quieres", "necesito", "necesitas",
-        "un", "una", "el", "la", "que", "para", "con",
-        "this", "that", "something", "somewhere"
+def understand_local(text,memory):
+signals=detect_signals(text)
+return{
+"language":language_of(text),
+"intent":infer_intent(text,signals),
+"signals":signals,
+"duration":detect_duration(text),
+"companion":detect_companion(text),
+"budget":detect_budget(text),
+"destination":detect_destination(text),
+"today_count":len(today_history(memory))
+}
+
+def personalize_local(understanding,memory):
+m=normalize_memory(memory)
+preferences=m.get("preferences",{})
+core=m.get("core",{})
+dislikes=m.get("dislikes",[])
+today=today_history(m)
+
+```
+return{
+    "known_preferences":preferences,
+    "core":core,
+    "dislikes":dislikes[-20:],
+    "today_experiences":today[-30:],
+    "today_count":len(today),
+    "avoid_today":{
+        "exercise_ids":used_today(m,"exercise_id"),
+        "patterns":used_today(m,"pattern"),
+        "actions":used_today(m,"action"),
+        "phrases":used_today(m,"phrase"),
+        "titles":used_today(m,"title"),
+        "experience_ids":used_today(m,"experience_id")
     }
-
-    for pattern in patterns:
-        match = re.search(pattern, t)
-        if match:
-            value = match.group(1).strip(" .,!?")
-            words = value.split()
-            if words and words[0].lower() not in stop:
-                return value
-
-    return None
-
-
-def infer_intent(text):
-    t = (text or "").lower()
-
-    travel = re.search(
-        r"\b(viaje|viajar|escapada|escaparme|hotel|resort|"
-        r"trip|travel|escape|getaway|vacation|stay|destination)\b",
-        t
-    )
-
-    dining = re.search(
-        r"\b(restaurante|restaurant|cena|dinner|comida|food|chef|gastronomía|dining)\b",
-        t
-    )
-
-    music = re.search(r"\b(música|musica|music|canción|song|youtube)\b", t)
-
-    experience = re.search(
-        r"\b(hacer algo|something to do|experiencia|experience|"
-        r"actividad|activity|sorpresa|surprise|qué hago|what should i do)\b",
-        t
-    )
-
-    if travel:
-        if re.search(r"\b(desaparecer|disconnect|desconectar|quiet|silencio|nadie)\b", t):
-            return "PRIVATE_ESCAPE"
-        return "TRAVEL"
-
-    if dining:
-        return "DINING"
-
-    if music:
-        return "MUSIC"
-
-    if experience:
-        return "EXPERIENCE"
-
-    if re.search(
-        r"\b(cansado|cansada|agotado|agotada|tired|overwhelmed|"
-        r"aburrido|aburrida|bored|estresado|estresada|stressed|"
-        r"no sé|no se|i don't know|lost|perdido|perdida)\b",
-        t
-    ):
-        return "MOMENT"
-
-    return "CONVERSATION"
-
-
-def understand_local(text):
-    lang = language_of(text)
-    intent = infer_intent(text)
-    signals = detect_signals(text)
-
-    privacy = "high" if "privacy" in signals else "normal"
-
-    if any(x in signals for x in ("disconnect", "quiet")):
-        privacy = "very_high"
-
-    priority = "normal"
-
-    if "disconnect" in signals:
-        priority = "personal"
-
-    return {
-        "message": text,
-        "language": lang,
-        "intent": intent,
-        "privacy": privacy,
-        "priority": priority,
-        "companion": detect_companion(text),
-        "duration": detect_duration(text),
-        "budget": detect_budget(text),
-        "destination": detect_destination(text),
-        "signals": signals
-    }
-
-
-def personalize_local(understanding, memory):
-    memory = normalize_memory(memory)
-
-    core = memory["core"]
-    moment = memory["moment"]
-    preferences = memory["preferences"]
-
-    signals = list(understanding.get("signals") or [])
-
-    for source in (core, preferences):
-        if not isinstance(source, dict):
-            continue
-
-        style = str(
-            source.get("travel_style")
-            or source.get("style")
-            or source.get("planning_style")
-            or ""
-        ).lower()
-
-        if style and style not in signals:
-            signals.append(style)
-
-        privacy = str(source.get("privacy") or "").lower()
-
-        if privacy and privacy not in signals:
-            signals.append(privacy)
-
-    today = {}
-    if isinstance(moment, dict):
-        today = {
-            k: v for k, v in moment.items()
-            if v not in (None, "", [], {})
-        }
-
-    return {
-        "signals": list(dict.fromkeys(signals)),
-        "today": today,
-        "known_preferences": core,
-        "personalized": bool(core or moment or preferences)
-    }
-
-
-def local_decision(understanding, personalization):
-    intent = understanding.get("intent")
-    destination = understanding.get("destination")
-    duration = understanding.get("duration")
-    companion = understanding.get("companion")
-
-    score = 0
-
-    if intent:
-        score += 25
-    if destination:
-        score += 25
-    if duration:
-        score += 15
-    if companion:
-        score += 10
-    if understanding.get("signals"):
-        score += 15
-    if personalization.get("personalized"):
-        score += 10
-
-    travel_intents = {
-        "TRAVEL",
-        "PRIVATE_ESCAPE"
-    }
-
-    if intent in travel_intents and not destination:
-        return {
-            "action": "ASK",
-            "confidence": min(score, 85),
-            "reason": "destination_missing"
-        }
-
-    if score < 35:
-        return {
-            "action": "CLARIFY",
-            "confidence": score,
-            "reason": "insufficient_context"
-        }
-
-    return {
-        "action": "PROPOSE",
-        "confidence": min(score, 98),
-        "reason": "enough_context"
-    }
-
-
-def local_proposal(understanding, personalization, decision):
-    lang = understanding.get("language", "en")
-    intent = understanding.get("intent")
-    signals = personalization.get("signals") or understanding.get("signals") or []
-
-    if decision.get("action") in ("ASK", "CLARIFY"):
-        if lang == "es":
-            question = (
-                "¿Dónde quieres que lo imagine? Puedes darme un lugar "
-                "concreto o decirme que estoy abierto a sorprenderte."
-            )
-        else:
-            question = (
-                "Where would you like me to place this? Give me a specific "
-                "place, or tell me you’re open to being surprised."
-            )
-
-        return {
-            "status": decision["action"],
-            "title": "One thing first",
-            "direction": [question],
-            "questions": [question],
-            "category": intent,
-            "privacy": understanding.get("privacy"),
-            "priority": understanding.get("priority"),
-            "budget": understanding.get("budget"),
-            "destination": understanding.get("destination"),
-            "duration": understanding.get("duration"),
-            "companion": understanding.get("companion"),
-            "signals": signals,
-            "confidence": decision.get("confidence", 0)
-        }
-
-    if intent == "PRIVATE_ESCAPE":
-        if lang == "es":
-            direction = [
-                "Una escapada privada, tranquila y sin ruido alrededor.",
-                "Priorizaré privacidad, descanso, buena gastronomía y poca exposición.",
-                "No necesitas construir el viaje tú; MIRROR puede encargarse de darle forma."
-            ]
-            title = "Tu espacio"
-        else:
-            direction = [
-                "A private escape with quiet around you and nothing unnecessary.",
-                "I’ll prioritize privacy, rest, excellent food and very little exposure.",
-                "You don’t need to build the experience yourself; MIRROR can shape it for you."
-            ]
-            title = "Your space"
-
-    elif intent == "TRAVEL":
-        if lang == "es":
-            direction = [
-                "Voy a pensar en el viaje como una experiencia, no como una lista de opciones.",
-                "Tomaré en cuenta tu ritmo, tus preferencias y lo que parece importante hoy."
-            ]
-            title = "Tu viaje"
-
-        else:
-            direction = [
-                "I’ll think about the trip as an experience, not as a list of options.",
-                "I’ll account for your rhythm, your preferences and what seems important today."
-            ]
-            title = "Your journey"
-
-    elif intent == "DINING":
-        if lang == "es":
-            direction = [
-                "No buscaré simplemente un restaurante.",
-                "Buscaré el tipo de momento que quieres tener alrededor de la mesa."
-            ]
-            title = "La mesa"
-
-        else:
-            direction = [
-                "I won’t simply look for a restaurant.",
-                "I’ll look for the kind of moment you want to have around the table."
-            ]
-            title = "The table"
-
-    elif intent == "MUSIC":
-        if lang == "es":
-            direction = [
-                "Puedo cambiar el ambiente sin pedirte que hagas nada complicado.",
-                "La música seguirá el tono de este momento."
-            ]
-            title = "El ambiente"
-
-        else:
-            direction = [
-                "I can change the atmosphere without asking you to do anything complicated.",
-                "The music will follow the tone of this moment."
-            ]
-            title = "The atmosphere"
-
-    elif intent == "MOMENT":
-        if lang == "es":
-            direction = [
-                "No voy a asumir que hoy necesitas lo mismo que ayer.",
-                "Primero voy a encontrar qué necesita este momento."
-            ]
-            title = "Ahora"
-
-        else:
-            direction = [
-                "I won’t assume today needs to feel like yesterday.",
-                "First I’ll find what this moment needs."
-            ]
-            title = "Right now"
-
-    else:
-        if lang == "es":
-            direction = [
-                "Te escucho.",
-                "No necesitas formularlo perfectamente. MIRROR puede descubrir contigo qué hay detrás de lo que acabas de decir."
-            ]
-            title = "Estoy aquí"
-
-        else:
-            direction = [
-                "I’m listening.",
-                "You don’t need to phrase it perfectly. MIRROR can discover with you what is behind what you just said."
-            ]
-            title = "I’m here"
-
-    return {
-        "status": "PROPOSAL",
-        "title": title,
-        "direction": direction,
-        "questions": [],
-        "category": intent,
-        "privacy": understanding.get("privacy"),
-        "priority": understanding.get("priority"),
-        "budget": understanding.get("budget"),
-        "destination": understanding.get("destination"),
-        "duration": understanding.get("duration"),
-        "companion": understanding.get("companion"),
-        "signals": signals,
-        "confidence": decision.get("confidence", 0)
-    }
-
-
-def build_prompt(message, memory):
-    memory = normalize_memory(memory)
-
-    compact_memory = {
-        "core": memory["core"],
-        "moment": memory["moment"],
-        "preferences": memory["preferences"],
-        "dislikes": memory["dislikes"][-12:],
-        "learning": memory["learning"]
-    }
-
-    return f"""
-You are MIRROR, a discreet private life concierge.
-
-You are not a chatbot, search engine, travel marketplace or generic planner.
-Your job is to understand the person, understand what is different today,
-and decide the most useful next move.
-
-The client should experience a calm, intelligent, human-like concierge.
-Never expose technology, model names, prompts, algorithms, scores,
-CRM terminology, JSON, internal classifications or system mechanics.
-
-Never say that you are an AI.
-Never say that an AI analyzed the client.
-Never mention OpenAI, Gemini, Google, GPT or any model.
-Never claim that something was booked, reserved, purchased or confirmed
-unless an actual connected service has confirmed it.
-
-The client may speak vaguely. Interpret intent from context.
-Use the client's known preferences, but do not invent personal facts.
-Use today's moment as distinct from long-term memory.
-
-Do not ask unnecessary questions.
-Ask only when the missing information genuinely prevents a useful next step.
-Prefer one elegant question at a time.
-
-Avoid generic phrases such as:
-"I created a personalized concierge proposal."
-"Category: concierge."
-"Mission ID."
-"Understand, personalize, plan, coordinate."
-
-Instead, respond as MIRROR itself.
-
-The experience should feel different depending on the person's current words,
-context, memory and moment. Do not repeat the same wording unnecessarily.
-
-Return ONLY valid JSON with this structure:
-
-{{
-  "language": "en or es",
-  "intent": "short internal intent",
-  "privacy": "normal/high/very_high",
-  "priority": "normal/personal/urgent",
-  "companion": "string or null",
-  "duration": "string or null",
-  "budget": "number/string/null",
-  "destination": "string or null",
-  "signals": ["short", "signals"],
-  "action": "ASK or CLARIFY or PROPOSE",
-  "confidence": 0,
-  "title": "short natural title",
-  "direction": ["one to three natural sentences"],
-  "questions": ["zero or one question"],
-  "next_move": "short internal description"
-}}
-
-Current client message:
-{message}
-
-Known memory:
-{json.dumps(compact_memory, ensure_ascii=False)}
-""".strip()
-
+}
+```
+
+def local_decision(understanding,personalization):
+signals=understanding.get("signals",[])
+intent=understanding.get("intent","concierge")
+
+```
+breathing_needed=(
+    intent=="breathing" or
+    intent=="wellbeing_moment" or
+    any(x in signals for x in ["calm","fatigue","focus","rest","rush","sadness","energy"])
+)
+
+return{
+    "intent":intent,
+    "priority":"high" if any(x in signals for x in ["calm","rush","decision"]) else "normal",
+    "breathing_recommended":breathing_needed,
+    "needs_more_information":False,
+    "human_coordination":intent in ["travel","dining","concierge"],
+    "reason":"Current need and today's experience history should guide the next action."
+}
+```
+
+def select_breathing_local(understanding,personalization):
+used_patterns=set(personalization.get("avoid_today",{}).get("patterns",[]))
+used_ids=set(personalization.get("avoid_today",{}).get("exercise_ids",[]))
+
+```
+signals=understanding.get("signals",[])
+need="calm"
+
+if "focus" in signals:
+    need="regain_focus"
+elif "fatigue" in signals:
+    need="recover_energy"
+elif "rest" in signals:
+    need="prepare_for_sleep"
+elif "rush" in signals:
+    need="slow_down"
+elif "sadness" in signals:
+    need="create_space"
+elif "energy" in signals:
+    need="wake_gently"
+
+candidates=[
+    x for x in BREATHING_PATTERNS
+    if x["id"] not in used_ids and x["pattern"].lower() not in used_patterns
+]
+
+if not candidates:
+    candidates=BREATHING_PATTERNS[:]
+
+index=len(today_history(personalization.get("_memory",{})))%len(candidates) if candidates else 0
+selected=candidates[index]
+
+return{
+    "enabled":True,
+    "exercise_id":selected["id"],
+    "need":need,
+    "pattern":selected["pattern"],
+    "inhale":selected["inhale"],
+    "hold":selected["hold"],
+    "exhale":selected["exhale"],
+    "pause":selected["pause"],
+    "style":selected["style"],
+    "duration_minutes":understanding.get("duration") or 3,
+    "circle":True
+}
+```
+
+def local_proposal(understanding,personalization,decision):
+breathing=None
+if decision.get("breathing_recommended"):
+breathing=select_breathing_local(
+understanding,
+{**personalization,"_memory":{}}
+)
+
+```
+destination=understanding.get("destination")
+intent=understanding.get("intent","concierge")
+
+titles={
+    "breathing":"A moment made for you",
+    "wellbeing_moment":"A moment made for you",
+    "travel":"A direction worth exploring",
+    "dining":"Something worth discovering",
+    "mood":"The right atmosphere",
+    "discovery":"Something different",
+    "decision":"A clearer next step",
+    "concierge":"Let MIRROR take the next step"
+}
+
+return{
+    "title":titles.get(intent,titles["concierge"]),
+    "direction":"I’m shaping this around what you need right now.",
+    "category":intent,
+    "privacy":"private",
+    "priority":decision.get("priority","normal"),
+    "budget":understanding.get("budget"),
+    "destination":destination,
+    "duration":understanding.get("duration"),
+    "companion":understanding.get("companion"),
+    "signals":understanding.get("signals",[]),
+    "confidence":0.55,
+    "status":"proposed",
+    "questions":[],
+    "steps":[],
+    "breathing":breathing
+}
+```
+
+def build_prompt(text,understanding,personalization,decision):
+language=understanding.get("language","en")
+today=personalization.get("today_experiences",[])
+avoid=personalization.get("avoid_today",{})
+
+```
+prompt={
+    "role":"MIRROR TO YOU",
+    "mission":"Be a private, highly personalized presence that understands the client and moves the current need forward.",
+    "language":language,
+    "client_message":clean(text),
+    "understanding":understanding,
+    "core_memory":personalization.get("core",{}),
+    "preferences":personalization.get("known_preferences",{}),
+    "dislikes":personalization.get("dislikes",[]),
+    "today_count":personalization.get("today_count",0),
+    "today_history":today[-40:],
+    "avoid_today":avoid,
+    "decision":decision,
+    "permanent_rules":[
+        "Always consult memory before deciding.",
+        "Today's experiences have priority over older history.",
+        "Treat every new entry today as a new moment.",
+        "If the same client enters many times today, create a different experience whenever reasonably possible.",
+        "Avoid repeating today's exercises, breathing patterns, actions, titles, phrases, or experience structures.",
+        "A repeated need does not require a repeated experience.",
+        "If today's need is genuinely similar, adapt the experience rather than mechanically repeating it.",
+        "If the client explicitly asks for a previous experience, it may be brought back.",
+        "If the current pattern and need are almost identical, continuity may be more valuable than novelty.",
+        "Use breathing when it genuinely fits the current moment.",
+        "Breathing experiences should use the visual breathing circle.",
+        "Select or create an appropriate breathing experience based on the current need and today's history.",
+        "Do not describe internal AI, models, prompts, memory architecture, algorithms, providers, or technical systems to the client.",
+        "Never claim a reservation, booking, purchase, delivery, or external action was completed unless the system actually confirms it.",
+        "Ask only questions that are truly necessary.",
+        "Make the client feel understood without sounding robotic.",
+        "Do not turn every interaction into a travel search or marketplace result.",
+        "The goal is resolution, not merely conversation."
+    ],
+    "breathing_library":BREATHING_PATTERNS,
+    "breathing_needs":BREATHING_NEEDS
+}
+
+return json.dumps(prompt,ensure_ascii=False)
+```
 
 def parse_json(text):
-    if not text:
-        return None
+if not text:
+return None
 
-    text = text.strip()
+````
+raw=text.strip()
 
-    if text.startswith("```"):
-        text = re.sub(r"^```(?:json)?", "", text, flags=re.I).strip()
-        text = re.sub(r"```$", "", text).strip()
+if raw.startswith("```"):
+    raw=re.sub(r"^```(?:json)?\s*","",raw,flags=re.I)
+    raw=re.sub(r"\s*```$","",raw)
 
-    try:
-        return json.loads(text)
-    except Exception:
-        match = re.search(r"\{.*\}", text, re.S)
-        if match:
-            try:
-                return json.loads(match.group(0))
-            except Exception:
-                return None
-
-    return None
-
+try:
+    return json.loads(raw)
+except:
+    match=re.search(r"\{.*\}",raw,re.S)
+    if match:
+        try:
+            return json.loads(match.group(0))
+        except:
+            return None
+return None
+````
 
 def valid_ai_result(data):
-    if not isinstance(data, dict):
-        return False
+if not isinstance(data,dict):
+return False
 
-    required = {
-        "language",
-        "intent",
-        "action",
-        "title",
-        "direction",
-        "questions"
-    }
+```
+required=["language","intent","action","title","direction"]
+if not all(key in data for key in required):
+    return False
 
-    if not required.issubset(data.keys()):
-        return False
+return bool(clean(data.get("title")) and clean(data.get("direction")))
+```
 
-    if data.get("action") not in {"ASK", "CLARIFY", "PROPOSE"}:
-        return False
+def http_json(url,payload,headers=None,timeout=AI_TIMEOUT):
+body=json.dumps(payload,ensure_ascii=False).encode("utf-8")
+request=urllib.request.Request(
+url,
+data=body,
+headers={
+"Content-Type":"application/json",
+**(headers or {})
+},
+method="POST"
+)
 
-    if not isinstance(data.get("direction"), list):
-        return False
-
-    if not isinstance(data.get("questions"), list):
-        return False
-
-    return True
-
+```
+with urllib.request.urlopen(request,timeout=timeout) as response:
+    raw=response.read().decode("utf-8")
+    return json.loads(raw)
+```
 
 def openai_call(prompt):
-    if not OPENAI_KEY:
-        return None
+if not OPENAI_API_KEY:
+return None
 
-    url = "https://api.openai.com/v1/chat/completions"
-
-    payload = {
-        "model": OPENAI_MODEL,
-        "temperature": 0.85,
-        "response_format": {"type": "json_object"},
-        "messages": [
-            {
-                "role": "system",
-                "content": (
-                    "You are MIRROR. Return only valid JSON. "
-                    "Never mention artificial intelligence or technology."
-                )
-            },
-            {
-                "role": "user",
-                "content": prompt
-            }
-        ]
-    }
-
-    request = urllib.request.Request(
-        url,
-        data=json.dumps(payload, ensure_ascii=False).encode("utf-8"),
-        headers={
-            "Content-Type": "application/json",
-            "Authorization": f"Bearer {OPENAI_KEY}"
-        },
-        method="POST"
-    )
-
-    try:
-        with urllib.request.urlopen(request, timeout=TIMEOUT) as response:
-            raw = response.read().decode("utf-8")
-            data = json.loads(raw)
-            content = (
-                data.get("choices", [{}])[0]
-                .get("message", {})
-                .get("content", "")
+```
+payload={
+    "model":OPENAI_MODEL,
+    "messages":[
+        {
+            "role":"system",
+            "content":(
+                "You are the invisible intelligence behind MIRROR TO YOU. "
+                "Return only valid JSON. Never mention being an AI or the underlying provider. "
+                "Follow the memory and same-day non-repetition rules."
             )
-            result = parse_json(content)
-            return result if valid_ai_result(result) else None
-    except Exception:
-        return None
+        },
+        {
+            "role":"user",
+            "content":prompt
+        }
+    ],
+    "temperature":0.85,
+    "response_format":{"type":"json_object"}
+}
 
+try:
+    data=http_json(
+        "https://api.openai.com/v1/chat/completions",
+        payload,
+        {"Authorization":f"Bearer {OPENAI_API_KEY}"}
+    )
+    choices=data.get("choices",[])
+    if not choices:
+        return None
+    content=choices[0].get("message",{}).get("content","")
+    return parse_json(content)
+except Exception:
+    return None
+```
 
 def gemini_call(prompt):
-    if not GEMINI_KEY:
-        return None
+if not GEMINI_API_KEY:
+return None
 
-    url = (
-        "https://generativelanguage.googleapis.com/v1beta/models/"
-        f"{GEMINI_MODEL}:generateContent?key={urllib.parse.quote(GEMINI_KEY)}"
-    )
+```
+url=f"https://generativelanguage.googleapis.com/v1beta/models/{GEMINI_MODEL}:generateContent"
 
-    payload = {
-        "contents": [
-            {
-                "parts": [
-                    {
-                        "text": prompt
-                    }
-                ]
-            }
-        ],
-        "generationConfig": {
-            "temperature": 0.85,
-            "responseMimeType": "application/json"
+payload={
+    "contents":[
+        {
+            "role":"user",
+            "parts":[
+                {
+                    "text":(
+                        "You are the invisible intelligence behind MIRROR TO YOU. "
+                        "Return only valid JSON. Never mention AI, providers, models, prompts, "
+                        "or technical implementation. Follow all memory and same-day "
+                        "non-repetition rules.\n\n"+prompt
+                    )
+                }
+            ]
         }
+    ],
+    "generationConfig":{
+        "temperature":0.85,
+        "responseMimeType":"application/json"
     }
+}
 
-    request = urllib.request.Request(
+try:
+    data=http_json(
         url,
-        data=json.dumps(payload, ensure_ascii=False).encode("utf-8"),
-        headers={
-            "Content-Type": "application/json"
-        },
-        method="POST"
+        payload,
+        {"x-goog-api-key":GEMINI_API_KEY}
     )
-
-    try:
-        with urllib.request.urlopen(request, timeout=TIMEOUT) as response:
-            raw = response.read().decode("utf-8")
-            data = json.loads(raw)
-
-            candidates = data.get("candidates") or []
-            if not candidates:
-                return None
-
-            parts = (
-                candidates[0]
-                .get("content", {})
-                .get("parts", [])
-            )
-
-            content = "".join(
-                p.get("text", "")
-                for p in parts
-                if isinstance(p, dict)
-            )
-
-            result = parse_json(content)
-            return result if valid_ai_result(result) else None
-    except Exception:
+    candidates=data.get("candidates",[])
+    if not candidates:
         return None
 
-
-def sanitize_ai(data, understanding):
-    result = dict(data)
-
-    result["language"] = (
-        result.get("language")
-        if result.get("language") in ("es", "en")
-        else understanding.get("language", "en")
+    parts=candidates[0].get("content",{}).get("parts",[])
+    content="".join(
+        p.get("text","") for p in parts if isinstance(p,dict)
     )
+    return parse_json(content)
+except Exception:
+    return None
+```
 
-    result["intent"] = clean(
-        result.get("intent"),
-        understanding.get("intent", "CONVERSATION")
-    )
+def breathing_from_ai(ai,understanding,personalization):
+raw=ai.get("breathing")
 
-    result["privacy"] = clean(
-        result.get("privacy"),
-        understanding.get("privacy", "normal")
-    )
+```
+if not isinstance(raw,dict):
+    return None
 
-    result["priority"] = clean(
-        result.get("priority"),
-        understanding.get("priority", "normal")
-    )
+enabled=raw.get("enabled",False)
+if not enabled:
+    return None
 
-    result["companion"] = clean(
-        result.get("companion"),
-        understanding.get("companion")
-    )
+used_ids=set(personalization.get("avoid_today",{}).get("exercise_ids",[]))
+used_patterns=set(personalization.get("avoid_today",{}).get("patterns",[]))
 
-    result["duration"] = clean(
-        result.get("duration"),
-        understanding.get("duration")
-    )
+exercise_id=clean(raw.get("exercise_id"))
+pattern=clean(raw.get("pattern"))
 
-    result["budget"] = (
-        result.get("budget")
-        if result.get("budget") not in ("", None)
-        else understanding.get("budget")
-    )
+if exercise_id in used_ids or pattern.lower() in used_patterns:
+    alternative=select_breathing_from_library(understanding,personalization)
+    if alternative:
+        return alternative
 
-    result["destination"] = clean(
-        result.get("destination"),
-        understanding.get("destination")
-    )
+return{
+    "enabled":True,
+    "exercise_id":exercise_id or str(uuid.uuid4()),
+    "need":clean(raw.get("need")) or "current_moment",
+    "pattern":pattern or "4-6",
+    "inhale":int(raw.get("inhale",4) or 4),
+    "hold":int(raw.get("hold",0) or 0),
+    "exhale":int(raw.get("exhale",6) or 6),
+    "pause":int(raw.get("pause",0) or 0),
+    "style":clean(raw.get("style")) or "personalized",
+    "duration_minutes":int(raw.get("duration_minutes") or understanding.get("duration") or 3),
+    "circle":True,
+    "guidance":clean(raw.get("guidance")),
+    "opening":clean(raw.get("opening")),
+    "closing":clean(raw.get("closing"))
+}
+```
 
-    signals = result.get("signals")
-    if not isinstance(signals, list):
-        signals = understanding.get("signals") or []
+def select_breathing_from_library(understanding,personalization):
+used_ids=set(personalization.get("avoid_today",{}).get("exercise_ids",[]))
+used_patterns=set(personalization.get("avoid_today",{}).get("patterns",[]))
 
-    result["signals"] = list(dict.fromkeys(
-        str(x).strip() for x in signals if str(x).strip()
-    ))[:15]
+```
+available=[
+    item for item in BREATHING_PATTERNS
+    if item["id"] not in used_ids and item["pattern"].lower() not in used_patterns
+]
 
-    result["action"] = (
-        result.get("action")
-        if result.get("action") in {"ASK", "CLARIFY", "PROPOSE"}
-        else "CLARIFY"
-    )
+if not available:
+    available=BREATHING_PATTERNS[:]
 
-    result["confidence"] = result.get("confidence", 70)
+signals=understanding.get("signals",[])
 
-    try:
-        result["confidence"] = max(
-            0,
-            min(100, int(float(result["confidence"])))
-        )
-    except Exception:
-        result["confidence"] = 70
+if "focus" in signals:
+    order=["steady","balanced","grounding"]
+elif "fatigue" in signals:
+    order=["gentle","balanced","quiet"]
+elif "rest" in signals:
+    order=["quiet","calming","slow"]
+elif "rush" in signals:
+    order=["calming","slow","release"]
+else:
+    order=["calming","gentle","balanced","grounding"]
 
-    result["title"] = clean(
-        result.get("title"),
-        "Your moment" if result["language"] == "en" else "Tu momento"
-    )
+selected=None
 
-    direction = result.get("direction")
-    if not isinstance(direction, list):
-        direction = []
+for style in order:
+    selected=next((x for x in available if x["style"]==style),None)
+    if selected:
+        break
 
-    result["direction"] = [
-        str(x).strip()[:500]
-        for x in direction
-        if str(x).strip()
-    ][:4]
+if not selected:
+    selected=available[0]
 
-    questions = result.get("questions")
-    if not isinstance(questions, list):
-        questions = []
+return{
+    "enabled":True,
+    "exercise_id":selected["id"],
+    "need":signals[0] if signals else "current_moment",
+    "pattern":selected["pattern"],
+    "inhale":selected["inhale"],
+    "hold":selected["hold"],
+    "exhale":selected["exhale"],
+    "pause":selected["pause"],
+    "style":selected["style"],
+    "duration_minutes":understanding.get("duration") or 3,
+    "circle":True
+}
+```
 
-    result["questions"] = [
-        str(x).strip()[:350]
-        for x in questions
-        if str(x).strip()
-    ][:1]
+def sanitize_ai(ai,understanding,personalization,decision):
+ai=ai if isinstance(ai,dict) else {}
 
-    if result["action"] in {"ASK", "CLARIFY"} and not result["questions"]:
-        if result["language"] == "es":
-            result["questions"] = [
-                "¿Qué sería más importante para ti en este momento?"
-            ]
-        else:
-            result["questions"] = [
-                "What would matter most to you right now?"
-            ]
+```
+breathing=breathing_from_ai(ai,understanding,personalization)
 
-    if result["action"] == "PROPOSE" and not result["direction"]:
-        if result["language"] == "es":
-            result["direction"] = [
-                "Ya veo la dirección. Déjame darle forma contigo."
-            ]
-        else:
-            result["direction"] = [
-                "I see the direction. Let me shape it with you."
-            ]
+if not breathing and decision.get("breathing_recommended"):
+    breathing=select_breathing_from_library(understanding,personalization)
 
-    return result
+questions=ai.get("questions",[])
+if not isinstance(questions,list):
+    questions=[]
 
+steps=ai.get("steps",[])
+if not isinstance(steps,list):
+    steps=[]
 
-def understand(text):
-    return understand_local(text)
+return{
+    "language":clean(ai.get("language")) or understanding.get("language","en"),
+    "intent":clean(ai.get("intent")) or understanding.get("intent","concierge"),
+    "privacy":clean(ai.get("privacy")) or "private",
+    "priority":clean(ai.get("priority")) or decision.get("priority","normal"),
+    "companion":clean(ai.get("companion")) or understanding.get("companion"),
+    "duration":ai.get("duration") or understanding.get("duration"),
+    "budget":ai.get("budget") or understanding.get("budget"),
+    "destination":clean(ai.get("destination")) or understanding.get("destination"),
+    "signals":ai.get("signals") if isinstance(ai.get("signals"),list) else understanding.get("signals",[]),
+    "action":clean(ai.get("action")) or "personalized_next_step",
+    "confidence":float(ai.get("confidence",0.7) or 0.7),
+    "title":clean(ai.get("title")) or "A moment made for you",
+    "direction":clean(ai.get("direction")) or "I’m shaping this around what you need right now.",
+    "questions":[clean(x) for x in questions if clean(x)][:4],
+    "steps":[clean(x) for x in steps if clean(x)][:6],
+    "next_move":clean(ai.get("next_move")),
+    "breathing":breathing
+}
+```
 
+def build_experience_record(text,understanding,proposal,response):
+breathing=proposal.get("breathing") if isinstance(proposal,dict) else None
 
-def personalize(understanding, memory):
-    return personalize_local(understanding, memory)
+```
+record={
+    "id":str(uuid.uuid4()),
+    "timestamp":now(),
+    "date":today_key(),
+    "message":clean(text,1200),
+    "intent":understanding.get("intent"),
+    "signals":understanding.get("signals",[]),
+    "action":clean(proposal.get("action") or proposal.get("title")),
+    "title":clean(proposal.get("title")),
+    "phrase":clean(response,500),
+    "destination":clean(understanding.get("destination")),
+    "exercise_id":clean(breathing.get("exercise_id")) if breathing else "",
+    "pattern":clean(breathing.get("pattern")) if breathing else "",
+    "need":clean(breathing.get("need")) if breathing else "",
+    "experience_id":clean(proposal.get("experience_id")),
+    "result":"presented"
+}
 
+return record
+```
 
-def decide(understanding, personalization):
-    return local_decision(understanding, personalization)
+def process(text,memory=None):
+text=clean(text)
+m=normalize_memory(memory)
 
+```
+if not text:
+    understanding={
+        "language":"en",
+        "intent":"concierge",
+        "signals":[],
+        "duration":None,
+        "companion":None,
+        "budget":None,
+        "destination":None,
+        "today_count":len(today_history(m))
+    }
+else:
+    understanding=understand_local(text,m)
 
-def propose(understanding, personalization, decision):
-    return local_proposal(understanding, personalization, decision)
+personalization=personalize_local(understanding,m)
+decision=local_decision(understanding,personalization)
 
+prompt=build_prompt(
+    text,
+    understanding,
+    personalization,
+    decision
+)
 
-def process(message, memory=None):
-    message = clean(message, "")
+ai=openai_call(prompt)
 
-    if not message:
-        fallback = understand_local("")
-        personalization = personalize_local(fallback, memory or {})
-        decision = {
-            "action": "CLARIFY",
-            "confidence": 0,
-            "reason": "empty_message"
-        }
-        proposal = local_proposal(
-            fallback,
-            personalization,
-            decision
-        )
-        return {
-            "understanding": fallback,
-            "personalization": personalization,
-            "decision": decision,
-            "proposal": proposal,
-            "engine": "local"
-        }
+if not valid_ai_result(ai):
+    ai=gemini_call(prompt)
 
-    memory = normalize_memory(memory)
-    understanding = understand_local(message)
-    personalization = personalize_local(
-        understanding,
-        memory
-    )
-
-    prompt = build_prompt(message, memory)
-
-    ai_result = openai_call(prompt)
-    engine = "primary"
-
-    if not valid_ai_result(ai_result):
-        ai_result = gemini_call(prompt)
-        engine = "backup"
-
-    if valid_ai_result(ai_result):
-        ai_result = sanitize_ai(
-            ai_result,
-            understanding
-        )
-
-        ai_understanding = dict(understanding)
-
-        for key in (
-            "language",
-            "intent",
-            "privacy",
-            "priority",
-            "companion",
-            "duration",
-            "budget",
-            "destination",
-            "signals"
-        ):
-            if key in ai_result:
-                ai_understanding[key] = ai_result[key]
-
-        decision = {
-            "action": ai_result["action"],
-            "confidence": ai_result["confidence"],
-            "reason": "contextual_reasoning"
-        }
-
-        proposal = {
-            "status": ai_result["action"],
-            "title": ai_result["title"],
-            "direction": ai_result["direction"],
-            "questions": ai_result["questions"],
-            "category": ai_result["intent"],
-            "privacy": ai_result["privacy"],
-            "priority": ai_result["priority"],
-            "budget": ai_result["budget"],
-            "destination": ai_result["destination"],
-            "duration": ai_result["duration"],
-            "companion": ai_result["companion"],
-            "signals": ai_result["signals"],
-            "confidence": ai_result["confidence"]
-        }
-
-        personalization["signals"] = ai_result["signals"]
-
-        return {
-            "understanding": ai_understanding,
-            "personalization": personalization,
-            "decision": decision,
-            "proposal": proposal,
-            "engine": engine
-        }
-
-    decision = local_decision(
-        understanding,
-        personalization
-    )
-
-    proposal = local_proposal(
+if valid_ai_result(ai):
+    sanitized=sanitize_ai(
+        ai,
         understanding,
         personalization,
         decision
     )
 
-    return {
-        "understanding": understanding,
-        "personalization": personalization,
-        "decision": decision,
-        "proposal": proposal,
-        "engine": "local"
+    proposal={
+        "title":sanitized["title"],
+        "direction":sanitized["direction"],
+        "category":sanitized["intent"],
+        "privacy":sanitized["privacy"],
+        "priority":sanitized["priority"],
+        "budget":sanitized["budget"],
+        "destination":sanitized["destination"],
+        "duration":sanitized["duration"],
+        "companion":sanitized["companion"],
+        "signals":sanitized["signals"],
+        "confidence":sanitized["confidence"],
+        "status":"proposed",
+        "questions":sanitized["questions"],
+        "steps":sanitized["steps"],
+        "action":sanitized["action"],
+        "next_move":sanitized["next_move"],
+        "breathing":sanitized["breathing"],
+        "experience_id":str(uuid.uuid4())
     }
 
+    result={
+        "understanding":understanding,
+        "personalization":personalization,
+        "decision":decision,
+        "proposal":proposal,
+        "ai_used":True
+    }
 
-def response_text(result, language="en"):
-    proposal = result.get("proposal") or {}
-    action = proposal.get("status") or (
-        result.get("decision") or {}
-    ).get("action")
+else:
+    proposal=local_proposal(
+        understanding,
+        personalization,
+        decision
+    )
+    proposal["experience_id"]=str(uuid.uuid4())
 
-    language = language if language in ("es", "en") else "en"
+    result={
+        "understanding":understanding,
+        "personalization":personalization,
+        "decision":decision,
+        "proposal":proposal,
+        "ai_used":False
+    }
 
-    direction = proposal.get("direction") or []
-    questions = proposal.get("questions") or []
+response=response_text(result,m)
+record=build_experience_record(
+    text,
+    understanding,
+    proposal,
+    response
+)
 
-    if action in ("ASK", "CLARIFY"):
-        if direction:
-            text = direction[0]
-            if len(direction) > 1:
-                text += " " + direction[1]
-        else:
-            text = (
-                "Necesito una pequeña pieza de información antes de seguir."
-                if language == "es"
-                else "I need one small piece of information before I continue."
-            )
+result["memory"]=remember_today(m,record)
+result["today"]=result["memory"].get("daily",{}).get(today_key(),[])
+result["record"]=record
 
-        if questions:
-            text += " " + questions[0]
+return result
+```
 
-        return text.strip()
+def response_text(result,memory=None):
+understanding=result.get("understanding",{})
+proposal=result.get("proposal",{})
+language=understanding.get("language","en")
+questions=proposal.get("questions",[])
+breathing=proposal.get("breathing")
 
-    if direction:
-        return " ".join(direction).strip()
+```
+if questions:
+    return questions[0]
 
-    if language == "es":
-        return "Estoy contigo. Vamos a darle forma a este momento."
-    return "I’m with you. Let’s shape this moment."
+if breathing and breathing.get("enabled"):
+    opening=clean(breathing.get("opening"))
 
+    if opening:
+        return opening
+
+    if language=="es":
+        return "Quédate aquí un momento. MIRROR ha elegido una respiración diferente para este momento. Sigue el círculo y deja que el ritmo haga el resto."
+
+    return "Stay here for a moment. MIRROR has chosen a different breathing experience for this moment. Follow the circle and let the rhythm do the rest."
+
+direction=clean(proposal.get("direction"))
+
+if direction:
+    return direction
+
+if language=="es":
+    return "Estoy aquí. Vamos a ocuparnos de lo que necesitas ahora."
+
+return "I’m here. Let’s take care of what you need right now."
+```
 
 def engine_status():
-    return {
-        "primary_available": bool(OPENAI_KEY),
-        "backup_available": bool(GEMINI_KEY),
-        "local_continuity": True
-    }
+return{
+"ready":True,
+"openai_configured":bool(OPENAI_API_KEY),
+"gemini_configured":bool(GEMINI_API_KEY),
+"primary":"openai",
+"fallback":"gemini",
+"local_fallback":True,
+"today_first_memory":True,
+"same_day_non_repetition":True,
+"breathing_library":len(BREATHING_PATTERNS),
+"breathing_needs":len(BREATHING_NEEDS)
+}
+
+def understand(text,memory=None):
+m=normalize_memory(memory)
+understanding=understand_local(text,m)
+personalization=personalize_local(understanding,m)
+return{
+"understanding":understanding,
+"personalization":personalization
+}
+
+def personalize(text,memory=None):
+m=normalize_memory(memory)
+understanding=understand_local(text,m)
+return personalize_local(understanding,m)
+
+def decide(text,memory=None):
+m=normalize_memory(memory)
+understanding=understand_local(text,m)
+personalization=personalize_local(understanding,m)
+return local_decision(understanding,personalization)
+
+def propose(text,memory=None):
+m=normalize_memory(memory)
+understanding=understand_local(text,m)
+personalization=personalize_local(understanding,m)
+decision=local_decision(understanding,personalization)
+return local_proposal(understanding,personalization,decision)
