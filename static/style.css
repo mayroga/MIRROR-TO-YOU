@@ -1,295 +1,185 @@
 :root {
-    --bg-dark: #05070a;
-    --panel-dark: #0b0f17;
-    --accent-gold: #d4af37;
-    --accent-gold-dim: rgba(212, 175, 55, 0.1);
-    --text-pure: #ffffff;
-    --text-muted: #8a95a5;
-    --border-dim: #161f30;
-    --font-premium: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --bg-color: #0b0f19;
+    --card-bg: #111827;
+    --accent-color: #38bdf8;
+    --text-main: #f3f4f6;
+    --text-muted: #9ca3af;
+    --border-color: #1f2937;
+    --danger-color: #ef4444;
 }
 
 * {
     box-sizing: border-box;
     margin: 0;
     padding: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 }
 
 body {
-    background-color: var(--bg-dark);
-    color: var(--text-pure);
-    font-family: var(--font-premium);
-    overflow: hidden;
-    height: 100vh;
-}
-
-#app {
+    background-color: var(--bg-color);
+    color: var(--text-main);
+    min-height: 100vh;
     display: flex;
     flex-direction: column;
-    height: 100vh;
     justify-content: space-between;
-}
-
-.luxury-header {
-    padding: 24px 32px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border-bottom: 1px solid var(--border-dim);
-}
-
-.mirror-logo {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    cursor: pointer;
-}
-
-.logo-orb {
-    width: 12px;
-    height: 12px;
-    background: var(--text-pure);
-    border-radius: 50%;
-    box-shadow: 0 0 10px var(--text-pure);
-}
-
-.logo-text {
-    font-weight: 700;
-    letter-spacing: 4px;
-    font-size: 14px;
-}
-
-.header-controls {
-    display: flex;
-    gap: 20px;
-    align-items: center;
-}
-
-.text-btn, .icon-btn, .close-btn {
-    background: none;
-    border: none;
-    color: var(--text-muted);
-    cursor: pointer;
-    font-size: 13px;
-    letter-spacing: 1px;
-    transition: color 0.3s;
-}
-
-.text-btn:hover, .icon-btn:hover {
-    color: var(--text-pure);
-}
-
-.luxury-main {
-    flex: 1;
-    position: relative;
-    padding: 40px 32px;
-}
-
-.deck {
-    position: absolute;
-    top: 40px; left: 32px; right: 32px; bottom: 40px;
-    opacity: 0;
-    transform: translateY(10px);
-    pointer-events: none;
-    transition: opacity 0.4s ease, transform 0.4s ease;
-}
-
-.deck.active {
-    opacity: 1;
-    transform: translateY(0);
-    pointer-events: auto;
-}
-
-.hero-section {
-    margin-bottom: 40px;
-}
-
-.hero-section h1 {
-    font-size: 36px;
-    font-weight: 300;
-    letter-spacing: -0.5px;
-    margin-bottom: 8px;
-}
-
-.hero-section p {
-    color: var(--text-muted);
-    font-size: 15px;
-}
-
-.plan-panel {
-    background: var(--panel-dark);
-    border: 1px solid var(--border-dim);
-    border-radius: 12px;
-    padding: 24px;
-    margin-bottom: 24px;
-}
-
-.panel-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 16px;
-}
-
-.status-badge {
-    font-size: 10px;
-    letter-spacing: 2px;
-    color: var(--accent-gold);
-    font-weight: 700;
-}
-
-.premium-reply {
-    font-size: 18px;
-    line-height: 1.5;
-    margin-bottom: 20px;
-    font-weight: 400;
-}
-
-.premium-direction-item {
-    font-size: 14px;
-    color: var(--text-muted);
-    padding: 8px 0;
-    border-top: 1px solid rgba(255,255,255,0.03);
-}
-
-.action-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-    gap: 12px;
-    margin-top: 24px;
-}
-
-.luxury-action-btn {
-    background: rgba(255,255,255,0.02);
-    border: 1px solid var(--border-dim);
-    color: var(--text-pure);
-    padding: 14px;
-    border-radius: 8px;
-    cursor: pointer;
-    font-size: 13px;
-    transition: all 0.3s;
-}
-
-.luxury-action-btn:hover {
-    background: rgba(255,255,255,0.08);
-}
-
-.primary-gold {
-    background: var(--accent-gold-dim);
-    border: 1px solid var(--accent-gold);
-    color: var(--accent-gold);
-}
-
-.primary-gold:hover {
-    background: var(--accent-gold);
-    color: var(--bg-dark);
-}
-
-/* Círculo Respiratorio Premium Variable */
-.breathing-panel {
-    display: flex;
-    align-items: center;
-    gap: 24px;
-    background: rgba(255,255,255,0.01);
-    border: 1px solid var(--border-dim);
-    border-radius: 12px;
     padding: 20px;
 }
 
-.professional-orb {
-    width: 64px;
-    height: 64px;
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 1000px;
+    width: 100%;
+    margin: 0 auto;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.logo {
+    font-size: 1.25rem;
+    font-weight: 600;
+    letter-spacing: 2px;
+    color: var(--accent-color);
+}
+
+.controls {
+    display: flex;
+    gap: 10px;
+}
+
+button {
+    background-color: var(--card-bg);
+    color: var(--text-main);
+    border: 1px solid var(--border-color);
+    padding: 8px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: all 0.2s ease;
+}
+
+button:hover {
+    border-color: var(--accent-color);
+}
+
+.btn-danger {
+    color: var(--danger-color);
+    border-color: rgba(239, 68, 68, 0.3);
+}
+
+.btn-danger:hover {
+    border-color: var(--danger-color);
+}
+
+main {
+    max-width: 1000px;
+    width: 100%;
+    margin: 20px auto;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+@media (max-width: 768px) {
+    main {
+        grid-template-columns: 1fr;
+    }
+}
+
+.panel {
+    background-color: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.panel h2 {
+    font-size: 1.1rem;
+    font-weight: 500;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.breathing-circle {
+    width: 120px;
+    height: 120px;
+    border: 2px solid var(--accent-color);
     border-radius: 50%;
-    border: 2px solid var(--border-dim);
+    margin: 20px auto;
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: all 4s ease-in-out;
+    transition: transform 4s ease-in-out;
+    font-size: 0.85rem;
+    color: var(--accent-color);
 }
 
-.orb-inner {
-    text-align: center;
+.input-group {
+    display: flex;
+    gap: 8px;
 }
 
-.orb-inner span {
-    display: block;
-    font-size: 8px;
-    letter-spacing: 1px;
+input, textarea {
+    flex: 1;
+    background-color: var(--bg-color);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    padding: 10px;
+    color: var(--text-main);
+    font-size: 0.95rem;
+    resize: none;
+}
+
+input:focus, textarea:focus {
+    outline: none;
+    border-color: var(--accent-color);
+}
+
+.output-box {
+    background-color: var(--bg-color);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    padding: 12px;
+    min-height: 80px;
+    font-size: 0.95rem;
     color: var(--text-muted);
 }
 
-.orb-inner strong {
-    font-size: 11px;
+footer {
+    text-align: center;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    padding-top: 20px;
+    border-top: 1px solid var(--border-color);
+    max-width: 1000px;
+    width: 100%;
+    margin: 0 auto;
 }
 
-/* Animaciones del Círculo Variable según fase */
-.professional-orb.inhale { transform: scale(1.25); border-color: var(--text-pure); box-shadow: 0 0 15px rgba(255,255,255,0.2); }
-.professional-orb.hold { transform: scale(1.25); border-color: var(--accent-gold); }
-.professional-orb.exhale { transform: scale(0.95); border-color: var(--text-muted); }
-.professional-orb.rest { transform: scale(1.0); border-color: var(--border-dim); }
-
-.control-pill {
-    background: var(--text-pure);
-    color: var(--bg-dark);
-    border: none;
-    padding: 6px 16px;
-    border-radius: 20px;
-    font-size: 12px;
-    font-weight: 600;
-    cursor: pointer;
-    margin-top: 6px;
-}
-
-.luxury-footer {
-    padding: 24px 32px 40px 32px;
-    border-top: 1px solid var(--border-dim);
-    background: var(--bg-dark);
-}
-
-.composer-container {
-    display: flex;
-    align-items: center;
-    background: var(--panel-dark);
-    border: 1px solid var(--border-dim);
-    border-radius: 30px;
-    padding: 6px 12px;
-    gap: 12px;
-}
-
-.composer-container textarea {
-    flex: 1;
-    background: none;
-    border: none;
-    color: var(--text-pure);
-    font-family: var(--font-premium);
-    font-size: 15px;
-    resize: none;
-    outline: none;
-    padding: 8px 4px;
-}
-
-.action-trigger {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    border: none;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
+#warning-modal {
+    display: none;
+    position: fixed;
+    top: 0; 
+    left: 0; 
+    width: 100%; 
+    height: 100%;
+    background: rgba(0,0,0,0.8);
     justify-content: center;
-    font-size: 16px;
-    transition: all 0.3s;
+    align-items: center;
+    z-index: 1000;
 }
 
-.mic-trigger { background: transparent; color: var(--text-muted); }
-.mic-trigger.active-mic { background: #ea4335; color: white; animation: pulse 1.5s infinite; }
-.send-trigger { background: transparent; color: var(--text-pure); }
-.send-trigger:hover { background: rgba(255,255,255,0.05); }
-
-@keyframes pulse {
-    0% { box-shadow: 0 0 0 0 rgba(234, 67, 53, 0.4); }
-    70% { box-shadow: 0 0 0 10px rgba(234, 67, 53, 0); }
-    100% { box-shadow: 0 0 0 0 rgba(234, 67, 53, 0); }
+.modal-content {
+    background: var(--card-bg);
+    padding: 30px;
+    border-radius: 12px;
+    border: 1px solid var(--border-color);
+    text-align: center;
+    max-width: 400px;
+    width: 90%;
 }
-
-.hidden { display: none !important; }
