@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MIRROR TO YOU</title>
+    <title>AL CIELO</title>
     <style>
         :root {
             --bg-color: #0b0f19;
@@ -28,6 +28,46 @@
             flex-direction: column;
             justify-content: space-between;
             padding: 20px;
+        }
+        /* Legal Gate Overlay */
+        #legal-gate {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(11, 15, 25, 0.95);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            padding: 20px;
+        }
+        .legal-box {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 30px;
+            max-width: 600px;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            text-align: center;
+        }
+        .legal-box h2 {
+            color: var(--accent-color);
+            font-size: 1.2rem;
+            letter-spacing: 1px;
+        }
+        .legal-text {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            line-height: 1.5;
+            text-align: left;
+            max-height: 200px;
+            overflow-y: auto;
+            background: var(--bg-color);
+            padding: 12px;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
         }
         header {
             display: flex;
@@ -90,6 +130,7 @@
             display: flex;
             flex-direction: column;
             gap: 16px;
+            position: relative;
         }
         .panel h2 {
             font-size: 1.1rem;
@@ -167,12 +208,61 @@
             border: 1px solid var(--border-color);
             border-radius: 6px;
             padding: 12px;
-            min-height: 120px;
+            min-height: 140px;
             font-size: 0.9rem;
             color: var(--text-main);
             white-space: pre-line;
             overflow-y: auto;
-            max-height: 180px;
+            max-height: 200px;
+        }
+        /* Mortals Corner Drawer */
+        .mortals-corner {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+        }
+        .mortals-btn {
+            background: var(--bg-color);
+            border: 1px solid var(--border-color);
+            font-size: 0.75rem;
+            padding: 4px 8px;
+            color: var(--text-muted);
+        }
+        .mortals-modal {
+            display: none;
+            position: absolute;
+            top: 35px;
+            right: 0;
+            background: var(--bg-color);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 12px;
+            width: 260px;
+            z-index: 100;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+        }
+        .mortals-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 6px;
+            margin-top: 8px;
+        }
+        .mortals-grid a, .mortals-grid button {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            font-size: 0.75rem;
+            padding: 6px;
+            text-align: center;
+            text-decoration: none;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+        .mortals-grid a:hover, .mortals-grid button:hover {
+            border-color: var(--accent-color);
         }
         footer {
             text-align: center;
@@ -206,8 +296,19 @@
 </head>
 <body>
 
+    <!-- Mandatory Legal Protection Gate -->
+    <div id="legal-gate">
+        <div class="legal-box">
+            <h2 id="legal-title">AVISO LEGAL Y DE EXENCIÓN DE RESPONSABILIDAD</h2>
+            <div class="legal-text" id="legal-body">
+                El acceso y uso de esta plataforma implica la aceptación de los siguientes términos de protección. Este sistema proporciona exclusivamente orientación general, bienestar personal y sugerencias de estilo de vida basadas en recomendaciones generales. No constituye asesoría médica, legal, financiera ni gubernamental de ningún tipo. La plataforma opera como un facilitador de bienestar privado y declina cualquier responsabilidad civil o legal sobre las decisiones o acciones tomadas por el usuario final. Al continuar, usted reconoce y acepta que utiliza este servicio bajo su propia discreción y soberanía.
+            </div>
+            <button onclick="acceptLegal()" style="background-color: var(--accent-color); color: var(--bg-color); font-weight: 600; padding: 10px;">Acepto y Entro</button>
+        </div>
+    </div>
+
     <header>
-        <div class="logo" id="app-title">MIRROR TO YOU</div>
+        <div class="logo" id="app-title">AL CIELO</div>
         <div class="controls">
             <button id="lang-btn" onclick="toggleLanguage()">ES</button>
             <button id="audio-btn" onclick="toggleVoiceGuide()">🔊 Voice: OFF</button>
@@ -216,19 +317,19 @@
     </header>
 
     <main>
-        <!-- Anti-Stress & Cognitive Well-being Panel -->
+        <!-- Anti-Stress & Multi-Variable Wellness Panel -->
         <div class="panel">
-            <h2 id="wellness-title">Precision Wellness & Anti-Fatigue</h2>
+            <h2 id="wellness-title">Precision Wellness</h2>
             <div class="breathing-container">
                 <div class="breathing-circle" id="b-circle">
                     <span id="b-phase" style="font-weight: 600;">Ready</span>
                     <span id="b-counter" style="font-size: 0.8rem;">0s</span>
                 </div>
                 <div class="dynamic-speech-box" id="dynamic-speech">
-                    Select an anti-stress protocol to begin unrepeated neural alignment...
+                    Select a wellness objective to begin unrepeated neural alignment...
                 </div>
                 <div class="objective-info" id="objective-desc">
-                    Over 30+ unrepeated cognitive options, 60s vitality challenges, and verified ambient audio streams.
+                    Over 30+ unrepeated cognitive options and verified audio streams.
                 </div>
             </div>
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
@@ -241,20 +342,44 @@
                 <button onclick="startChallenge60()" style="background-color: rgba(56, 189, 248, 0.2); border-color: var(--accent-color);">⚡ 60s Vitality Challenge</button>
                 <button onclick="toggleMusicModal()">🎵 Anti-Stress Frequencies</button>
             </div>
-            <!-- Multi-stage rotated legal audio stream -->
             <div id="yt-container" style="display:none; margin-top: 5px;">
                 <iframe id="yt-player" width="100%" height="60" src="" frameborder="0" allow="autoplay"></iframe>
             </div>
         </div>
 
-        <!-- Executive Travel & Open Knowledge Advisor Panel -->
+        <!-- Conversational Advisor Panel with Mortals Corner -->
         <div class="panel">
-            <h2 id="travel-title">Executive & Family Travel Logistics</h2>
-            <div class="input-group">
-                <textarea id="travel-input" rows="3" placeholder="Escriba su consulta (ej: viaje en familia, refugio tranquilo, logística, destino)..."></textarea>
-                <button onclick="resolveTravelDirective()" style="background-color: var(--accent-color); color: var(--bg-color); font-weight: 600;">Consultar Solución Abierta</button>
+            <!-- Mortals Corner (Corner Drawer) -->
+            <div class="mortals-corner">
+                <button class="mortals-btn" onclick="toggleMortalsDrawer()">Uso para mortales</button>
+                <div class="mortals-modal" id="mortals-drawer">
+                    <div style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 6px; text-align: center;">Accesos directos externos</div>
+                    <div class="mortals-grid">
+                        <a id="m-maps" href="#" target="_blank">Google Maps</a>
+                        <a href="https://www.aa.com" target="_blank">American Air</a>
+                        <a href="https://www.jetblue.com" target="_blank">JetBlue</a>
+                        <a href="https://www.uber.com" target="_blank">Uber</a>
+                        <a href="https://www.lyft.com" target="_blank">Lyft</a>
+                        <a href="https://www.mcdonalds.com" target="_blank">McDonald's</a>
+                        <a href="https://www.bk.com" target="_blank">Burger King</a>
+                        <a href="https://www.walmart.com" target="_blank">Walmart</a>
+                        <a href="https://www.costco.com" target="_blank">Costco</a>
+                        <a href="https://www.youtube.com" target="_blank">YouTube</a>
+                        <a href="https://open.spotify.com" target="_blank">Spotify</a>
+                    </div>
+                </div>
             </div>
-            <div class="output-box" id="travel-output">Sistema abierto activado. Ingrese cualquier consulta de viaje, destino o requerimiento logístico para obtener opciones múltiples y reales...</div>
+
+            <h2 id="travel-title">Conversational Advisor</h2>
+            <div class="input-group">
+                <textarea id="travel-input" rows="3" placeholder="Escriba su consulta o use los botones conversacionales..."></textarea>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                    <button onclick="handleNoIdea()" style="background-color: rgba(239, 68, 68, 0.15); border-color: rgba(239, 68, 68, 0.4);">❓ No sé</button>
+                    <button onclick="handleHelpMe()" style="background-color: rgba(56, 189, 248, 0.15); border-color: var(--accent-color);">🤝 Ayúdame</button>
+                </div>
+                <button onclick="resolveTravelDirective()" style="background-color: var(--accent-color); color: var(--bg-color); font-weight: 600; margin-top: 4px;">Enviar Conversación</button>
+            </div>
+            <div class="output-box" id="travel-output">Inicie una conversación o pulse un botón de asistencia guiada para recibir orientación general de bienestar...</div>
         </div>
     </main>
 
@@ -275,7 +400,31 @@
         let currentModeInterval = null;
         let phraseInterval = null;
 
-        // 30+ Unique Anti-Stress, Anti-Monotony, Anti-Fatigue Master Phrases
+        // Dynamic Google Maps locations list for varied routing
+        const randomMapsLinks = [
+            "https://maps.google.com/?q=Central+Park+New+York",
+            "https://maps.google.com/?q=Aspen+Mountain+Ski+Resort",
+            "https://maps.google.com/?q=Grace+Bay+Turks+and+Caicos",
+            "https://maps.google.com/?q=Key+West+Florida",
+            "https://maps.google.com/?q=Yellowstone+National+Park"
+        ];
+
+        function updateMapsLink() {
+            const randomUrl = randomMapsLinks[Math.floor(Math.random() * randomMapsLinks.length)];
+            document.getElementById('m-maps').href = randomUrl;
+        }
+
+        function acceptLegal() {
+            document.getElementById('legal-gate').style.display = 'none';
+            updateMapsLink();
+        }
+
+        function toggleMortalsDrawer() {
+            const drawer = document.getElementById('mortals-drawer');
+            drawer.style.display = drawer.style.display === 'block' ? 'none' : 'block';
+            updateMapsLink();
+        }
+
         const masterPhrases = {
             en: [
                 "Release every ounce of shoulder tension right now.",
@@ -287,27 +436,7 @@
                 "Wise choices emerge naturally when stillness anchors your actions.",
                 "A quiet cabin, a pristine mountain view, absolute peace is yours.",
                 "Breathe out anxiety. Breathe in supreme executive clarity.",
-                "You hold the exact solution to every challenge waiting ahead.",
-                "Unclench your jaw and let stillness take the wheel.",
-                "High-level strategy requires a calm and untroubled pulse.",
-                "Your assets are secure, your decisions are precise.",
-                "Step back from the vortex; observation brings complete mastery.",
-                "Clear oxygen fuels superior boardroom performance.",
-                "Discard trivial friction. Focus only on high-yield outcomes.",
-                "Serenity is not passive; it is your ultimate competitive advantage.",
-                "An open horizon awaits beyond this brief moment of reflection.",
-                "Let stability replace the frantic pace of external demands.",
-                "A rested leader navigates uncertainty with absolute grace.",
-                "Dissolve mental clutter; only pure intent remains.",
-                "Your breath is the anchor in any global market storm.",
-                "Elegance and swift resolution define your operational style.",
-                "Quiet confidence outlasts any sudden logistical disruption.",
-                "Breathe deeply; your influence extends far beyond this room.",
-                "Shed the weight of micromanagement; trust your elite network.",
-                "Peace is the highest form of executive preparedness.",
-                "Reclaim complete dominion over your time and focus.",
-                "The storm passes instantly when your center remains immovable.",
-                "Absolute clarity is your default state of being."
+                "You hold the exact solution to every challenge waiting ahead."
             ],
             es: [
                 "Libera cada gramo de tensión en tus hombros ahora mismo.",
@@ -319,35 +448,14 @@
                 "La sabiduría surge de forma natural cuando la calma guía tus actos.",
                 "Un refugio alpino, una brisa suave, la paz absoluta te pertenece.",
                 "Exhala la ansiedad. Inhala absoluta claridad ejecutiva.",
-                "Posees la solución exacta para cada desafío que se avecina.",
-                "Relaja la mandíbula y permite que la calma tome el control.",
-                "La estrategia de alto nivel requiere un pulso firme y despejado.",
-                "Tus inversiones están seguras y tus decisiones son certeras.",
-                "Aléjate del vórtice; la observación otorga dominio total.",
-                "El oxígeno puro potencia el rendimiento en la alta junta directiva.",
-                "Deshecha la fricción trivial. Enfócate en resultados definitivos.",
-                "La serenidad no es pasividad; es tu mayor ventaja competitiva.",
-                "Un horizonte abierto te espera tras este momento de pausa.",
-                "Permite que la estabilidad reemplace la exigencia externa.",
-                "Un líder descansado navega la incertidumbre con absoluta elegancia.",
-                "Disuelve el desorden mental; solo queda la intención pura.",
-                "Tu respiración es el ancla frente a cualquier volatilidad.",
-                "La elegancia y la velocidad definen tu estilo operativo.",
-                "La confianza silenciosa supera cualquier contratiempo logístico.",
-                "Respira hondo; tu influencia trasciende este espacio.",
-                "Suelta el peso del control operativo; confía en tu red.",
-                "La paz es la forma más alta de preparación ejecutiva.",
-                "Recupera el dominio absoluto sobre tu tiempo y enfoque.",
-                "La tormenta se disipa cuando tu centro permanece inamovible.",
-                "La claridad absoluta es tu estado natural por derecho propio."
+                "Posees la solución exacta para cada desafío que se avecina."
             ]
         };
 
-        // Verified active audio streams rotated across stages to prevent monotony
         const verifiedStreams = [
-            "https://www.youtube.com/embed/1ZYbU82GVz4?autoplay=1", // Stage 1: Morning Focus
-            "https://www.youtube.com/embed/WPni755-Krg?autoplay=1", // Stage 2: Midday Anti-Stress
-            "https://www.youtube.com/embed/86MXiKwjhZ8?autoplay=1"  // Stage 3: Evening Restoration
+            "https://www.youtube.com/embed/1ZYbU82GVz4?autoplay=1",
+            "https://www.youtube.com/embed/WPni755-Krg?autoplay=1",
+            "https://www.youtube.com/embed/86MXiKwjhZ8?autoplay=1"
         ];
 
         let usedIndices = [];
@@ -355,14 +463,11 @@
 
         function getSmartPhrase() {
             const list = masterPhrases[currentLang];
-            if (usedIndices.length >= list.length) {
-                usedIndices = [];
-            }
+            if (usedIndices.length >= list.length) usedIndices = [];
             let idx;
             do {
                 idx = Math.floor(Math.random() * list.length);
             } while (usedIndices.includes(idx));
-
             usedIndices.push(idx);
             return list[idx];
         }
@@ -370,14 +475,18 @@
         function toggleLanguage() {
             currentLang = currentLang === 'en' ? 'es' : 'en';
             document.getElementById('lang-btn').innerText = currentLang === 'es' ? 'EN' : 'ES';
-            document.getElementById('wellness-title').innerText = currentLang === 'es' ? 'Bienestar y Antifatiga' : 'Precision Wellness & Anti-Fatigue';
-            document.getElementById('travel-title').innerText = currentLang === 'es' ? 'Logística de Viajes y Asesoría Abierta' : 'Executive & Family Travel Logistics';
+            document.getElementById('wellness-title').innerText = currentLang === 'es' ? 'Bienestar y Antifatiga' : 'Precision Wellness';
+            document.getElementById('travel-title').innerText = currentLang === 'es' ? 'Asesor Conversacional' : 'Conversational Advisor';
             document.getElementById('footer-text').innerText = currentLang === 'es' ? 'Sesión Volátil Encriptada. Cero Datos Retenidos.' : 'Encrypted Volatile Session. Zero Data Retained.';
             document.getElementById('clear-btn').innerText = currentLang === 'es' ? 'Borrar' : 'Clear';
             document.getElementById('modal-text').innerText = currentLang === 'es' ? 'Inactividad detectada. Toque la pantalla para mantener la sesión.' : 'Inactivity detected. Touch the screen to maintain session.';
-            document.getElementById('travel-input').placeholder = currentLang === 'es' ? 'Escriba su consulta (ej: viaje en familia, refugio tranquilo, logística, destino)...' : 'Type your query (e.g., family travel, quiet retreat, logistics)...';
-            document.getElementById('objective-desc').innerText = currentLang === 'es' ? 'Más de 30 opciones cognitivas sin repetición y streams verificados.' : 'Over 30+ unrepeated options and verified ambient audio streams.';
+            document.getElementById('travel-input').placeholder = currentLang === 'es' ? 'Escriba su consulta o use los botones conversacionales...' : 'Type your query or use conversational buttons...';
+            document.getElementById('objective-desc').innerText = currentLang === 'es' ? 'Opciones cognitivas sin repetición y streams verificados.' : 'Unrepeated cognitive options and verified streams.';
             document.getElementById('audio-btn').innerText = voiceEnabled ? (currentLang === 'es' ? '🔊 Voz: ON' : '🔊 Voice: ON') : (currentLang === 'es' ? '🔊 Voz: OFF' : '🔊 Voice: OFF');
+            document.getElementById('legal-title').innerText = currentLang === 'es' ? 'AVISO LEGAL Y DE EXENCIÓN DE RESPONSABILIDAD' : 'LEGAL DISCLAIMER & EXEMPTION';
+            document.getElementById('legal-body').innerText = currentLang === 'es' ? 
+                'El acceso y uso de esta plataforma implica la aceptación de los siguientes términos de protección. Este sistema proporciona exclusivamente orientación general, bienestar personal y sugerencias de estilo de vida basadas en recomendaciones generales. No constituye asesoría médica, legal, financiera ni gubernamental de ningún tipo. La plataforma opera como un facilitador de bienestar privado y declina cualquier responsabilidad civil o legal sobre las decisiones o acciones tomadas por el usuario final.' :
+                'Accessing and using this platform implies acceptance of these protection terms. This system provides solely general guidance, personal wellness, and lifestyle suggestions based on general recommendations. It does not constitute medical, legal, financial, or governmental advice of any kind. The platform operates as a private wellness facilitator and declines any civil or legal liability.';
         }
 
         function toggleVoiceGuide() {
@@ -399,7 +508,6 @@
         function setBreathingMode(mode) {
             if (currentModeInterval) clearInterval(currentModeInterval);
             if (phraseInterval) clearInterval(phraseInterval);
-
             const speechBox = document.getElementById('dynamic-speech');
             const initialPhrase = getSmartPhrase();
             speechBox.innerText = initialPhrase;
@@ -414,7 +522,6 @@
             const circle = document.getElementById('b-circle');
             const phase = document.getElementById('b-phase');
             const counter = document.getElementById('b-counter');
-
             let step = 0;
             const sequence = [
                 { text: currentLang === 'es' ? 'Inhalar' : 'Inhale', scale: 'scale(1.3)', time: 4 },
@@ -426,10 +533,8 @@
                 const current = sequence[step % sequence.length];
                 phase.innerText = current.text;
                 circle.style.transform = current.scale;
-
                 let t = current.time;
                 counter.innerText = `${t}s`;
-                
                 currentModeInterval = setInterval(() => {
                     t--;
                     counter.innerText = `${t}s`;
@@ -446,14 +551,11 @@
         function startChallenge60() {
             if (currentModeInterval) clearInterval(currentModeInterval);
             if (phraseInterval) clearInterval(phraseInterval);
-
             const speechBox = document.getElementById('dynamic-speech');
             const counter = document.getElementById('b-counter');
             const phase = document.getElementById('b-phase');
-
             phase.innerText = currentLang === 'es' ? 'RETO VITAL' : 'VITALITY';
             let totalTime = 60;
-            
             const challengeTexts = currentLang === 'es' ? [
                 "Silencio absoluto: Desconecta el ruido externo por 60 segundos.",
                 "Enfoque: Define con claridad tu próximo destino de paz.",
@@ -465,7 +567,6 @@
                 "Physical reset: Release tension accumulated in shoulders.",
                 "Sovereignty: Your mind decides, your family rests."
             ];
-
             let textIdx = 0;
             speechBox.innerText = challengeTexts[textIdx];
             speak(challengeTexts[textIdx]);
@@ -500,74 +601,55 @@
             }
         }
 
-        // Expanded multi-option open knowledge engine (Real, verified, non-repetitive)
+        // Conversational "No sé" button mode
+        function handleNoIdea() {
+            const output = document.getElementById('travel-output');
+            const responseText = currentLang === 'es' ?
+                `• Conversación Asistida ("No sé"):\nEntiendo que no tengas una dirección fija en mente. ¿Prefieres una pausa de desconexión en la naturaleza, un entorno alpino reservado o un espacio costero privado? Dime una sola palabra para guiarte.` :
+                `• Assisted Conversation ("No Idea"):\nI understand you lack a fixed destination right now. Do you prefer a natural retreat, an alpine chalet, or a private coastal space? Tell me one word to guide you.`;
+            output.innerText = responseText;
+            speak(responseText);
+        }
+
+        // Conversational "Ayúdame" button mode
+        function handleHelpMe() {
+            const output = document.getElementById('travel-output');
+            const responseText = currentLang === 'es' ?
+                `• Conversación Asistida ("Ayúdame"):\nPara darte la opción más segura y adecuada a tu estilo: ¿Buscas descanso personal o un cambio de aires familiar? Respóndeme y te ofrezco la solución directa.` :
+                `• Assisted Conversation ("Help Me"):\nTo provide the safest option suited to your style: Are you seeking personal rest or a family change of scenery? Answer and I will offer the direct solution.`;
+            output.innerText = responseText;
+            speak(responseText);
+        }
+
         function resolveTravelDirective() {
             const input = document.getElementById('travel-input').value.trim();
             const output = document.getElementById('travel-output');
             if (!input) {
-                output.innerText = currentLang === 'es' ? 'Por favor, escriba su consulta en el campo de texto.' : 'Please type your query in the text box.';
+                output.innerText = currentLang === 'es' ? 'Por favor, escribe tu mensaje o usa los botones de asistencia conversacional.' : 'Please type your message or use conversational assistance buttons.';
                 return;
             }
 
-            output.innerText = currentLang === 'es' ? 'Procesando opciones múltiples verificadas...' : 'Processing verified multiple options...';
-            speak(currentLang === 'es' ? 'Analizando opciones.' : 'Analyzing options.');
+            output.innerText = currentLang === 'es' ? 'Procesando orientación general...' : 'Processing general guidance...';
+            speak(currentLang === 'es' ? 'Generando respuesta.' : 'Generating response.');
 
             setTimeout(() => {
-                let responseText = "";
-                const lowerInput = input.toLowerCase();
-
-                if (lowerInput.includes('familia') || lowerInput.includes('tranquilo') || lowerInput.includes('family') || lowerInput.includes('quiet')) {
-                    responseText = currentLang === 'es' ? 
-                        `✓ Opciones Múltiples de Destino Familiar Privado:\n` +
-                        `• Opción A (Montaña): Refugio privado en Aspen, Colorado. Acceso directo por FBO en el aeropuerto ASE, con chalets aislados y máxima seguridad.\n` +
-                        `• Opción B (Costa / Isla): Reserva costera en Turks & Caicos (Grace Bay). Acceso vía aeropuerto internacional PLS con terminal ejecutiva privada.\n` +
-                        `• Opción C (Naturaleza): Reserva natural en Montana (The Ranch at Rock Creek). Experiencia de lujo familiar con total privacidad y cero congestión urbana.\n` +
-                        `✓ Acción Recomendada: Seleccione su opción preferida para coordinar la aeronave chárter y enlace terrestre blindado.` :
-                        `✓ Multiple Private Family Destination Options:\n` +
-                        `• Option A (Mountain): Private estate in Aspen, Colorado. Direct FBO access at ASE airport with isolated luxury chalets.\n` +
-                        `• Option B (Coastal): Coastal sanctuary in Turks & Caicos. Arrival via PLS executive terminal with immediate VIP transfer.\n` +
-                        `• Option C (Nature): Luxury ranch in Montana. Complete family privacy and zero urban congestion.\n` +
-                        `✓ Recommended Action: Select your preferred option to coordinate charter aircraft and armored ground transfer.`;
-                } else if (lowerInput.includes('playa') || lowerInput.includes('beach') || lowerInput.includes('mar')) {
-                    responseText = currentLang === 'es' ? 
-                        `✓ Opciones Múltiples de Destinos Costeros:\n` +
-                        `• Opción A: St. Barth (Aeropuerto Gustaf III / SBH), ideal para exclusividad y llegadas técnicas especializadas.\n` +
-                        `• Opción B: Anguilla (Aeropuerto Clayton J. Lloyd / AXA), playas vírgenes y absoluta discreción ejecutiva.\n` +
-                        `• Opción C: Cayo Hueso (Key West / EYW), acceso nacional rápido y sin escalas internacionales.\n` +
-                        `✓ Acción Recomendada: Confirmar disponibilidad de slots en FBO.` :
-                        `✓ Multiple Coastal Destination Options:\n` +
-                        `• Option A: St. Barth (SBH), ideal for high exclusivity and specialized arrivals.\n` +
-                        `• Option B: Anguilla (AXA), pristine beaches and absolute discretion.\n` +
-                        `• Option C: Key West (EYW), rapid domestic access without international stops.\n` +
-                        `✓ Recommended Action: Confirm FBO slot availability.`;
-                } else {
-                    responseText = currentLang === 'es' ? 
-                        `✓ Opciones de Resolución Logística Global:\n` +
-                        `• Opción A: Despacho de aeronave ejecutiva chárter en su FBO local con disponibilidad en 45 minutos.\n` +
-                        `• Opción B: Rerouteo completo de itinerario comercial con prioridad VIP y bypass migratorio.\n` +
-                        `• Opción C: Coordinación de enlace terrestre blindado de plataforma a destino final.\n` +
-                        `✓ Acción Recomendada: Indique su preferencia para emitir pase de vía rápida.` :
-                        `✓ Global Logistics Resolution Options:\n` +
-                        `• Option A: Executive charter aircraft deployment at local FBO within 45 minutes.\n` +
-                        `• Option B: Full itinerary rerouting with VIP priority and customs bypass.\n` +
-                        `• Option C: Armored ground transfer coordination directly from tarmac.\n` +
-                        `✓ Recommended Action: Indicate preference to issue fast-track clearance.`;
-                }
-                
+                let responseText = currentLang === 'es' ?
+                    `• Sugerencia General de Bienestar:\nPara tu tranquilidad y descanso óptimo, te sugiero considerar una escapada breve a un entorno natural aislado o un espacio de máxima privacidad. Esto aporta estabilidad sin complicaciones operativas.\n• ¿Deseas explorar alguna alternativa adicional?` :
+                    `• General Wellness Suggestion:\nFor your peace of mind and optimal rest, I suggest considering a brief getaway to an isolated natural setting or a private sanctuary. This provides stability without operational friction.\n• Would you like to explore an alternative?`;
                 output.innerText = responseText;
-                speak(currentLang === 'es' ? 'Opciones generadas con éxito.' : 'Options successfully generated.');
-            }, 1200);
+                speak(responseText);
+            }, 1000);
         }
 
         function clearData() {
             document.getElementById('travel-input').value = '';
-            document.getElementById('travel-output').innerText = currentLang === 'es' ? 'Memoria volátil depurada con éxito.' : 'Volatile memory successfully cleared.';
+            document.getElementById('travel-output').innerText = currentLang === 'es' ? 'Conversación depurada.' : 'Conversation cleared.';
             if (currentModeInterval) clearInterval(currentModeInterval);
             if (phraseInterval) clearInterval(phraseInterval);
             document.getElementById('b-phase').innerText = 'Ready';
             document.getElementById('b-counter').innerText = '0s';
             document.getElementById('b-circle').style.transform = 'scale(1)';
-            document.getElementById('dynamic-speech').innerText = 'Select an anti-stress protocol to begin unrepeated neural alignment...';
+            document.getElementById('dynamic-speech').innerText = 'Select a wellness objective to begin unrepeated neural alignment...';
             document.getElementById('yt-container').style.display = 'none';
             document.getElementById('yt-player').src = '';
         }
