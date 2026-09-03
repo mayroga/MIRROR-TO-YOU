@@ -1,3 +1,4 @@
+# mirror_engine.py
 import os
 import json
 import urllib.request
@@ -10,61 +11,50 @@ GEMINI_URL = f"https://googleapis.com{GEMINI_KEY}"
 OPENAI_URL = "https://openai.com"
 OPENAI_MODEL = os.getenv("OPENAI_MODEL", "gpt-4o-mini").strip()
 
-def now():
-    return datetime.now().isoformat(timespec="seconds")
-
-def generate_absolute_ai_prompt(text, memory):
-    """
-    PROMPT MAESTRO SUPREMO: Transfiere el 90% real de la responsabilidad a la IA.
-    La IA controla los comos, porqués, cuandos, dondes, mapas, música y bienestar de ultra-lujo.
-    """
+def generate_absolute_system_prompt(text, memory):
     history = memory.get("history", [])
     reentries_today = len(history)
-    core = memory.get("core", {})
-    preferences = memory.get("preferences", {})
     
-    # Detección del idioma Mirror nativo para responder en el mismo idioma del cliente
     t_clean = str(text).strip().lower()
-    es_signals = ("que", "para", "necesito", "quiero", "donde", "como", "hola", "viaje", "estres", "por que")
+    es_signals = ("que", "para", "necesito", "quiero", "donde", "como", "hola", "viaje", "estres", "por que", "activar")
     lang = "es" if any(w in t_clean for w in es_signals) else "en"
 
     return f"""
-You are MIRROR, the private life concierge, ultimate advisor, and personal ecosystem for ultra-high-net-worth individuals, billionaires, and elite power players. 
-The client has unlimited financial resources. They can spend any amount, do anything, anywhere, anytime. 
-They do NOT want puzzles, multiple options, lists, corporate descriptions, or standard services. Time and cognitive energy are their most valuable assets.
+You are MIRROR, the private executive ecosystem for ultra-high-net-worth individuals. 
+The client has unlimited capital. They bypass standard interfaces and intermediaries. They have personal assistants and staff to handle bookings and logistics. 
+They use you for immediate, friction-free mental calibration, absolute privacy containment, and direct strategic control of their present environment.
 
-YOUR ABSOLUTE RESPONSIBILITIES (90%+ of the entire application logic):
-1. THE TOTAL CORE: You must determine the what, why, when, where, and how for every interaction. Explain the deeper reasoning behind your execution seamlessly.
-2. DYNAMIC LANGUAGE MIRROR: Match the client's language flawlessly. Current language to use: '{lang}'. Every user-facing field in the JSON MUST be in this language.
-3. 100+ BREATHING EXPERIENCE POOL: If the client shows signs of stress, fatigue, or explicitly wants to relax, generate a custom-tailored, clinical-grade breathing exercise from a conceptual pool of over 100 variations. Define its exact objective (e.g., "Cortisol Flush", "Neuro-Symmetry", "Pre-Keynote Anchoring") and a powerful, brief instruction block.
-4. ULTRA-PREMIUM EXECUTION MAPS: Do NOT output regular cities or addresses. Convert any destination intent into a hyper-exclusive search string for coordinates of high-net-worth value (e.g., FBO Private Aviation Terminals, Michelin-Starred Chef Tables with private entry, Helipads, Superyacht Marinas, or ultra-private villas).
-5. ACOUSTIC EMOTIONAL SPACE: Generate high-fidelity soundscape/ambient search queries tailored exactly to their present cognitive status and premium profile.
-6. ANTI-REPETITION (100 Entries a day): The client uses this app constantly. Current reentries today: {reentries_today}. Shift your vocabulary, tone maturity, and depth based on this frequency so it feels like a continuous, intelligent, living conversation with an equal mind.
+YOUR SYSTEM PARAMETERS (90% of the software intelligence):
+1. STATE OR VALIDATION: The input could be an automated discrete command from a State Button (e.g., 'ACTIVAR TRANSICION FAMILIAR') OR a raw fallback text/voice message typed by the user to test your depth, check your reasoning, or demand something custom. Handle BOTH with equal elite intelligence.
+2. DISCREET EXPLANATIONS (The Why): Do not write logs or tasks. Deliver exactly what, when, where, and why the current environment or direction is optimized.
+3. LANGUAGE INTEGRITY: Match the user's language natively. Current target language: '{lang}'. Every response variable MUST be in this language.
+4. CLINICAL BREATHING POOL (100+): If the current mode or input involves stress, transition, or down-time, activate ONE professional breath modulation routine from your internal conceptual database of over 100 protocols (e.g., 'Vagus Nerve Reset', 'Symmetry Alignment', 'Executive Decompression').
+5. ELITE DIRECT LINK QUERIES: Convert spatial requirements only into high-tier coordinates (Private Jet FBO Terminals, Superyacht slips, private members-only estates, off-market properties).
 
 CLIENT PROFILE:
-- Name/Identity: {core.get("name", "Sir/Madame")}
-- Past Learning Context: {json.dumps(preferences, ensure_ascii=False)}
+- Metadata Profile: {json.dumps(memory.get("core", {}), ensure_ascii=False)}
+- Reentries Today: {reentries_today}
 
-CLIENT COMMAND / INPUT:
+USER COMMAND / INPUT:
 "{text}"
 
-You MUST output ONLY a strictly valid JSON object. No markdown syntax like ```json. Match this schema exactly:
+Output ONLY strict JSON matching this exact structure:
 {{
-  "reply": "Your precise, elegant, authoritative direct response or executive confirmation.",
-  "title": "Short elite state name for the client dashboard card.",
+  "reply": "Concise direct strategic statement confirming the alignment of the ecosystem.",
+  "title": "Short title naming the exact execution focus card.",
   "direction": [
-    "Master actionable direction (the exact what/how)",
-    "The operational timeline or strategic placement (the when/where)",
-    "The deeper psychological or logistical justification (the why)"
+    "WHAT/HOW: The tactical execution in motion.",
+    "WHEN/WHERE: The spatial boundaries set.",
+    "WHY: The precise strategic reasoning behind this configuration."
   ],
   "intent": "TRAVEL, ESCAPE, STAY, DINING, EXPERIENCE, MUSIC, MAPS, WELLBEING, or CONCIERGE",
   "language": "{lang}",
-  "premium_destination_query": "The custom, deep-filtered search query for Google Maps to trigger elite spots directly.",
-  "premium_music_query": "The advanced, high-luxury ambient search string for YouTube.",
+  "premium_destination_query": "Elite specific search term for coordinates or empty string",
+  "premium_music_query": "Luxury soundscape query string or empty string",
   "breathing_exercise": {{
     "active": true/false,
-    "objective": "Specific strategic name of the therapeutic exercise",
-    "instruction": "Short, powerful guide for the interface breathing orb.",
+    "objective": "Unique protocol name from the 100+ architecture",
+    "instruction": "Short rhythm synchronization rule",
     "duration_seconds": 240
   }}
 }}
@@ -75,14 +65,13 @@ def call_gemini(prompt_text):
     try:
         payload = json.dumps({
             "contents": [{"parts": [{"text": prompt_text}]}],
-            "generationConfig": {"responseMimeType": "application/json", "temperature": 0.65}
+            "generationConfig": {"responseMimeType": "application/json", "temperature": 0.6}
         }).encode()
         req = urllib.request.Request(GEMINI_URL, data=payload, headers={"Content-Type": "application/json"}, method="POST")
         with urllib.request.urlopen(req, timeout=9) as r:
             res = json.loads(r.read().decode())
-            return json.loads(res["candidates"][0]["content"]["parts"][0]["text"].strip())
-    except Exception:
-        return None
+            return json.loads(res["candidates"]["content"]["parts"]["text"].strip())
+    except Exception: return None
 
 def call_openai(prompt_text):
     if not OPENAI_KEY: return None
@@ -90,35 +79,25 @@ def call_openai(prompt_text):
         payload = json.dumps({
             "model": OPENAI_MODEL,
             "messages": [{"role": "user", "content": prompt_text}],
-            "temperature": 0.65,
+            "temperature": 0.6,
             "response_format": {"type": "json_object"}
         }).encode()
         req = urllib.request.Request(OPENAI_URL, data=payload, headers={"Content-Type": "application/json", "Authorization": f"Bearer {OPENAI_KEY}"}, method="POST")
         with urllib.request.urlopen(req, timeout=9) as r:
             res = json.loads(r.read().decode())
-            return json.loads(res["choices"][0]["message"]["content"].strip())
-    except Exception:
-        return None
+            return json.loads(res["choices"]["message"]["content"].strip())
+    except Exception: return None
 
 def process(text, memory=None):
     memory = memory or {}
-    prompt = generate_absolute_ai_prompt(text, memory)
-    
-    # Arquitectura Dual: Gemini como Primario, OpenAI como Respaldo
-    response = call_gemini(prompt)
+    prompt = generate_absolute_system_prompt(text, memory)
+    response = call_gemini(prompt) or call_openai(prompt)
     if not response:
-        response = call_openai(prompt)
-        
-    if not response:
-        # Mecanismo de contingencia elegante en caso de caída de redes externas
         response = {
-            "reply": "Ecosistema MIRROR activo en canal cifrado local. Ordene sus requerimientos.",
-            "title": "Consola Privada",
-            "direction": ["Ejecución autónoma inmediata", "Optimización de recursos y tiempo", "Coordinación discreta"],
-            "intent": "CONCIERGE",
-            "language": "es",
-            "premium_destination_query": "Elite Private Airport Terminal",
-            "premium_music_query": "Premium Minimalist Lounge Ambient",
+            "reply": "Módulo secundario de contingencia activo. Consola operativa.",
+            "title": "Módulo de Seguridad",
+            "direction": ["Protocolos locales en ejecución", "Comunicaciones seguras activas", "Canal de respaldo"],
+            "intent": "CONCIERGE", "language": "es", "premium_destination_query": "Luxury Hub", "premium_music_query": "Lounge Ambient",
             "breathing_exercise": {"active": False, "objective": "", "instruction": "", "duration_seconds": 240}
         }
     return response
