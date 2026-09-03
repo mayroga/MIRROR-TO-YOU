@@ -1,26 +1,48 @@
-from pathlib import Path
+import os
+import uuid
+import urllib.parse
 from datetime import datetime, timezone
-from uuid import uuid4
-import re
+from pathlib import Path
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
+from mirror_engine import process, response_text
+
+
 BASE = Path(__file__).resolve().parent
 STATIC = BASE / "static"
+STATIC.mkdir(exist_ok=True)
 
 app = FastAPI(title="MIRROR TO YOU", version="2.0")
-app.mount("/static", StaticFiles(directory=STATIC), name="static")
+app.mount("/static", StaticFiles(directory=str(STATIC)), name="static")
 
 MISSIONS = {}
+
+
+def now():
+    return datetime.now(timezone.utc).isoformat()
+
+
+def new_id():
+    return "m_" + uuid.uuid4().hex[:12]
+
+
+def clean(value, default=None):
+    if value is None:
+        return default
+    if isinstance(value, str):
+        value = value.strip()
+        return value or default
+    return value
 
 
 class Memory(BaseModel):
     core: dict = Field(default_factory=dict)
     moment: dict = Field(default_factory=dict)
-    preferences: list = Field(default_factory=list)
+    preferences: dict = Field(default_factory=dict)
     dislikes: list = Field(default_factory=list)
     history: list = Field(default_factory=list)
     learning: dict = Field(default_factory=dict)
@@ -29,9 +51,9 @@ class Memory(BaseModel):
 class MirrorRequest(BaseModel):
     message: str
     memory: Memory = Field(default_factory=Memory)
-    language: str = "en"
+    language: str | None = None
     voice_enabled: bool = False
-    client_device_id: str = ""
+    client_device_id: str | None = None
 
 
 class FeedbackRequest(BaseModel):
@@ -44,6 +66,12 @@ class FeedbackRequest(BaseModel):
 class PlanRevisionRequest(BaseModel):
     mission_id: str
     instruction: str
+    memory: Memory = Field(default_factory=Memory)
+
+
+class ConciergeRequest(BaseModel):
+    note: str = ""
+    memory: Memory = Field(default_factory=Memory)
 
 
 class RecoveryRequest(BaseModel):
@@ -51,243 +79,83 @@ class RecoveryRequest(BaseModel):
     memory: Memory = Field(default_factory=Memory)
 
 
-class ConciergeRequest(BaseModel):
-    note: str = ""
+def update_memory(memory, understanding, accepted=None, feedback=""):
+    data = memory.model_dump() if isinstance(memory, Memory) else dict(memory or {})
+    core = data.setdefault("core", {})
+    moment = data.setdefault("moment", {})
+    preferences = data.setdefault("preferences", {})
+    dislikes = data.setdefault("dislikes", [])
+    history = data.setdefault("history", [])
+    learning = data.setdefault("learning", {})
 
+    for key in ("companion", "destination", "budget", "duration"):
+        value = understanding.get(key)
+        if value not in (None, "", "unknown"):
+            moment[key] = value
 
-def now():
-    return datetime.now(timezone.utc).isoformat()
+    signals = understanding.get("signals") or []
+    if signals:
+        moment["signals"] = signals
 
+    if understanding.get("privacy"):
+        moment["privacy"] = understanding["privacy"]
 
-def new_id():
-    return "mission_" + uuid4().hex[:14]
+    if understanding.get("priority"):
+        moment["priority"] = understanding["priority"]
 
-
-def clean(text):
-    return re.sub(r"\s+", " ", (text or "").strip())
-
-
-def detect_language(text):
-    if re.search(r"\b(quiero|necesito|viaje|hotel|comida|solo|familia)\b", text.lower()):
-        return "es"
-    return "en"
-
-
-def detect_intent(text):
-    t = text.lower()
-
-    rules = {
-        "TRAVEL": ["flight", "fly", "airport", "vuelo", "avión", "aeropuerto"],
-        "ACCOMMODATION": ["hotel", "villa", "resort", "suite", "habitación", "alojamiento"],
-        "DINING": ["restaurant", "dinner", "lunch", "chef", "restaurant", "cena", "comida"],
-        "TRANSPORT": ["driver", "chauffeur", "car", "transfer", "chofer", "auto", "transporte"],
-        "EXPERIENCE": ["experience", "concert", "show", "spa", "yacht", "experiencia", "concierto", "yate"],
-        "ESCAPE": ["escape", "get away", "disappear", "quiet", "disconnect", "escapada", "desconectar", "desaparecer"],
-        "PRIVATE_LIFE": ["birthday", "anniversary", "gift", "surprise", "cumpleaños", "aniversario", "regalo", "sorpresa"],
-    }
-
-    for category, words in rules.items():
-        if any(w in t for w in words):
-            return category
-
-    return "CONCIERGE"
-
-
-def detect_priority(text):
-    t = text.lower()
-    if any(x in t for x in ["urgent", "asap", "today", "immediately", "urgente", "hoy", "ahora"]):
-        return "HIGH"
-    return "NORMAL"
-
-
-def detect_privacy(text):
-    t = text.lower()
-    if any(x in t for x in [
-        "private", "privacy", "discreet", "alone", "no people",
-        "privado", "privacidad", "discreto", "solo", "sin gente"
-    ]):
-        return "VERY_HIGH"
-    return "HIGH"
-
-
-def detect_budget(text):
-    m = re.search(r"(?:\$|usd\s*)(\d[\d,]*(?:\.\d+)?)", text.lower())
-    if not m:
-        return None
-    return float(m.group(1).replace(",", ""))
-
-
-def detect_duration(text):
-    m = re.search(r"(\d+)\s*(day|days|día|días|night|nights|noche|noches)", text.lower())
-    if not m:
-        return None
-    return f"{m.group(1)} {m.group(2)}"
-
-
-def detect_companion(text):
-    t = text.lower()
-    if any(x in t for x in ["alone", "solo", "sola", "myself"]):
-        return "ALONE"
-    if any(x in t for x in ["wife", "husband", "partner", "esposa", "esposo", "pareja"]):
-        return "PARTNER"
-    if any(x in t for x in ["family", "familia", "kids", "children", "niños", "hijos"]):
-        return "FAMILY"
-    return None
-
-
-def detect_destination(text):
-    patterns = [
-        r"\bto\s+([A-Z][A-Za-zÀ-ÿ]*(?:\s+[A-Z][A-Za-zÀ-ÿ]*){0,2})",
-        r"\ba\s+([A-ZÁÉÍÓÚÑ][A-Za-zÁÉÍÓÚÑ]*(?:\s+[A-ZÁÉÍÓÚÑ][A-Za-zÁÉÍÓÚÑ]*){0,2})",
-    ]
-    for pattern in patterns:
-        m = re.search(pattern, text)
-        if m:
-            value = clean(m.group(1))
-            if value.lower() not in {"take", "do", "get", "mi", "la", "el"}:
-                return value
-    return None
-
-
-def analyze(text, memory):
-    language = detect_language(text)
-    return {
-        "language": language,
-        "intent": detect_intent(text),
-        "priority": detect_priority(text),
-        "privacy": detect_privacy(text),
-        "budget": detect_budget(text),
-        "duration": detect_duration(text),
-        "companion": detect_companion(text),
-        "destination": detect_destination(text),
-        "message": text,
-    }
-
-
-def missing_information(data):
-    intent = data["intent"]
-    text = data["message"].lower()
-
-    if intent in {"TRAVEL", "ESCAPE"}:
-        if not data["destination"] and not any(
-            x in text for x in ["somewhere", "anywhere", "someplace", "cualquier lugar", "algún lugar"]
-        ):
-            return "destination"
-
-    if intent == "ACCOMMODATION" and not data["destination"]:
-        return "destination"
-
-    return None
-
-
-def build_understanding(data, memory):
-    details = []
-
-    if data["duration"]:
-        details.append(data["duration"])
-
-    if data["companion"] == "ALONE":
-        details.append("traveling alone")
-
-    if data["privacy"] == "VERY_HIGH":
-        details.append("high privacy")
-
-    if data["destination"]:
-        details.append(f"destination: {data['destination']}")
-
-    return details
-
-
-def build_plan(data, memory):
-    intent = data["intent"]
-    details = build_understanding(data, memory)
-
-    titles = {
-        "TRAVEL": "Your private journey",
-        "ACCOMMODATION": "Your private stay",
-        "DINING": "Your dining plan",
-        "TRANSPORT": "Your private transportation",
-        "EXPERIENCE": "Your experience",
-        "ESCAPE": "Your private escape",
-        "PRIVATE_LIFE": "Your private request",
-        "CONCIERGE": "Your MIRROR request",
-    }
-
-    title = titles.get(intent, "Your MIRROR plan")
-
-    steps = [
-        "Understand what matters to you",
-        "Match it with your MIRROR preferences",
-        "Build the right direction",
-        "Coordinate only when you approve",
-    ]
-
-    return {
-        "title": title,
-        "category": intent,
-        "privacy": data["privacy"],
-        "priority": data["priority"],
-        "budget": data["budget"],
-        "destination": data["destination"],
-        "duration": data["duration"],
-        "companion": data["companion"],
-        "details": details,
-        "steps": steps,
-        "status": "PROPOSAL",
-    }
-
-
-def response_for(data, plan, memory):
-    lang = data["language"]
-    missing = missing_information(data)
-
-    if missing == "destination":
-        if lang == "es":
-            return "Entiendo lo que buscas. Antes de decidir por ti, necesito una sola cosa: ¿quieres que elija yo el destino o ya tienes uno en mente?"
-        return "I understand what you're looking for. Before I decide the direction for you, I need one thing: would you like me to choose the destination, or do you already have one in mind?"
-
-    if lang == "es":
-        return (
-            f"Entiendo. Esto no necesita una búsqueda genérica. "
-            f"He identificado tu solicitud como {data['intent'].replace('_', ' ').lower()} "
-            f"y voy a construirla alrededor de lo que realmente necesitas ahora. "
-            f"No se ha reservado ni comprado nada."
-        )
-
-    return (
-        f"I understand. This does not need a generic search. "
-        f"I identified your request as {data['intent'].replace('_', ' ').lower()} "
-        f"and I will build it around what you actually need right now. "
-        f"Nothing has been booked or purchased."
-    )
-
-
-def memory_update(memory, data, accepted=None, feedback=""):
-    m = memory.model_dump()
-
-    core = m.setdefault("core", {})
-    moment = m.setdefault("moment", {})
-    learning = m.setdefault("learning", {})
-
-    if data.get("destination"):
-        core["last_destination"] = data["destination"]
-
-    if data.get("companion"):
-        core["travel_companion"] = data["companion"]
-
-    core["privacy_level"] = data["privacy"]
-
-    moment["last_intent"] = data["intent"]
-    moment["last_request"] = data["message"]
-    moment["updated_at"] = now()
+    intent = understanding.get("intent")
+    if intent:
+        moment["intent"] = intent
 
     if accepted is not None:
-        learning["last_accepted"] = accepted
+        learning["last_accepted"] = bool(accepted)
 
     if feedback:
-        learning["last_feedback"] = feedback
+        learning["last_feedback"] = feedback[:500]
 
-    return Memory(**m)
+    if accepted is False and feedback:
+        dislikes.append(feedback[:200])
+        data["dislikes"] = dislikes[-30:]
+
+    if intent:
+        history.append({
+            "time": now(),
+            "intent": intent,
+            "accepted": accepted
+        })
+        data["history"] = history[-50:]
+
+    if signals:
+        for signal in signals:
+            preferences[signal.lower()] = True
+
+    data["core"] = core
+    data["moment"] = moment
+    data["preferences"] = preferences
+    data["learning"] = learning
+    return data
+
+
+def public_plan(proposal, mission_id):
+    if not proposal:
+        return None
+
+    return {
+        "title": proposal.get("title") or "Your MIRROR",
+        "direction": proposal.get("direction") or [],
+        "category": proposal.get("category"),
+        "privacy": proposal.get("privacy"),
+        "priority": proposal.get("priority"),
+        "budget": proposal.get("budget"),
+        "destination": proposal.get("destination"),
+        "duration": proposal.get("duration"),
+        "companion": proposal.get("companion"),
+        "signals": proposal.get("signals") or [],
+        "confidence": proposal.get("confidence", 0),
+        "status": proposal.get("status", "PROPOSAL"),
+        "questions": proposal.get("questions") or [],
+        "mission_id": mission_id
+    }
 
 
 @app.get("/")
@@ -297,232 +165,416 @@ async def home():
 
 @app.get("/api/health")
 async def health():
-    return {"status": "ok", "app": "MIRROR TO YOU", "version": "2.0"}
+    return {
+        "ok": True,
+        "service": "MIRROR TO YOU",
+        "version": "2.0",
+        "time": now()
+    }
 
 
 @app.get("/api/config")
 async def config():
     return {
-        "app": "MIRROR TO YOU",
+        "name": "MIRROR TO YOU",
         "version": "2.0",
-        "local_memory": True,
-        "server_persistent_personal_memory": False,
-        "voice_input": True,
-        "voice_output": True,
-        "google_maps": True,
-        "youtube": True,
-        "missions": True,
-        "personalization": True,
-        "concierge": True,
+        "voice": True,
+        "memory": "device",
+        "ai": True,
+        "maps": True,
+        "music": True,
+        "concierge": True
     }
 
 
 @app.post("/api/mirror")
-async def mirror(request: MirrorRequest):
-    text = clean(request.message)
+async def mirror(data: MirrorRequest):
+    message = clean(data.message)
 
-    if not text:
-        return JSONResponse({"error": "Tell MIRROR what you need."}, status_code=400)
+    if not message:
+        return JSONResponse(
+            {"ok": False, "error": "Tell MIRROR what is on your mind."},
+            status_code=400
+        )
 
-    data = analyze(text, request.memory)
-    plan = build_plan(data, request.memory)
-    message = response_for(data, plan, request.memory)
-    updated_memory = memory_update(request.memory, data)
+    memory = data.memory.model_dump()
+
+    try:
+        result = process(message, memory)
+    except Exception as exc:
+        return JSONResponse(
+            {
+                "ok": False,
+                "error": "MIRROR could not complete this moment.",
+                "detail": str(exc)
+            },
+            status_code=500
+        )
+
+    understanding = result.get("understanding") or {}
+    personalization = result.get("personalization") or {}
+    decision = result.get("decision") or {}
+    proposal = result.get("proposal") or {}
+
+    language = (
+        clean(data.language)
+        or understanding.get("language")
+        or "en"
+    )
+
+    try:
+        message_out = response_text(result, language)
+    except Exception:
+        message_out = (
+            "I’m here. Tell me a little more about what you need right now."
+            if language.startswith("en")
+            else "Estoy aquí. Cuéntame un poco más sobre lo que necesitas ahora."
+        )
+
+    updated_memory = update_memory(
+        memory,
+        understanding
+    )
 
     mission_id = new_id()
 
     mission = {
         "id": mission_id,
         "created_at": now(),
-        "status": "PROPOSAL",
-        "request": text,
-        "analysis": data,
-        "plan": plan,
+        "status": (
+            "CLARIFY"
+            if decision.get("action") in ("ASK", "CLARIFY")
+            else "PROPOSAL"
+        ),
+        "request": message,
+        "understanding": understanding,
+        "personalization": personalization,
+        "decision": decision,
+        "proposal": proposal
     }
 
     MISSIONS[mission_id] = mission
 
     return {
-        "message": message,
-        "mission": mission,
-        "plan": plan,
-        "memory": updated_memory.model_dump(),
-        "analysis": data,
+        "ok": True,
+        "message": message_out,
+        "language": language,
+        "analysis": understanding,
+        "understanding": understanding,
+        "personalization": personalization,
+        "decision": decision,
+        "plan": public_plan(proposal, mission_id),
+        "mission": {
+            "id": mission_id,
+            "status": mission["status"]
+        },
+        "memory": updated_memory
     }
 
 
 @app.get("/api/missions")
 async def missions():
-    return {"missions": list(MISSIONS.values())[-20:]}
+    return {
+        "ok": True,
+        "missions": [
+            {
+                "id": m["id"],
+                "created_at": m["created_at"],
+                "status": m["status"],
+                "request": m["request"]
+            }
+            for m in list(MISSIONS.values())[-30:][::-1]
+        ]
+    }
 
 
 @app.get("/api/missions/{mission_id}")
-async def get_mission(mission_id: str):
-    mission = MISSIONS.get(mission_id)
-    if not mission:
-        return JSONResponse({"error": "Mission not found."}, status_code=404)
-    return mission
+async def mission(mission_id: str):
+    item = MISSIONS.get(mission_id)
+
+    if not item:
+        return JSONResponse(
+            {"ok": False, "error": "Mission not found."},
+            status_code=404
+        )
+
+    return {
+        "ok": True,
+        "mission": item
+    }
 
 
 @app.post("/api/missions/feedback")
-async def feedback(request: FeedbackRequest):
-    mission = MISSIONS.get(request.mission_id)
+async def feedback(data: FeedbackRequest):
+    item = MISSIONS.get(data.mission_id)
 
-    if not mission:
-        return JSONResponse({"error": "Mission not found."}, status_code=404)
+    if not item:
+        return JSONResponse(
+            {"ok": False, "error": "Mission not found."},
+            status_code=404
+        )
 
-    mission["status"] = "APPROVED" if request.accepted else "REVISE"
-    mission["feedback"] = request.feedback
-    mission["updated_at"] = now()
+    item["feedback"] = {
+        "accepted": data.accepted,
+        "text": clean(data.feedback, ""),
+        "time": now()
+    }
 
-    data = mission["analysis"]
-    memory = memory_update(
-        request.memory,
-        data,
-        request.accepted,
-        request.feedback
+    item["status"] = "COMPLETED" if data.accepted else "LEARNING"
+
+    understanding = item.get("understanding") or {}
+    updated_memory = update_memory(
+        data.memory,
+        understanding,
+        data.accepted,
+        data.feedback
     )
 
     return {
         "ok": True,
-        "status": mission["status"],
-        "memory": memory.model_dump(),
+        "status": item["status"],
+        "memory": updated_memory
     }
 
 
 @app.post("/api/missions/revise")
-async def revise(request: PlanRevisionRequest):
-    mission = MISSIONS.get(request.mission_id)
+async def revise(data: PlanRevisionRequest):
+    item = MISSIONS.get(data.mission_id)
 
-    if not mission:
-        return JSONResponse({"error": "Mission not found."}, status_code=404)
+    if not item:
+        return JSONResponse(
+            {"ok": False, "error": "Mission not found."},
+            status_code=404
+        )
 
-    instruction = clean(request.instruction)
+    instruction = clean(data.instruction)
 
-    if instruction:
-        mission["revision"] = instruction
+    if not instruction:
+        return JSONResponse(
+            {"ok": False, "error": "Tell MIRROR what you would change."},
+            status_code=400
+        )
 
-    mission["status"] = "REVISED"
-    mission["updated_at"] = now()
+    original = item.get("request", "")
+    combined = f"{original}\n\nAdditional direction: {instruction}"
+
+    try:
+        result = process(
+            combined,
+            data.memory.model_dump()
+        )
+    except Exception as exc:
+        return JSONResponse(
+            {
+                "ok": False,
+                "error": "MIRROR could not revise the experience.",
+                "detail": str(exc)
+            },
+            status_code=500
+        )
+
+    proposal = result.get("proposal") or {}
+    understanding = result.get("understanding") or {}
+    decision = result.get("decision") or {}
+
+    item["understanding"] = understanding
+    item["decision"] = decision
+    item["proposal"] = proposal
+    item["revision"] = instruction
+    item["status"] = "PROPOSAL"
+
+    language = (
+        understanding.get("language")
+        or "en"
+    )
+
+    try:
+        text = response_text(result, language)
+    except Exception:
+        text = "I’ve adjusted the direction."
 
     return {
         "ok": True,
-        "message": "MIRROR will adjust the proposal around your instruction.",
-        "mission": mission,
+        "message": text,
+        "analysis": understanding,
+        "decision": decision,
+        "plan": public_plan(proposal, data.mission_id),
+        "mission": {
+            "id": data.mission_id,
+            "status": item["status"]
+        }
     }
 
 
 @app.post("/api/missions/{mission_id}/concierge")
-async def concierge(mission_id: str, request: ConciergeRequest):
-    mission = MISSIONS.get(mission_id)
+async def concierge(mission_id: str, data: ConciergeRequest):
+    item = MISSIONS.get(mission_id)
 
-    if not mission:
-        return JSONResponse({"error": "Mission not found."}, status_code=404)
+    if not item:
+        return JSONResponse(
+            {"ok": False, "error": "Mission not found."},
+            status_code=404
+        )
 
-    mission["status"] = "CONCIERGE_REVIEW"
-    mission["concierge_note"] = clean(request.note)
-    mission["updated_at"] = now()
+    item["status"] = "CONCIERGE"
+    item["concierge"] = {
+        "note": clean(data.note, ""),
+        "created_at": now()
+    }
 
     return {
         "ok": True,
-        "status": mission["status"],
-        "message": "Your request is prepared for concierge handling. No provider has been booked automatically.",
+        "status": "CONCIERGE",
+        "message": (
+            "I have your request. A private concierge can take it from here."
+        )
     }
 
 
 @app.get("/api/maps")
 async def maps(destination: str = ""):
-    from urllib.parse import quote
+    destination = clean(destination)
+
+    if not destination:
+        return {
+            "ok": False,
+            "url": None
+        }
+
+    url = (
+        "https://www.google.com/maps/search/?api=1&query="
+        + urllib.parse.quote_plus(destination)
+    )
+
     return {
-        "url": f"https://www.google.com/maps/search/?api=1&query={quote(destination or 'luxury destination')}"
+        "ok": True,
+        "destination": destination,
+        "url": url
     }
 
 
 @app.get("/api/music")
-async def music(query: str = "private luxury relaxing music"):
-    from urllib.parse import quote
+async def music(query: str = ""):
+    query = clean(query, "calm luxury music")
+
+    url = (
+        "https://www.youtube.com/results?search_query="
+        + urllib.parse.quote_plus(query)
+    )
+
     return {
-        "url": f"https://www.youtube.com/results?search_query={quote(query)}"
+        "ok": True,
+        "query": query,
+        "url": url
     }
 
 
+class VoiceRequest(BaseModel):
+    text: str
+
+
 @app.post("/api/voice/text")
-async def voice_text():
+async def voice_text(data: VoiceRequest):
+    text = clean(data.text, "")
+
     return {
         "ok": True,
-        "message": "Voice recognition and speech synthesis are handled securely by the client browser."
+        "text": text
     }
 
 
 @app.get("/api/providers")
 async def providers():
     return {
-        "flights": {"connected": False, "mode": "CONCIERGE_READY"},
-        "hotels": {"connected": False, "mode": "CONCIERGE_READY"},
-        "restaurants": {"connected": False, "mode": "CONCIERGE_READY"},
-        "transport": {"connected": False, "mode": "CONCIERGE_READY"},
-        "experiences": {"connected": False, "mode": "CONCIERGE_READY"},
-        "maps": {"connected": True, "mode": "PUBLIC_LINK"},
-        "youtube": {"connected": True, "mode": "PUBLIC_LINK"},
+        "ok": True,
+        "providers": [],
+        "message": "Real providers will be connected only when verified integrations are available."
     }
 
 
 @app.get("/api/memory/recovery/questions")
 async def recovery_questions():
     return {
+        "ok": True,
         "questions": [
             {
-                "id": "travel_style",
-                "question": "What kind of travel feels most like you?",
-                "options": ["Private", "Luxury", "Adventurous", "Relaxed", "Spontaneous"]
+                "id": "energy",
+                "question": "What feels most like you today?",
+                "options": [
+                    "Quiet",
+                    "Movement",
+                    "Water",
+                    "Music",
+                    "Nature"
+                ]
             },
             {
-                "id": "privacy",
-                "question": "How important is privacy?",
-                "options": ["Essential", "Very important", "Important", "Flexible"]
+                "id": "need",
+                "question": "What would you like more of right now?",
+                "options": [
+                    "Disconnect",
+                    "Discover",
+                    "Breathe",
+                    "Play",
+                    "Do nothing"
+                ]
+            },
+            {
+                "id": "style",
+                "question": "Which experience feels most natural to you?",
+                "options": [
+                    "Private",
+                    "Spontaneous",
+                    "Refined",
+                    "Simple",
+                    "Unexpected"
+                ]
             },
             {
                 "id": "pace",
-                "question": "How should MIRROR plan your time?",
-                "options": ["Minimal effort", "Balanced", "Detailed", "Surprise me"]
-            },
-            {
-                "id": "environment",
-                "question": "What environment usually attracts you?",
-                "options": ["Beach", "City", "Nature", "Mountains", "Anywhere"]
+                "question": "How should MIRROR move with you?",
+                "options": [
+                    "Slowly",
+                    "Directly",
+                    "Quietly",
+                    "Playfully",
+                    "Surprise me"
+                ]
             }
         ]
     }
 
 
 @app.post("/api/memory/recovery")
-async def recovery(request: RecoveryRequest):
-    m = request.memory.model_dump()
-    answers = request.answers
+async def recovery(data: RecoveryRequest):
+    memory = data.memory.model_dump()
+    answers = data.answers or {}
 
-    core = m.setdefault("core", {})
+    preferences = memory.setdefault("preferences", {})
+    moment = memory.setdefault("moment", {})
 
-    if answers.get("travel_style"):
-        core["travel_style"] = answers["travel_style"]
+    for key, value in answers.items():
+        value = clean(value)
+        if value:
+            preferences[key] = value
+            moment[key] = value
 
-    if answers.get("privacy"):
-        core["privacy_preference"] = answers["privacy"]
-
-    if answers.get("pace"):
-        core["planning_style"] = answers["pace"]
-
-    if answers.get("environment"):
-        core["preferred_environment"] = answers["environment"]
+    memory["recovered_at"] = now()
 
     return {
         "ok": True,
-        "memory": Memory(**m).model_dump()
+        "memory": memory,
+        "message": "MIRROR is getting to know your rhythm again."
     }
 
 
 @app.exception_handler(Exception)
-async def server_error(_, exc):
+async def global_error(request: Request, exc: Exception):
     return JSONResponse(
-        status_code=500,
-        content={"error": "MIRROR encountered an internal error.", "detail": str(exc)}
+        {
+            "ok": False,
+            "error": "MIRROR encountered an unexpected error.",
+            "detail": str(exc)
+        },
+        status_code=500
     )
