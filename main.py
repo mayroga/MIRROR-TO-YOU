@@ -12,7 +12,7 @@ from mirror_engine import process
 BASE = Path(__file__).resolve().parent
 STATIC = BASE / "static"
 
-app = FastAPI(title="MIRROR TO YOU", version="5.0")
+app = FastAPI(title="MIRROR TO YOU", version="6.0")
 
 if STATIC.exists():
     app.mount("/static", StaticFiles(directory=str(STATIC)), name="static")
@@ -39,7 +39,6 @@ async def home():
 async def mirror(data: MirrorRequest):
     memory_dict = data.memory.model_dump()
     
-    # Procesa de forma unificada comandos de botón o textos libres del chat
     ai_plan = process(data.message.strip(), memory_dict)
     
     memory_dict["history"].append({
@@ -50,15 +49,26 @@ async def mirror(data: MirrorRequest):
     memory_dict["moment"] = {
         "intent": ai_plan.get("intent"),
         "language": ai_plan.get("language"),
-        "destination": ai_plan.get("premium_destination_query")
+        "destination": ai_plan.get("premium_destination_query"),
+        "status_color_zone": ai_plan.get("status_color_zone")
     }
 
-    mission_id = "premium_" + uuid.uuid4().hex[:12]
-    
-    return {
-        "ok": True,
-        "message": ai_plan.get("reply"),
-        "understanding": memory_dict["moment"],
-        "plan": ai_plan,
-        "memory": memory_dict
-    }
+return {
+    "ok": True,
+    "message": ai_plan.get("reply"), # Acceso directo y seguro mediante .get() al plano de la IA
+    "understanding": memory_dict["moment"], # Lectura sincronizada de la huella local actualizada
+    "plan": ai_plan,
+    "memory": memory_dict
+}
+
+@app.get("/api/maps")
+async def maps(destination: str = ""):
+    import urllib.parse
+    q = urllib.parse.quote(destination.strip() or "Luxury Elite Private Space")
+    return {"ok": True, "url": f"https://google.com{q}"}
+
+@app.get("/api/music")
+async def music(query: str = ""):
+    import urllib.parse
+    q = urllib.parse.quote(query.strip() or "Premium Neuro Ambient Lounge")
+    return {"ok": True, "url": f"https://youtube.com{q}"}
