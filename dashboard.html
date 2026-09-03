@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Private Dashboard — MIRROR TO YOU</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        obsidian: '#0a0a0a',
+                        surface: '#121212',
+                        card: '#18181b',
+                        gold: {
+                            light: '#e2c999',
+                            DEFAULT: '#c5a059',
+                            dark: '#9a7b38'
+                        },
+                        platinum: '#e5e7eb'
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        serif: ['Playfair Display', 'serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .font-serif { font-family: 'Playfair Display', serif; }
+        .glass-panel {
+            background: rgba(24, 24, 27, 0.7);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(197, 160, 89, 0.15);
+        }
+        .glow-gold {
+            box-shadow: 0 0 40px -10px rgba(197, 160, 89, 0.15);
+        }
+        .text-gradient {
+            background: linear-gradient(135deg, #ffffff 0%, #e2c999 50%, #c5a059 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+    </style>
+</head>
+<body class="bg-obsidian text-platinum antialiased min-h-screen flex flex-col justify-between selection:bg-gold selection:text-obsidian">
+
+    <!-- Header / Navigation -->
+    <header class="fixed top-0 left-0 right-0 z-50 glass-panel border-b border-white/5">
+        <div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+            <a href="index.html" class="flex items-center space-x-3 group">
+                <div class="w-8 h-8 rounded-full border border-gold/40 flex items-center justify-center transition-colors group-hover:border-gold">
+                    <div class="w-2 h-2 rounded-full bg-gold"></div>
+                </div>
+                <span class="font-serif tracking-[0.2em] text-lg text-platinum font-medium">MIRROR TO YOU</span>
+            </a>
+
+            <nav class="hidden md:flex items-center space-x-8 text-sm tracking-widest text-platinum/70 uppercase font-light">
+                <a href="dashboard.html" class="text-gold font-medium">Dashboard</a>
+                <a href="concierge.html" class="hover:text-gold transition-colors">Concierge</a>
+                <a href="travel.html" class="hover:text-gold transition-colors">Journeys</a>
+                <a href="profile.html" class="hover:text-gold transition-colors">My Profile</a>
+            </nav>
+
+            <div class="flex items-center space-x-4">
+                <span class="text-xs tracking-widest text-gold uppercase px-3 py-1 border border-gold/30 bg-gold/5 hidden sm:inline-block">Private Account</span>
+                <a href="settings.html" class="text-xs tracking-widest text-platinum/80 hover:text-gold uppercase px-3 py-2 transition-colors">Settings</a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-grow pt-28 pb-16 px-6">
+        <div class="max-w-6xl mx-auto">
+            
+            <!-- Welcome Bar -->
+            <div class="mb-10 border-b border-white/10 pb-6 flex flex-col md:flex-row md:items-end justify-between gap-4">
+                <div>
+                    <span class="text-xs uppercase tracking-[0.25em] text-gold font-medium block mb-2">Secure Private Portal</span>
+                    <h1 class="font-serif text-3xl sm:text-4xl text-white">Welcome, Principal</h1>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <a href="concierge.html" class="bg-gold text-obsidian text-xs tracking-widest uppercase px-5 py-2.5 font-medium hover:bg-gold-light transition-all flex items-center space-x-2">
+                        <span>New Request</span>
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 4v16m8-8H4"></path></svg>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Quick Stats / Status Grid -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
+                <div class="glass-panel p-6 rounded-none">
+                    <span class="text-[10px] uppercase tracking-widest text-platinum/40 block mb-2">Active Requests</span>
+                    <div class="text-2xl font-serif text-white mb-1">02</div>
+                    <span class="text-xs text-gold uppercase tracking-wider">In Progress</span>
+                </div>
+                <div class="glass-panel p-6 rounded-none">
+                    <span class="text-[10px] uppercase tracking-widest text-platinum/40 block mb-2">Next Scheduled Journey</span>
+                    <div class="text-xl font-serif text-white mb-1">Lake Como</div>
+                    <span class="text-xs text-platinum/60 uppercase tracking-wider">October 14</span>
+                </div>
+                <div class="glass-panel p-6 rounded-none">
+                    <span class="text-[10px] uppercase tracking-widest text-platinum/40 block mb-2">Dedicated Concierge</span>
+                    <div class="text-xl font-serif text-white mb-1">Desk Alpha</div>
+                    <span class="text-xs text-gold uppercase tracking-wider">Online & Secure</span>
+                </div>
+                <div class="glass-panel p-6 rounded-none">
+                    <span class="text-[10px] uppercase tracking-widest text-platinum/40 block mb-2">Membership Level</span>
+                    <div class="text-xl font-serif text-white mb-1">Private Elite</div>
+                    <span class="text-xs text-platinum/60 uppercase tracking-wider">Lifetime Verified</span>
+                </div>
+            </div>
+
+            <!-- Main Dashboard Modules Section -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                
+                <!-- Left 2 Columns: Active Requests & Quick Curation -->
+                <div class="lg:col-span-2 space-y-8">
+                    
+                    <!-- Active Requests Card -->
+                    <div class="glass-panel p-6 sm:p-8 rounded-none">
+                        <div class="flex items-center justify-between mb-6 border-b border-white/10 pb-4">
+                            <h2 class="font-serif text-xl text-white">Active Requests & Status</h2>
+                            <a href="requests.html" class="text-xs tracking-widest text-gold uppercase hover:underline">View All</a>
+                        </div>
+                        <div class="space-y-4">
+                            <div class="bg-obsidian/60 border border-white/5 p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                                <div>
+                                    <span class="text-[10px] uppercase tracking-widest text-gold bg-gold/10 px-2 py-0.5 border border-gold/20 inline-block mb-1">Structuring Options</span>
+                                    <h3 class="text-sm text-white font-medium">Private Chalet Rental in Aspen for Next Weekend</h3>
+                                    <p class="text-xs text-platinum/50 mt-1">Includes helicopter transfer coordination.</p>
+                                </div>
+                                <span class="text-xs text-platinum/60 uppercase tracking-wider">Updated 2h ago</span>
+                            </div>
+
+                            <div class="bg-obsidian/60 border border-white/5 p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                                <div>
+                                    <span class="text-[10px] uppercase tracking-widest text-gold bg-gold/10 px-2 py-0.5 border border-gold/20 inline-block mb-1">Confirmed</span>
+                                    <h3 class="text-sm text-white font-medium">Anniversary Omakase Private Counter Booking</h3>
+                                    <p class="text-xs text-platinum/50 mt-1">Closed-door seating arrangement secured.</p>
+                                </div>
+                                <span class="text-xs text-platinum/60 uppercase tracking-wider">Confirmed</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Philosophy Banner -->
+                    <div class="glass-panel p-6 sm:p-8 rounded-none border-gold/30 glow-gold">
+                        <span class="text-[10px] uppercase tracking-[0.25em] text-gold font-medium block mb-2">Core Philosophy</span>
+                        <h3 class="font-serif text-2xl text-white mb-3">“You don't need to search. We take care of it.”</h3>
+                        <p class="text-xs text-platinum/70 leading-relaxed font-light">
+                            Your private concierge desk continuously synthesizes your profile preferences with bespoke global access. Submit your requirement in natural language and receive fully structured solutions.
+                        </p>
+                    </div>
+
+                </div>
+
+                <!-- Right Column: Quick Navigation & Secure Channels -->
+                <div class="space-y-6">
+                    
+                    <div class="glass-panel p-6 rounded-none">
+                        <h2 class="font-serif text-lg text-white mb-4 border-b border-white/10 pb-3">Private Navigation</h2>
+                        <ul class="space-y-3 text-xs tracking-widest uppercase">
+                            <li><a href="concierge.html" class="flex items-center justify-between text-platinum/80 hover:text-gold py-2 transition-colors"><span>Concierge Desk</span><span class="text-gold">&rarr;</span></a></li>
+                            <li><a href="travel.html" class="flex items-center justify-between text-platinum/80 hover:text-gold py-2 transition-colors"><span>Private Journeys</span><span class="text-gold">&rarr;</span></a></li>
+                            <li><a href="profile.html" class="flex items-center justify-between text-platinum/80 hover:text-gold py-2 transition-colors"><span>My Private Profile</span><span class="text-gold">&rarr;</span></a></li>
+                            <li><a href="messages.html" class="flex items-center justify-between text-platinum/80 hover:text-gold py-2 transition-colors"><span>Secure Messages</span><span class="text-gold">&rarr;</span></a></li>
+                            <li><a href="settings.html" class="flex items-center justify-between text-platinum/80 hover:text-gold py-2 transition-colors"><span>Account Settings</span><span class="text-gold">&rarr;</span></a></li>
+                        </ul>
+                    </div>
+
+                    <div class="glass-panel p-6 rounded-none border-gold/20">
+                        <span class="text-[10px] uppercase tracking-widest text-gold block mb-2">Confidentiality Assurance</span>
+                        <p class="text-xs text-platinum/60 leading-relaxed font-light">
+                            All communications and structured profile records are encrypted and restricted solely to your assigned concierge desk.
+                        </p>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="border-t border-white/5 py-8 text-center text-xs tracking-widest text-platinum/40 uppercase">
+        <div class="max-w-7xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <p>&copy; 2026 Mirror To You. Private Account Only.</p>
+            <div class="flex space-x-6">
+                <a href="settings.html" class="hover:text-gold transition-colors">Security</a>
+                <a href="membership.html" class="hover:text-gold transition-colors">Terms</a>
+                <a href="messages.html" class="hover:text-gold transition-colors">Desk</a>
+            </div>
+        </div>
+    </footer>
+
+</body>
+</html>
