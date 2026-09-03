@@ -1,1134 +1,530 @@
-"use strict";
+```javascript
+const $ = s => document.querySelector(s);
+const API = "/api";
 
-const API="/api";
-let memory={};
-let lastResult=null;
-let lastMessage="";
-let lastExperienceId=null;
-let currentLanguage=localStorage.getItem("mirror_language")||"en";
-let recognition=null;
-let isListening=false;
-let requestBusy=false;
-let breathingTimer=null;
-
-const $=id=>document.getElementById(id);
-const today=()=>new Date().toISOString().slice(0,10);
-
-const TEXT={
- en:{
-  thinking:"MIRROR is thinking...",
-  listening:"Listening...",
-  tell:"Tell MIRROR what you need.",
-  ready:"Ready",
-  connection:"Connection error.",
-  voice:"Voice input is not available in this browser.",
-  voiceError:"Voice input error.",
-  noExperience:"There is no experience to rate yet.",
-  learned:"MIRROR learned your preference.",
-  different:"MIRROR will create a different experience.",
-  concierge:"MIRROR is taking care of it...",
-  conciergeReady:"MIRROR is handling the next step.",
-  conciergeError:"Unable to continue right now.",
-  noDestination:"No destination is available.",
-  noPlan:"Create a MIRROR experience first.",
-  memoryRestored:"MIRROR memory restored.",
-  invalidMemory:"Invalid memory file.",
-  memoryCleared:"MIRROR memory cleared.",
-  recoveryError:"Recovery is not available right now.",
-  breathingStart:"START",
-  inhale:"Inhale",
-  hold:"Hold",
-  exhale:"Exhale",
-  destination:"Destination",
-  budget:"Budget",
-  privacy:"Privacy",
-  priority:"Priority",
-  status:"Ready",
-  experience:"MIRROR experience"
- },
- es:{
-  thinking:"MIRROR está pensando...",
-  listening:"Escuchando...",
-  tell:"Dile a MIRROR lo que necesitas.",
-  ready:"Listo",
-  connection:"Error de conexión.",
-  voice:"La entrada por voz no está disponible en este navegador.",
-  voiceError:"Error de entrada por voz.",
-  noExperience:"Todavía no hay una experiencia para valorar.",
-  learned:"MIRROR aprendió tu preferencia.",
-  different:"MIRROR creará una experiencia diferente.",
-  concierge:"MIRROR se está encargando...",
-  conciergeReady:"MIRROR está gestionando el siguiente paso.",
-  conciergeError:"No es posible continuar en este momento.",
-  noDestination:"No hay un destino disponible.",
-  noPlan:"Primero crea una experiencia con MIRROR.",
-  memoryRestored:"La memoria de MIRROR fue restaurada.",
-  invalidMemory:"El archivo de memoria no es válido.",
-  memoryCleared:"La memoria de MIRROR fue eliminada.",
-  recoveryError:"La recuperación no está disponible en este momento.",
-  breathingStart:"COMENZAR",
-  inhale:"Inhala",
-  hold:"Mantén",
-  exhale:"Exhala",
-  destination:"Destino",
-  budget:"Presupuesto",
-  privacy:"Privacidad",
-  priority:"Prioridad",
-  status:"Listo",
-  experience:"Experiencia MIRROR"
- }
+let memory = {
+  core: {}, moment: {}, preferences: [], dislikes: [], history: [], learning: {}
 };
+let currentMission = null;
+let recognition = null;
+let listening = false;
 
-function t(key){
-  return TEXT[currentLanguage]?.[key]||TEXT.en[key]||key;
+const dbName = "mirror_to_you_memory";
+const storeName = "memory";
+
+function id() {
+  return localStorage.getItem("mirror_device_id") ||
+    (() => {
+      const v = crypto.randomUUID ? crypto.randomUUID() : "device_" + Date.now();
+      localStorage.setItem("mirror_device_id", v);
+      return v;
+    })();
 }
 
-function setLanguage(lang){
-  currentLanguage=lang==="es"?"es":"en";
-  localStorage.setItem("mirror_language",currentLanguage);
-  memory.preferences=memory.preferences||{};
-  memory.preferences.language=currentLanguage;
-  saveMemory(memory);
-  document.documentElement.lang=currentLanguage;
-  document.documentElement.dir="ltr";
-  updateStaticLanguage();
-}
-
-function updateStaticLanguage(){
-  document.documentElement.lang=currentLanguage;
-  const b=$("languageBtn");
-  if(b)b.textContent=currentLanguage==="es"?"EN":"ES";
-
-  const voice=$("voiceBtn");
-  if(voice)voice.setAttribute("aria-label",currentLanguage==="es"?"Entrada por voz":"Voice input");
-
-  const clear=$("clearBtn");
-  if(clear)clear.setAttribute("aria-label",currentLanguage==="es"?"Limpiar":"Clear");
-}
-
-function toggleLanguage(){
-  setLanguage(currentLanguage==="es"?"en":"es");
-  toast(currentLanguage==="es"?"Español":"English");
-}
-
-function toast(message){
-  const e=$("toast");
-  if(!e)return;
-  e.textContent=String(message||"");
-  e.classList.add("show");
-  clearTimeout(toast.timer);
-  toast.timer=setTimeout(()=>e.classList.remove("show"),2600);
-}
-
-async function api(path,options={}){
-  const controller=new AbortController();
-  const timeout=setTimeout(()=>controller.abort(),45000);
-
-  try{
-    const headers={
-      "Content-Type":"application/json",
-      ...(options.headers||{})
-    };
-
-    const response=await fetch(API+path,{
-      ...options,
-      headers,
-      signal:controller.signal
-    });
-
-    const raw=await response.text();
-    let data={};
-
-    try{
-      data=raw?JSON.parse(raw):{};
-    }catch{
-      data={detail:raw||""};
-    }
-
-    if(!response.ok){
-      let error=data.detail||data.message||data.error||"Request failed";
-      if(typeof error!=="string")error=JSON.stringify(error);
-      throw new Error(error);
-    }
-
-    return data;
-  }catch(error){
-    if(error.name==="AbortError")throw new Error(
-      currentLanguage==="es"
-      ?"La solicitud tardó demasiado."
-      :"The request took too long."
-    );
-    throw error;
-  }finally{
-    clearTimeout(timeout);
-  }
-}
-
-function loadMemory(){
-  try{
-    memory=JSON.parse(localStorage.getItem("mirror_memory")||"{}");
-  }catch{
-    memory={};
-  }
-
-  if(!memory||typeof memory!=="object")memory={};
-
-  memory.core=memory.core||{};
-  memory.preferences=memory.preferences||{};
-  memory.dislikes=Array.isArray(memory.dislikes)?memory.dislikes:[];
-  memory.history=Array.isArray(memory.history)?memory.history:[];
-  memory.daily=memory.daily||{};
-  memory.feedback=Array.isArray(memory.feedback)?memory.feedback:[];
-  memory.profile=memory.profile||{};
-
-  if(memory.preferences.language){
-    currentLanguage=memory.preferences.language==="es"?"es":"en";
-  }
-
-  return memory;
-}
-
-function saveMemory(data){
-  if(data&&typeof data==="object")memory=data;
-
-  try{
-    localStorage.setItem("mirror_memory",JSON.stringify(memory));
-  }catch(error){
-    console.warn("Memory save:",error);
-  }
-}
-
-function deviceId(){
-  let id=localStorage.getItem("mirror_device_id");
-
-  if(!id){
-    try{
-      id=crypto.randomUUID();
-    }catch{
-      id="m-"+Date.now()+"-"+Math.random().toString(36).slice(2);
-    }
-    localStorage.setItem("mirror_device_id",id);
-  }
-
-  return id;
-}
-
-function languagePayload(){
-  return {
-    language:currentLanguage,
-    device_id:deviceId()
-  };
-}
-
-function rememberResult(data){
-  if(!data)return;
-
-  lastResult=data;
-
-  if(data.memory){
-    memory=data.memory;
-    memory.preferences=memory.preferences||{};
-    memory.preferences.language=currentLanguage;
-    saveMemory(memory);
-  }
-
-  const date=data.today||today();
-  const day=memory.daily?.[date]||[];
-  const last=day[day.length-1];
-
-  if(last?.experience_id)lastExperienceId=last.experience_id;
-  if(data.experience_id)lastExperienceId=data.experience_id;
-  if(data.mission?.experience_id)lastExperienceId=data.mission.experience_id;
-  if(data.plan?.experience_id)lastExperienceId=data.plan.experience_id;
-}
-
-function setText(id,value){
-  const e=$(id);
-  if(e)e.textContent=value==null?"":String(value);
-}
-
-function show(id,visible=true){
-  const e=$(id);
-  if(e)e.hidden=!visible;
-}
-
-function setValue(id,value){
-  const e=$(id);
-  if(e)e.value=value==null?"":String(value);
-}
-
-function escapeHtml(value){
-  return String(value??"").replace(/[&<>"']/g,char=>({
-    "&":"&amp;",
-    "<":"&lt;",
-    ">":"&gt;",
-    "\"":"&quot;",
-    "'":"&#039;"
-  }[char]));
-}
-
-function textOf(value){
-  if(typeof value==="string")return value;
-  if(!value||typeof value!=="object")return "";
-  return value.text||value.title||value.question||value.name||"";
-}
-
-function renderResponse(data){
-  if(!data)return;
-
-  const message=
-    data.message||
-    data.response||
-    data.response_text||
-    data.plan?.direction||
-    "";
-
-  setText("responseText",message);
-  setText(
-    "responseStatus",
-    data.mission?.status||
-    data.plan?.status||
-    t("ready")
-  );
-
-  show("responseSection",!!message);
-
-  const u=data.understanding||{};
-  const p=data.personalization||{};
-  const a=data.analysis||{};
-
-  setText(
-    "understandingText",
-    u.summary||
-    u.understanding||
-    a.summary||
-    ""
-  );
-
-  setValue(
-    "companion",
-    u.companion||p.companion||""
-  );
-
-  setValue(
-    "duration",
-    u.duration||p.duration||""
-  );
-
-  setValue(
-    "destination",
-    u.destination||p.destination||""
-  );
-
-  show(
-    "understandingSection",
-    !!(u.summary||u.understanding||a.summary)
-  );
-
-  renderPlan(data.plan||{});
-  renderBreathing(data.plan?.breathing||data.breathing);
-}
-
-function renderPlan(plan){
-  if(!plan||typeof plan!=="object"||!Object.keys(plan).length){
-    show("planSection",false);
-    return;
-  }
-
-  show("planSection",true);
-
-  setText(
-    "planTitle",
-    plan.title||t("experience")
-  );
-
-  setText(
-    "planDirection",
-    plan.direction||
-    plan.action||
-    ""
-  );
-
-  const details=[];
-
-  if(plan.destination)
-    details.push(t("destination")+": "+plan.destination);
-
-  if(plan.budget)
-    details.push(t("budget")+": "+plan.budget);
-
-  if(plan.privacy)
-    details.push(t("privacy")+": "+plan.privacy);
-
-  if(plan.priority)
-    details.push(t("priority")+": "+plan.priority);
-
-  setText("planDetails",details.join(" • "));
-
-  renderList("planSteps",plan.steps);
-  renderList("planQuestions",plan.questions);
-
-  show("destinationWrap",!!plan.destination);
-  show("budgetWrap",!!plan.budget);
-  show("privacyWrap",!!plan.privacy);
-  show("priorityWrap",!!plan.priority);
-}
-
-function renderList(id,items){
-  const element=$(id);
-  if(!element)return;
-
-  element.innerHTML="";
-
-  if(!Array.isArray(items))return;
-
-  items.forEach(item=>{
-    const text=textOf(item);
-    if(!text)return;
-
-    const li=document.createElement("li");
-    li.textContent=text;
-    element.appendChild(li);
+function openDB() {
+  return new Promise((resolve, reject) => {
+    const r = indexedDB.open(dbName, 1);
+    r.onupgradeneeded = () => r.result.createObjectStore(storeName);
+    r.onsuccess = () => resolve(r.result);
+    r.onerror = () => reject(r.error);
   });
 }
 
-function renderBreathing(data){
-  const section=$("breathingSection")||$("breathing");
-  if(!section)return;
-
-  clearInterval(breathingTimer);
-  breathingTimer=null;
-
-  if(!data){
-    section.hidden=true;
-    return;
-  }
-
-  const title=
-    data.title||
-    (currentLanguage==="es"?"Un momento para respirar":"A breathing moment");
-
-  const instruction=
-    data.instruction||
-    data.text||
-    (currentLanguage==="es"
-      ?"Respira lentamente y con comodidad."
-      :"Breathe slowly and comfortably.");
-
-  section.hidden=false;
-
-  section.innerHTML=
-    '<div class="breathing-card">'+
-      '<div class="breathing-circle" id="breathingCircle"></div>'+
-      '<h3>'+escapeHtml(title)+'</h3>'+
-      '<p id="breathingInstruction">'+escapeHtml(instruction)+'</p>'+
-      '<button type="button" id="breathingStart">'+
-        escapeHtml(t("breathingStart"))+
-      '</button>'+
-    '</div>';
-
-  const start=$("breathingStart");
-  if(start)start.addEventListener("click",startBreathing,{once:false});
-}
-
-function startBreathing(){
-  clearInterval(breathingTimer);
-
-  const circle=$("breathingCircle");
-  const instruction=$("breathingInstruction");
-
-  if(!circle||!instruction)return;
-
-  const phases=[
-    {name:"inhale",text:t("inhale"),seconds:4},
-    {name:"hold",text:t("hold"),seconds:2},
-    {name:"exhale",text:t("exhale"),seconds:6}
-  ];
-
-  let phase=0;
-  let remaining=phases[0].seconds;
-
-  const update=()=>{
-    const current=phases[phase];
-
-    instruction.textContent=
-      current.text+" • "+remaining+"s";
-
-    circle.className=
-      "breathing-circle "+current.name;
-
-    if(remaining<=1){
-      phase=(phase+1)%phases.length;
-      remaining=phases[phase].seconds;
-    }else{
-      remaining--;
-    }
-  };
-
-  update();
-  breathingTimer=setInterval(update,1000);
-}
-
-async function askMirror(){
-  if(requestBusy)return;
-
-  const input=$("messageInput");
-  const message=(input?.value||"").trim();
-
-  if(!message){
-    toast(t("tell"));
-    input?.focus();
-    return;
-  }
-
-  requestBusy=true;
-  lastMessage=message;
-
-  const ask=$("askBtn");
-  if(ask)ask.disabled=true;
-
-  setText("responseText",t("thinking"));
-  setText("responseStatus",t("ready"));
-  show("responseSection",true);
-
-  try{
-    const data=await api("/mirror",{
-      method:"POST",
-      body:JSON.stringify({
-        message,
-        memory,
-        ...languagePayload()
-      })
+async function loadMemory() {
+  try {
+    const db = await openDB();
+    return await new Promise(resolve => {
+      const r = db.transaction(storeName).objectStore(storeName).get("profile");
+      r.onsuccess = () => resolve(r.result || memory);
+      r.onerror = () => resolve(memory);
     });
-
-    rememberResult(data);
-    renderResponse(data);
-
-  }catch(error){
-    console.error("Mirror error:",error);
-    setText(
-      "responseText",
-      currentLanguage==="es"
-      ?"No pude completar la solicitud en este momento."
-      :"I couldn't complete that request right now."
-    );
-    setText("responseStatus",error.message||t("connection"));
-    toast(error.message||t("connection"));
-
-  }finally{
-    requestBusy=false;
-    if(ask)ask.disabled=false;
+  } catch {
+    return memory;
   }
 }
 
-async function sendFeedback(value){
-  if(requestBusy)return;
+async function saveMemory(data) {
+  memory = {...memory, ...data};
+  try {
+    const db = await openDB();
+    db.transaction(storeName, "readwrite")
+      .objectStore(storeName).put(memory, "profile");
+  } catch {}
+}
 
-  let id=lastExperienceId;
+async function api(path, options = {}) {
+  const r = await fetch(API + path, {
+    headers: {"Content-Type": "application/json"},
+    ...options
+  });
+  const data = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(data.error || "MIRROR could not complete the request.");
+  return data;
+}
 
-  if(!id){
-    const day=memory.daily?.[today()]||[];
-    const last=day[day.length-1];
-    id=last?.experience_id||null;
-  }
+function language() {
+  return navigator.language?.toLowerCase().startsWith("es") ? "es" : "en";
+}
 
-  if(!id){
-    toast(t("noExperience"));
-    return;
-  }
+function setText(selector, text) {
+  const el = $(selector);
+  if (el) el.textContent = text || "";
+}
 
-  requestBusy=true;
+function speak(text) {
+  if (!("speechSynthesis" in window) || !text) return;
+  speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang = language() === "es" ? "es-US" : "en-US";
+  u.rate = .95;
+  speechSynthesis.speak(u);
+}
 
-  try{
-    const data=await api("/feedback",{
-      method:"POST",
-      body:JSON.stringify({
-        memory,
-        experience_id:String(id),
-        value:String(value||""),
-        message:value==="different"
-          ?(
-            currentLanguage==="es"
-            ?"Quiero una experiencia diferente."
-            :"I want a different experience."
-          )
-          :"",
-        ...languagePayload()
-      })
-    });
-
-    rememberResult(data);
-
-    toast(
-      value==="different"
-      ?t("different")
-      :t("learned")
-    );
-
-  }catch(error){
-    console.error("Feedback error:",error);
-    toast(error.message||t("connection"));
-
-  }finally{
-    requestBusy=false;
+function showStatus(text) {
+  const el = $("#conciergeStatus");
+  if (el) {
+    el.textContent = text;
+    el.hidden = !text;
   }
 }
 
-async function requestConcierge(){
-  if(requestBusy)return;
+function renderPlan(plan, mission) {
+  currentMission = mission;
+  if (!plan) return;
 
-  const input=$("messageInput");
-  let message=(input?.value||"").trim();
+  const panel = $("#planPanel");
+  if (panel) panel.hidden = false;
 
-  if(!message)message=lastMessage;
-
-  if(!message&&lastResult){
-    const plan=lastResult.plan||{};
-    message=[
-      plan.title,
-      plan.direction,
-      plan.destination
-    ].filter(Boolean).join(". ");
-  }
-
-  if(!message){
-    toast(t("tell"));
-    input?.focus();
-    return;
-  }
-
-  requestBusy=true;
-
-  const button=$("conciergeBtn");
-  if(button)button.disabled=true;
-
-  setText("conciergeStatus",t("concierge"));
-
-  try{
-    const data=await api("/concierge",{
-      method:"POST",
-      body:JSON.stringify({
-        message,
-        memory,
-        ...languagePayload()
-      })
-    });
-
-    rememberResult(data);
-
-    if(data.message||data.response||data.plan)
-      renderResponse(data);
-
-    setText(
-      "conciergeStatus",
-      data.message||data.response||t("conciergeReady")
-    );
-
-  }catch(error){
-    console.error("Concierge error:",error);
-    setText("conciergeStatus",t("conciergeError"));
-    toast(error.message||t("connection"));
-
-  }finally{
-    requestBusy=false;
-    if(button)button.disabled=false;
-  }
-}
-
-async function revisePlan(){
-  if(requestBusy)return;
-
-  if(!lastResult){
-    toast(t("noPlan"));
-    return;
-  }
-
-  requestBusy=true;
-
-  try{
-    const data=await api("/revise",{
-      method:"POST",
-      body:JSON.stringify({
-        memory,
-        plan:lastResult.plan||{},
-        message:lastMessage,
-        ...languagePayload()
-      })
-    });
-
-    rememberResult(data);
-    renderResponse(data);
-
-  }catch(error){
-    console.error("Revision error:",error);
-    toast(error.message||t("connection"));
-
-  }finally{
-    requestBusy=false;
-  }
-}
-
-function openMaps(){
-  const plan=lastResult?.plan||{};
-  const destination=
-    plan.destination||
-    $("destination")?.value||
-    "";
-
-  if(!destination){
-    toast(t("noDestination"));
-    return;
-  }
-
-  const url=
-    "https://www.google.com/maps/search/?api=1&query="+
-    encodeURIComponent(destination);
-
-  window.open(url,"_blank","noopener,noreferrer");
-}
-
-function openMusic(){
-  const plan=lastResult?.plan||{};
-  const query=
-    plan.title||
-    plan.category||
-    (currentLanguage==="es"?"música relajante":"relaxing music");
-
-  const url=
-    "https://www.youtube.com/results?search_query="+
-    encodeURIComponent(query+" music");
-
-  window.open(url,"_blank","noopener,noreferrer");
-}
-
-async function loadMissions(){
-  try{
-    const data=await api("/missions");
-    const list=$("missionsList")||$("missions");
-
-    if(!list)return;
-
-    const missions=
-      Array.isArray(data)
-      ?data
-      :(data.missions||[]);
-
-    list.innerHTML="";
-
-    missions.forEach(mission=>{
-      const title=
-        textOf(mission)||
-        (currentLanguage==="es"
-          ?"Experiencia MIRROR"
-          :"MIRROR experience");
-
-      const element=document.createElement("div");
-      element.className="mission-item";
-      element.textContent=title;
-      list.appendChild(element);
-    });
-
-  }catch(error){
-    console.warn("Missions:",error.message);
-  }
-}
-
-function startVoiceRecognition(){
-  const SpeechRecognition=
-    window.SpeechRecognition||
-    window.webkitSpeechRecognition;
-
-  if(!SpeechRecognition){
-    toast(t("voice"));
-    return;
-  }
-
-  if(isListening){
-    recognition?.stop();
-    return;
-  }
-
-  recognition=new SpeechRecognition();
-
-  recognition.lang=
-    currentLanguage==="es"
-    ?"es-US"
-    :"en-US";
-
-  recognition.interimResults=false;
-  recognition.continuous=false;
-  recognition.maxAlternatives=1;
-
-  recognition.onstart=()=>{
-    isListening=true;
-    $("voiceBtn")?.classList.add("active");
-    toast(t("listening"));
-  };
-
-  recognition.onresult=event=>{
-    const text=
-      event.results?.[0]?.[0]?.transcript||
-      "";
-
-    const input=$("messageInput");
-
-    if(input&&text)
-      input.value=(input.value+" "+text).trim();
-  };
-
-  recognition.onerror=event=>{
-    console.error("Voice:",event.error);
-    toast(t("voiceError"));
-  };
-
-  recognition.onend=()=>{
-    isListening=false;
-    $("voiceBtn")?.classList.remove("active");
-  };
-
-  try{
-    recognition.start();
-  }catch(error){
-    console.warn("Voice start:",error);
-    isListening=false;
-  }
-}
-
-function speak(text){
-  if(!text||!window.speechSynthesis)return;
-
-  try{
-    speechSynthesis.cancel();
-
-    const utterance=
-      new SpeechSynthesisUtterance(String(text));
-
-    utterance.lang=
-      currentLanguage==="es"
-      ?"es-US"
-      :"en-US";
-
-    utterance.rate=.95;
-    utterance.pitch=1;
-
-    speechSynthesis.speak(utterance);
-  }catch(error){
-    console.warn("Speech:",error);
-  }
-}
-
-function clearAll(){
-  clearInterval(breathingTimer);
-  breathingTimer=null;
-
-  const input=$("messageInput");
-  if(input)input.value="";
-
-  lastMessage="";
-  lastResult=null;
-  lastExperienceId=null;
-
-  show("responseSection",false);
-  show("understandingSection",false);
-  show("planSection",false);
-  show("breathingSection",false);
-
-  setText("conciergeStatus","");
-
-  if(window.speechSynthesis)
-    speechSynthesis.cancel();
-
-  toast(
-    currentLanguage==="es"
-    ?"Listo para una nueva experiencia."
-    :"Ready for a new experience."
+  setText("#planTitle", plan.title);
+  setText("#missionId", mission?.id || "");
+  setText("#planCategory", plan.category || "MIRROR");
+  setText("#planPrivacy", plan.privacy || "HIGH");
+  setText("#planPriority", plan.priority || "NORMAL");
+  setText(
+    "#planBudget",
+    plan.budget == null ? "Not specified" : `$${Number(plan.budget).toLocaleString()}`
   );
-}
+  setText("#planDestination", plan.destination || "MIRROR is deciding");
 
-function backupMemory(){
-  try{
-    const copy={
-      ...memory,
-      preferences:{
-        ...(memory.preferences||{}),
-        language:currentLanguage
-      }
-    };
+  const details = $("#planDetails");
+  if (details) {
+    details.innerHTML = "";
+    const values = [
+      plan.duration && `Duration: ${plan.duration}`,
+      plan.companion && `For: ${plan.companion.toLowerCase()}`,
+      plan.confidence != null && `Confidence: ${plan.confidence}%`
+    ].filter(Boolean);
 
-    const blob=new Blob(
-      [JSON.stringify(copy,null,2)],
-      {type:"application/json"}
-    );
+    values.forEach(v => {
+      const li = document.createElement("li");
+      li.textContent = v;
+      details.appendChild(li);
+    });
+  }
 
-    const url=URL.createObjectURL(blob);
-    const link=document.createElement("a");
-
-    link.href=url;
-    link.download="mirror-memory.json";
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-
-    setTimeout(()=>URL.revokeObjectURL(url),1000);
-
-  }catch(error){
-    console.error("Backup:",error);
-    toast(
-      currentLanguage==="es"
-      ?"No se pudo crear la copia."
-      :"The backup could not be created."
-    );
+  const steps = $("#planSteps");
+  if (steps) {
+    steps.innerHTML = "";
+    (plan.direction || []).forEach((step, i) => {
+      const li = document.createElement("li");
+      li.innerHTML = `<span>${i + 1}</span><strong>${step}</strong>`;
+      steps.appendChild(li);
+    });
   }
 }
 
-function restoreMemory(file){
-  if(!file)return;
+function renderUnderstanding(data) {
+  const box = $("#understandingPanel");
+  if (!box || !data) return;
 
-  const reader=new FileReader();
+  box.hidden = false;
 
-  reader.onload=event=>{
-    try{
-      const restored=JSON.parse(event.target.result);
+  const items = [
+    ["Intent", data.intent?.replaceAll("_", " ")],
+    ["Privacy", data.privacy],
+    ["Priority", data.priority],
+    ["Destination", data.destination],
+    ["Duration", data.duration],
+    ["Companion", data.companion],
+  ].filter(x => x[1]);
 
-      if(!restored||typeof restored!=="object")
-        throw new Error("Invalid memory");
-
-      memory=restored;
-      memory.core=memory.core||{};
-      memory.preferences=memory.preferences||{};
-      memory.history=Array.isArray(memory.history)
-        ?memory.history:[];
-      memory.daily=memory.daily||{};
-      memory.feedback=Array.isArray(memory.feedback)
-        ?memory.feedback:[];
-      memory.profile=memory.profile||{};
-
-      if(memory.preferences.language)
-        currentLanguage=
-          memory.preferences.language==="es"
-          ?"es"
-          :"en";
-
-      saveMemory(memory);
-      updateStaticLanguage();
-
-      toast(t("memoryRestored"));
-
-    }catch(error){
-      console.error("Restore:",error);
-      toast(t("invalidMemory"));
-    }
-  };
-
-  reader.onerror=()=>{
-    toast(t("invalidMemory"));
-  };
-
-  reader.readAsText(file);
+  box.innerHTML = items.map(
+    ([a,b]) => `<div><small>${a}</small><strong>${b}</strong></div>`
+  ).join("");
 }
 
-function clearMemory(){
-  const question=
-    currentLanguage==="es"
-    ?"¿Eliminar la memoria de MIRROR de este dispositivo?"
-    :"Clear MIRROR memory from this device?";
+async function askMirror() {
+  const input = $("#requestInput") || $("#message");
+  const text = input?.value.trim();
 
-  if(!window.confirm(question))return;
+  if (!text) {
+    input?.focus();
+    return;
+  }
 
-  localStorage.removeItem("mirror_memory");
+  const button = $("#askMirrorButton") || $("#askButton");
+  if (button) button.disabled = true;
 
-  memory={
-    core:{},
-    preferences:{language:currentLanguage},
-    dislikes:[],
-    history:[],
-    daily:{},
-    feedback:[],
-    profile:{}
-  };
+  showStatus("MIRROR is understanding your request…");
 
-  saveMemory(memory);
-  toast(t("memoryCleared"));
-}
-
-async function recovery(){
-  try{
-    const data=await api(
-      "/recovery/questions?language="+
-      encodeURIComponent(currentLanguage)
-    );
-
-    const modal=$("recoveryModal");
-
-    if(!modal)return;
-
-    modal.hidden=false;
-
-    const content=
-      modal.querySelector("[data-recovery-content]")||
-      modal;
-
-    content.innerHTML="";
-
-    const questions=data.questions||[];
-
-    questions.forEach(question=>{
-      const p=document.createElement("p");
-      p.textContent=textOf(question);
-      content.appendChild(p);
+  try {
+    const result = await api("/mirror", {
+      method: "POST",
+      body: JSON.stringify({
+        message: text,
+        memory,
+        language: language(),
+        voice_enabled: false,
+        client_device_id: id()
+      })
     });
 
-  }catch(error){
-    console.error("Recovery:",error);
-    toast(error.message||t("recoveryError"));
+    currentMission = result.mission;
+    await saveMemory(result.memory || memory);
+
+    setText("#mirrorResponse", result.message);
+
+    const response = $("#responsePanel");
+    if (response) response.hidden = false;
+
+    renderUnderstanding(result.analysis || result.mission?.analysis);
+    renderPlan(result.plan || result.mission?.plan, result.mission);
+
+    const decision = result.mission?.analysis
+      ? result.mission.analysis
+      : null;
+
+    showStatus(
+      result.plan?.status === "PROPOSAL"
+        ? "Your proposal is ready."
+        : "MIRROR needs one small clarification before deciding."
+    );
+
+    speak(result.message);
+
+  } catch (e) {
+    setText("#mirrorResponse", e.message);
+    const response = $("#responsePanel");
+    if (response) response.hidden = false;
+    showStatus("");
+  } finally {
+    if (button) button.disabled = false;
   }
 }
 
-function closeRecovery(){
-  const modal=$("recoveryModal");
-  if(modal)modal.hidden=true;
+async function feedback(accepted, text = "") {
+  if (!currentMission?.id) return;
+
+  try {
+    const result = await api("/missions/feedback", {
+      method: "POST",
+      body: JSON.stringify({
+        mission_id: currentMission.id,
+        accepted,
+        feedback: text,
+        memory
+      })
+    });
+
+    if (result.memory) await saveMemory(result.memory);
+
+    showStatus(
+      accepted
+        ? "MIRROR has saved your preference."
+        : "MIRROR will use your feedback to make the next proposal different."
+    );
+
+    await loadMissions();
+  } catch (e) {
+    showStatus(e.message);
+  }
 }
 
-function bind(id,event,handler){
-  const element=$(id);
-  if(element)
-    element.addEventListener(event,handler);
+async function revise() {
+  if (!currentMission?.id) return;
+
+  const text = prompt(
+    language() === "es"
+      ? "¿Qué quieres cambiar?"
+      : "What would you like MIRROR to change?"
+  );
+
+  if (!text?.trim()) return;
+
+  try {
+    const result = await api("/missions/revise", {
+      method: "POST",
+      body: JSON.stringify({
+        mission_id: currentMission.id,
+        instruction: text.trim()
+      })
+    });
+
+    showStatus(result.message || "MIRROR is revising the proposal.");
+  } catch (e) {
+    showStatus(e.message);
+  }
 }
 
-function bindSuggestions(){
-  document.querySelectorAll(
-    "[data-message],[data-suggestion]"
-  ).forEach(element=>{
-    element.addEventListener("click",()=>{
-      const input=$("messageInput");
-      if(!input)return;
+async function sendConcierge() {
+  if (!currentMission?.id) return;
 
-      const value=
-        element.dataset.message||
-        element.dataset.suggestion||
-        element.textContent||
-        "";
+  try {
+    const result = await api(`/missions/${currentMission.id}/concierge`, {
+      method: "POST",
+      body: JSON.stringify({note: ""})
+    });
 
-      input.value=value.trim();
+    showStatus(result.message);
+    await loadMissions();
+  } catch (e) {
+    showStatus(e.message);
+  }
+}
+
+async function openMaps() {
+  const destination =
+    currentMission?.plan?.destination ||
+    $("#planDestination")?.textContent;
+
+  if (!destination || destination === "MIRROR is deciding") return;
+
+  try {
+    const result = await api(`/maps?destination=${encodeURIComponent(destination)}`);
+    window.open(result.url, "_blank", "noopener");
+  } catch {}
+}
+
+async function playMood() {
+  const category = currentMission?.plan?.category || "luxury relaxing";
+  const query = `${category} relaxing music`;
+  try {
+    const result = await api(`/music?query=${encodeURIComponent(query)}`);
+    window.open(result.url, "_blank", "noopener");
+  } catch {}
+}
+
+async function loadMissions() {
+  const box = $("#missionsList");
+  if (!box) return;
+
+  try {
+    const result = await api("/missions");
+    box.innerHTML = "";
+
+    (result.missions || []).slice().reverse().forEach(m => {
+      const item = document.createElement("div");
+      item.className = "mission-item";
+      item.innerHTML = `
+        <strong>${m.plan?.title || "MIRROR Mission"}</strong>
+        <small>${m.plan?.category || ""} · ${m.status || ""}</small>
+      `;
+      box.appendChild(item);
+    });
+  } catch {}
+}
+
+function setupVoice() {
+  const SpeechRecognition =
+    window.SpeechRecognition || window.webkitSpeechRecognition;
+
+  const button = $("#voiceButton");
+  if (!SpeechRecognition || !button) {
+    if (button) button.hidden = true;
+    return;
+  }
+
+  recognition = new SpeechRecognition();
+  recognition.lang = language() === "es" ? "es-US" : "en-US";
+  recognition.continuous = false;
+  recognition.interimResults = true;
+
+  recognition.onstart = () => {
+    listening = true;
+    button.classList.add("listening");
+    button.setAttribute("aria-label", "Stop listening");
+  };
+
+  recognition.onresult = e => {
+    const text = [...e.results]
+      .map(r => r[0].transcript)
+      .join("");
+
+    const input = $("#requestInput") || $("#message");
+    if (input) input.value = text;
+  };
+
+  recognition.onend = () => {
+    listening = false;
+    button.classList.remove("listening");
+    button.setAttribute("aria-label", "Speak to MIRROR");
+  };
+
+  recognition.onerror = () => {
+    listening = false;
+    button.classList.remove("listening");
+  };
+
+  button.addEventListener("click", () => {
+    if (listening) recognition.stop();
+    else recognition.start();
+  });
+}
+
+async function recovery() {
+  try {
+    const result = await api("/memory/recovery/questions");
+    const modal = $("#recoveryModal");
+    const box = $("#recoveryQuestions");
+
+    if (!modal || !box) return;
+
+    box.innerHTML = result.questions.map(q => `
+      <div class="recovery-question">
+        <strong>${q.question}</strong>
+        <div class="recovery-options">
+          ${q.options.map(o => `
+            <button type="button"
+              data-q="${q.id}"
+              data-value="${o}">
+              ${o}
+            </button>
+          `).join("")}
+        </div>
+      </div>
+    `).join("");
+
+    box.querySelectorAll("button").forEach(b => {
+      b.onclick = () => {
+        box.querySelectorAll(`[data-q="${b.dataset.q}"]`)
+          .forEach(x => x.classList.remove("selected"));
+        b.classList.add("selected");
+      };
+    });
+
+    modal.hidden = false;
+  } catch {}
+}
+
+async function saveRecovery() {
+  const box = $("#recoveryQuestions");
+  if (!box) return;
+
+  const answers = {};
+  box.querySelectorAll(".selected").forEach(b => {
+    answers[b.dataset.q] = b.dataset.value;
+  });
+
+  try {
+    const result = await api("/memory/recovery", {
+      method: "POST",
+      body: JSON.stringify({answers, memory})
+    });
+
+    if (result.memory) await saveMemory(result.memory);
+
+    $("#recoveryModal")?.setAttribute("hidden", "");
+    showStatus("Your MIRROR experience has been rebuilt.");
+  } catch (e) {
+    showStatus(e.message);
+  }
+}
+
+function closeRecovery() {
+  const modal = $("#recoveryModal");
+  if (modal) modal.hidden = true;
+}
+
+async function backupMemory() {
+  const blob = new Blob(
+    [JSON.stringify({
+      format: "MIRROR-TO-YOU",
+      version: 2,
+      memory
+    }, null, 2)],
+    {type: "application/json"}
+  );
+
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "mirror-to-you-memory.json";
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+function restoreMemory() {
+  $("#memoryFile")?.click();
+}
+
+async function handleRestore(e) {
+  const file = e.target.files?.[0];
+  if (!file) return;
+
+  try {
+    const data = JSON.parse(await file.text());
+    if (!data.memory) throw new Error("Invalid MIRROR memory file.");
+    await saveMemory(data.memory);
+    showStatus("Your MIRROR memory has been restored.");
+  } catch (err) {
+    showStatus(err.message);
+  }
+
+  e.target.value = "";
+}
+
+function clearRequest() {
+  const input = $("#requestInput") || $("#message");
+  if (input) {
+    input.value = "";
+    input.focus();
+  }
+}
+
+function bind(idName, fn) {
+  const el = document.getElementById(idName);
+  if (el) el.addEventListener("click", fn);
+}
+
+document.addEventListener("DOMContentLoaded", async () => {
+  memory = await loadMemory();
+
+  bind("askMirrorButton", askMirror);
+  bind("askButton", askMirror);
+  bind("clearButton", clearRequest);
+  bind("speakButton", () => speak($("#mirrorResponse")?.textContent || ""));
+  bind("thisFeelsRightButton", () => feedback(true));
+  bind("makeDifferentButton", revise);
+  bind("conciergeButton", sendConcierge);
+  bind("openMapsButton", openMaps);
+  bind("playMoodButton", playMood);
+  bind("rebuildMemoryButton", recovery);
+  bind("backupMemoryButton", backupMemory);
+  bind("restoreMemoryButton", restoreMemory);
+  bind("closeRecoveryButton", closeRecovery);
+  bind("saveRecoveryButton", saveRecovery);
+  bind("memoryFile", handleRestore);
+
+  document.querySelectorAll("[data-request]").forEach(button => {
+    button.addEventListener("click", () => {
+      const input = $("#requestInput") || $("#message");
+      if (!input) return;
+      input.value = button.dataset.request;
       input.focus();
     });
   });
-}
 
-function bindRecovery(){
-  const file=$("restoreFile");
+  const input = $("#requestInput") || $("#message");
+  input?.addEventListener("keydown", e => {
+    if ((e.ctrlKey || e.metaKey) && e.key === "Enter") askMirror();
+  });
 
-  if(file){
-    file.addEventListener("change",event=>{
-      const selected=event.target.files?.[0];
-      restoreMemory(selected);
-      event.target.value="";
-    });
+  setupVoice();
+  await loadMissions();
+
+  try {
+    await api("/health");
+  } catch {
+    showStatus("MIRROR is temporarily unavailable.");
   }
-
-  document.querySelectorAll(
-    "[data-close-recovery]"
-  ).forEach(element=>{
-    element.addEventListener("click",closeRecovery);
-  });
-}
-
-function bindKeyboard(){
-  const input=$("messageInput");
-  if(!input)return;
-
-  input.addEventListener("keydown",event=>{
-    if(
-      event.key==="Enter"&&
-      !event.shiftKey&&
-      !event.isComposing
-    ){
-      event.preventDefault();
-      askMirror();
-    }
-  });
-}
-
-function init(){
-  loadMemory();
-  deviceId();
-
-  if(memory.preferences?.language)
-    currentLanguage=
-      memory.preferences.language==="es"
-      ?"es"
-      :"en";
-
-  setLanguage(currentLanguage);
-
-  bind("askBtn","click",askMirror);
-  bind("clearBtn","click",clearAll);
-  bind("voiceBtn","click",startVoiceRecognition);
-  bind("languageBtn","click",toggleLanguage);
-
-  bind("conciergeBtn","click",requestConcierge);
-  bind("mapsBtn","click",openMaps);
-  bind("musicBtn","click",openMusic);
-
-  bind(
-    "feedbackYes",
-    "click",
-    ()=>sendFeedback("yes")
-  );
-
-  bind(
-    "feedbackDifferent",
-    "click",
-    ()=>sendFeedback("different")
-  );
-
-  bind(
-    "backupBtn",
-    "click",
-    backupMemory
-  );
-
-  bind(
-    "clearMemoryBtn",
-    "click",
-    clearMemory
-  );
-
-  bind(
-    "recoveryBtn",
-    "click",
-    recovery
-  );
-
-  bind(
-    "reviseBtn",
-    "click",
-    revisePlan
-  );
-
-  bindKeyboard();
-  bindSuggestions();
-  bindRecovery();
-
-  window.askMirror=askMirror;
-  window.sendFeedback=sendFeedback;
-  window.requestConcierge=requestConcierge;
-  window.startVoiceRecognition=startVoiceRecognition;
-  window.openMaps=openMaps;
-  window.openMusic=openMusic;
-  window.clearAll=clearAll;
-  window.revisePlan=revisePlan;
-  window.speak=speak;
-
-  loadMissions();
-}
-
-if(document.readyState==="loading"){
-  document.addEventListener(
-    "DOMContentLoaded",
-    init,
-    {once:true}
-  );
-}else{
-  init();
-}
+});
+```
