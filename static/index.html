@@ -5,12 +5,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="theme-color" content="#05070a">
-    <title>MIRROR TO YOU</title>
+    <title>MIRROR</title>
     <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
     <div id="app">
-        <!-- Encabezado Discreto -->
+        <!-- Control bilingüe instantáneo y acceso a memoria sin fricción -->
         <header class="luxury-header">
             <div class="mirror-logo" onclick="window.location.reload()">
                 <span class="logo-orb"></span>
@@ -26,36 +26,36 @@
             <section id="mainDeck" class="deck active">
                 
                 <!-- 1. INTERFAZ PRINCIPAL: Control de Estado de Un Solo Toque -->
-                <div class="section-label">ESTADO DE EJECUCIÓN</div>
+                <div class="section-label" id="sectionLabelState">ESTADO DE EJECUCIÓN</div>
                 <div class="state-grid">
                     <button class="state-card" id="btnStatePressure" onclick="executeState('HIGH_PRESSURE')">
                         <span class="state-icon">🏢</span>
                         <div class="state-meta">
-                            <h3>Alta Presión</h3>
-                            <p>Enfoque de Negocios</p>
+                            <h3 id="lblPressureTitle">Alta Presión</h3>
+                            <p id="lblPressureSub">Enfoque de Negocios</p>
                         </div>
                     </button>
                     <button class="state-card" id="btnStateTransition" onclick="executeState('TRANSITION')">
                         <span class="state-icon">🚗</span>
                         <div class="state-meta">
-                            <h3>Transición</h3>
-                            <p>Modo Familiar</p>
+                            <h3 id="lblTransitionTitle">Transición</h3>
+                            <p id="lblTransitionSub">Modo Familia</p>
                         </div>
                     </button>
                     <button class="state-card" id="btnStateDisconnect" onclick="executeState('DISCONNECT')">
                         <span class="state-icon">🌲</span>
                         <div class="state-meta">
-                            <h3>Desconexión</h3>
-                            <p>Privacidad Total</p>
+                            <h3 id="lblDisconnectTitle">Desconexión</h3>
+                            <p id="lblDisconnectSub">Privacidad Total</p>
                         </div>
                     </button>
                 </div>
 
-                <!-- PANEL DINÁMICO: Inyectado por el 90% de la responsabilidad de la IA -->
+                <!-- PANEL DINÁMICO: Inyectado por el 97% de la responsabilidad de la IA -->
                 <div id="planArea" class="plan-panel hidden">
                     <div class="panel-header">
                         <span id="statusBadge" class="status-badge">LIVE EXECUTION</span>
-                        <h2 id="planTitle">Consola Activa</h2>
+                        <h2 id="planTitle"></h2>
                     </div>
                     <p id="planReply" class="premium-reply"></p>
                     <div id="directions" class="premium-directions"></div>
@@ -79,7 +79,7 @@
                     </div>
                     <div class="orb-meta">
                         <p id="breathingInstruction"></p>
-                        <button id="breathingControlBtn" class="control-pill" type="button">Iniciar</button>
+                        <button id="breathingControlBtn" class="control-pill" type="button"></button>
                     </div>
                 </div>
             </section>
@@ -87,12 +87,13 @@
             <!-- PANTALLA SECUNDARIA DE CONTEXTO -->
             <section id="memoryScreen" class="deck">
                 <div class="deck-header">
-                    <button id="closeMemory" class="close-btn" type="button">← Volver</button>
-                    <h2 id="memoryTitle">Ecosistema Confidencial</h2>
+                    <button id="closeMemory" class="close-btn" type="button"></button>
+                    <h2 id="memoryTitle"></h2>
                 </div>
                 <div id="memorySummary" class="memory-grid"></div>
                 <div class="memory-footer">
-                    <button id="clearMemoryButton" class="danger-pill" type="button">Purga de Memoria Local</button>
+                    <!-- El elemento se declara limpio y vacío para que app.js asigne el texto en base a la huella de idioma actual sin duplicaciones -->
+<button id="clearMemoryButton" class="danger-pill" type="button"></button>
                 </div>
             </section>
         </main>
@@ -101,7 +102,7 @@
         <footer class="luxury-footer">
             <div class="composer-container">
                 <button id="voiceButton" class="action-trigger mic-trigger" type="button" aria-label="Comando de Voz">●</button>
-                <textarea id="messageInput" rows="1" placeholder="Validar o consultar requerimiento alternativo..."></textarea>
+                <textarea id="messageInput" rows="1"></textarea>
                 <button id="sendButton" class="action-trigger send-trigger" type="button" aria-label="Ejecutar">↑</button>
             </div>
             <div id="voiceStatus" class="voice-status-bar hidden"></div>
