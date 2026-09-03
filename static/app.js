@@ -1,4 +1,3 @@
-```javascript
 const $ = s => document.querySelector(s);
 const API = "/api";
 
@@ -527,4 +526,3 @@ document.addEventListener("DOMContentLoaded", async () => {
     showStatus("MIRROR is temporarily unavailable.");
   }
 });
-```
