@@ -1,1003 +1,378 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MIRROR TO YOU</title>
     <style>
         :root {
-            --bg-color: #0b0f19;
-            --card-bg: #111827;
-            --accent-color: #38bdf8;
-            --text-main: #f3f4f6;
-            --text-muted: #9ca3af;
-            --border-color: #1f2937;
-            --danger-color: #ef4444;
+            --bg-color: #0a0a0c;
+            --card-bg: #141416;
+            --text-main: #f1f1f3;
+            --text-muted: #888888;
+            --accent-color: #d4af37;
+            --border-color: rgba(255, 255, 255, 0.1);
         }
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { background-color: var(--bg-color); color: var(--text-main); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; min-height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 20px; }
+        .main-container { text-align: center; max-width: 600px; }
+        h1 { color: var(--accent-color); font-size: 2rem; margin-bottom: 15px; }
+        p { color: var(--text-muted); font-size: 1rem; line-height: 1.6; margin-bottom: 30px; }
+
+        /* Estilos de la App Madre y Carga Rápida (TVid) */
+        .tvid-modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(10, 10, 12, 0.9); z-index: 3000;
+            display: flex; justify-content: center; align-items: center; padding: 15px;
         }
-        body {
-            background-color: var(--bg-color);
-            color: var(--text-main);
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            padding: 20px;
+        .tvid-modal-container {
+            background: #141416; border: 1px solid rgba(212, 175, 55, 0.3);
+            border-radius: 14px; width: 100%; max-width: 420px; padding: 20px;
+            color: #f1f1f3; box-shadow: 0 10px 30px rgba(0,0,0,0.7); position: relative;
         }
-        #legal-gate {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(11, 15, 25, 0.98);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 2000;
-            padding: 20px;
+        .tvid-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 8px; }
+        .tvid-header h2 { font-size: 1.1rem; color: #d4af37; margin: 0; }
+        .tvid-close-btn { background: none; border: none; color: #888; font-size: 1.4rem; cursor: pointer; }
+        .tvid-badge { background: rgba(212, 175, 55, 0.15); color: #d4af37; padding: 2px 8px; border-radius: 4px; font-size: 10px; font-weight: 600; text-transform: uppercase; }
+        .tvid-exercise-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .tvid-timer { font-family: monospace; font-size: 1rem; color: #d4af37; background: rgba(0,0,0,0.4); padding: 2px 8px; border-radius: 4px; }
+        .tvid-content-view h3 { font-size: 1rem; margin-bottom: 10px; color: #fff; }
+        
+        .tvid-breath-container { display: flex; justify-content: center; align-items: center; margin: 15px 0; height: 110px; }
+        .tvid-breath-circle {
+            width: 90px; height: 90px; border-radius: 50%; border: 2px solid #d4af37;
+            display: flex; justify-content: center; align-items: center; font-size: 0.8rem; font-weight: 600;
+            transition: transform 4s ease-in-out; background: rgba(212, 175, 55, 0.05); color: #d4af37;
         }
-        .legal-box {
-            background: var(--card-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            padding: 30px;
-            max-width: 600px;
-            width: 100%;
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
-            text-align: center;
-        }
-        .legal-box h2 {
-            color: var(--accent-color);
-            font-size: 1.2rem;
-            letter-spacing: 1px;
-        }
-        .legal-text {
-            font-size: 0.85rem;
-            color: var(--text-muted);
-            line-height: 1.5;
-            text-align: left;
-            max-height: 200px;
-            overflow-y: auto;
-            background: var(--bg-color);
-            padding: 12px;
-            border-radius: 6px;
-            border: 1px solid var(--border-color);
-        }
-        header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            max-width: 1000px;
-            width: 100%;
-            margin: 0 auto;
-            padding-bottom: 20px;
-            border-bottom: 1px solid var(--border-color);
-        }
-        .logo {
-            font-size: 1.25rem;
-            font-weight: 600;
-            letter-spacing: 2px;
-            color: var(--accent-color);
-        }
-        .controls {
-            display: flex;
-            gap: 10px;
-        }
-        button {
-            background-color: var(--card-bg);
-            color: var(--text-main);
-            border: 1px solid var(--border-color);
-            padding: 8px 16px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 0.9rem;
-            transition: all 0.2s ease;
-        }
-        button:hover {
-            border-color: var(--accent-color);
-        }
-        .btn-danger {
-            color: var(--danger-color);
-            border-color: rgba(239, 68, 68, 0.3);
-        }
-        .btn-danger:hover {
-            border-color: var(--danger-color);
-        }
-        main {
-            max-width: 1000px;
-            width: 100%;
-            margin: 20px auto;
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-        }
-        @media (max-width: 768px) {
-            main {
-                grid-template-columns: 1fr;
-            }
-        }
-        .panel {
-            background-color: var(--card-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            padding: 24px;
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
-            position: relative;
-        }
-        .panel h2 {
-            font-size: 1.1rem;
-            font-weight: 500;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-        .breathing-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 12px;
-        }
-        .breathing-circle {
-            width: 140px;
-            height: 140px;
-            border: 2px solid var(--accent-color);
-            border-radius: 50%;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            transition: transform 3s ease-in-out;
-            font-size: 0.9rem;
-            color: var(--accent-color);
-            text-align: center;
-            padding: 10px;
-        }
-        .dynamic-speech-box {
-            background-color: var(--bg-color);
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            padding: 10px;
-            font-size: 0.9rem;
-            color: var(--accent-color);
-            text-align: center;
-            min-height: 55px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-style: italic;
-        }
-        .objective-info {
-            background-color: var(--bg-color);
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            padding: 10px;
-            font-size: 0.85rem;
-            color: var(--text-muted);
-            width: 100%;
-            min-height: 70px;
-        }
-        .input-group {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-        textarea {
-            width: 100%;
-            background-color: var(--bg-color);
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            padding: 10px;
-            color: var(--text-main);
-            font-size: 0.95rem;
-            resize: none;
-        }
-        textarea:focus {
-            outline: none;
-            border-color: var(--accent-color);
-        }
-        .output-box {
-            background-color: var(--bg-color);
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            padding: 12px;
-            min-height: 140px;
-            font-size: 0.9rem;
-            color: var(--text-main);
-            white-space: pre-line;
-            overflow-y: auto;
-            max-height: 220px;
-        }
-        .mortals-corner {
-            position: absolute;
-            top: 15px;
-            right: 15px;
-        }
-        .mortals-btn {
-            background: var(--bg-color);
-            border: 1px solid var(--border-color);
-            font-size: 0.75rem;
-            padding: 4px 8px;
-            color: var(--text-muted);
-        }
-        .mortals-modal {
-            display: none;
-            position: absolute;
-            top: 35px;
-            right: 0;
-            background: var(--bg-color);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 12px;
-            width: 260px;
-            z-index: 100;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
-        }
-        .mortals-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 6px;
-            margin-top: 8px;
-        }
-        .mortals-grid a, .mortals-grid button {
-            background: var(--card-bg);
-            border: 1px solid var(--border-color);
-            color: var(--text-main);
-            font-size: 0.75rem;
-            padding: 6px;
-            text-align: center;
-            text-decoration: none;
-            border-radius: 4px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-        }
-        .mortals-grid a:hover, .mortals-grid button:hover {
-            border-color: var(--accent-color);
-        }
-        footer {
-            text-align: center;
-            font-size: 0.8rem;
-            color: var(--text-muted);
-            padding-top: 20px;
-            border-top: 1px solid var(--border-color);
-            max-width: 1000px;
-            width: 100%;
-            margin: 0 auto;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        #shutdown-overlay {
-            display: none;
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: #0b0f19;
-            z-index: 3000;
-            justify-content: center;
-            align-items: center;
-            text-align: center;
-            padding: 20px;
-        }
+        .tvid-breath-circle.inhale { transform: scale(1.25); background: rgba(212, 175, 55, 0.2); }
+        .tvid-breath-circle.hold { transform: scale(1.25); border-color: #ffffff; color: #fff; }
+        .tvid-breath-circle.exhale { transform: scale(0.9); background: rgba(212, 175, 55, 0.05); }
+
+        .tvid-objective-box { background: rgba(255, 255, 255, 0.04); border-left: 3px solid #d4af37; padding: 8px 10px; font-size: 0.85rem; margin-bottom: 12px; color: #ccc; border-radius: 0 4px 4px 0; }
+        .tvid-steps-container { background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.08); padding: 10px; border-radius: 6px; font-size: 0.85rem; min-height: 50px; margin-bottom: 15px; line-height: 1.4; color: #f1f1f3; }
+        
+        .tvid-main-action { flex: 2; background: #d4af37; color: #0a0a0c; border: none; padding: 10px; border-radius: 6px; font-weight: 600; font-size: 0.85rem; cursor: pointer; text-align: center; }
+        .tvid-sec-action { flex: 1; background: rgba(255,255,255,0.1); color: #fff; border: 1px solid rgba(255,255,255,0.2); padding: 10px; border-radius: 6px; font-weight: 600; font-size: 0.85rem; cursor: pointer; text-align: center; }
     </style>
 </head>
 <body>
 
-    <div id="legal-gate">
-        <div class="legal-box">
-            <h2 id="gate-title">AVISO LEGAL Y PROTECCIÓN</h2>
-            <div class="legal-text" id="gate-text">
-                El acceso a esta plataforma implica la aceptación absoluta de nuestros términos de exención de responsabilidad. Este sistema opera exclusivamente como un facilitador de bienestar privado y orientación general de estilo de vida. No proporciona asesoría médica, legal ni financiera. Al presionar el botón de inicio, usted reconoce que utiliza este servicio bajo su propia discreción y soberanía.
-            </div>
-            <div style="display: flex; gap: 10px; justify-content: center; margin-top: 10px;">
-                <button onclick="switchGateLang()" id="gate-lang-btn" style="background: var(--bg-color);">EN / ES</button>
-                <button onclick="startSession()" id="gate-start-btn" style="background-color: var(--accent-color); color: var(--bg-color); font-weight: 600; flex: 1;">Empezar / Start</button>
-            </div>
-        </div>
+    <div class="main-container">
+        <h1>MIRROR TO YOU</h1>
+        <p>Sistema jerárquico unificado bajo la App Madre (Ciclo estricto de 10 minutos) con submódulo de Carga Rápida TVid (5 minutos) y banco de 21 IDs independientes.</p>
     </div>
-
-    <div id="shutdown-overlay">
-        <div class="legal-box">
-            <h2 id="shut-title">Sesión Finalizada</h2>
-            <p id="shut-text" style="color: var(--text-muted); font-size: 0.9rem;">El tiempo límite de 10 minutos ha concluido. La sesión se ha cerrado por seguridad.</p>
-            <button onclick="location.reload()" id="shut-btn" style="background-color: var(--accent-color); color: var(--bg-color); font-weight: 600; margin-top: 10px;">Reiniciar Sesión</button>
-        </div>
-    </div>
-
-    <header>
-        <div class="logo" id="app-title">MIRROR TO YOU</div>
-        <div class="controls">
-            <button id="lang-btn" onclick="toggleLanguage()">ES</button>
-            <button id="audio-btn" onclick="toggleVoiceGuide()">🔊 Voz: OFF</button>
-            <button class="btn-danger" id="close-btn" onclick="closeSession()">Cerrar</button>
-        </div>
-    </header>
-
-    <main>
-        <div class="panel">
-            <h2 id="wellness-title">Bienestar General</h2>
-            <div class="breathing-container">
-                <div class="breathing-circle" id="b-circle">
-                    <span id="b-phase" style="font-weight: 600;">Listo</span>
-                    <span id="b-counter" style="font-size: 0.8rem;">0s</span>
-                </div>
-                <div class="dynamic-speech-box" id="dynamic-speech">
-                    Seleccione un objetivo de bienestar para iniciar la alineación...
-                </div>
-                <div class="objective-info" id="objective-desc">
-                    Opciones cognitivas.
-                </div>
+    <!-- Contenedor dinámico y estructura operativa de la App Madre y Módulos -->
+    <div id="mirror-to-you-app-root" style="width: 100%; max-width: 500px; margin-top: 20px;">
+        <div style="background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 12px; padding: 20px; box-shadow: 0 8px 24px rgba(0,0,0,0.5);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <span class="tvid-badge">App Madre - 10 Minutos</span>
+                <span id="mirror-session-timer" class="tvid-timer">10:00</span>
             </div>
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
-                <button onclick="setBreathingMode('antipanic')" id="btn-p1">Protocolo Antipánico</button>
-                <button onclick="setBreathingMode('focus')" id="btn-p2">Enfoque Ejecutivo</button>
-                <button onclick="setBreathingMode('sleep')" id="btn-p3">Restauración Profunda</button>
-                <button onclick="setBreathingMode('energy')" id="btn-p4">Impulso Antifatiga</button>
-            </div>
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
-                <button onclick="startChallenge60()" id="btn-p5" style="background-color: rgba(56, 189, 248, 0.2); border-color: var(--accent-color);">⚡ Reto Vital 60s</button>
-                <button onclick="toggleMusicModal()" id="btn-p6">🎵 Frecuencias Antiestrés</button>
-            </div>
-            <div id="yt-container" style="display:none; margin-top: 5px;">
-                <iframe id="yt-player" width="100%" height="60" src="" frameborder="0" allow="autoplay"></iframe>
-            </div>
-        </div>
 
-        <div class="panel">
-            <div class="mortals-corner">
-                <button class="mortals-btn" id="mortals-label" onclick="toggleMortalsDrawer()">Uso para mortales</button>
-                <div class="mortals-modal" id="mortals-drawer">
-                    <div style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 6px; text-align: center;" id="mortals-sub">Enlaces externos</div>
-                    <div class="mortals-grid">
-                        <a id="m-maps" href="#" target="_blank">Google Maps</a>
-                        <a href="https://www.google.com/travel/flights" target="_blank">Google Fly</a>
-                        <a href="https://www.jetblue.com" target="_blank">JetBlue</a>
-                        <a href="https://www.uber.com" target="_blank">Uber</a>
-                        <a href="https://www.lyft.com" target="_blank">Lyft</a>
-                        <a href="https://www.mcdonalds.com" target="_blank">McDonald's</a>
-                        <a href="https://www.bk.com" target="_blank">Burger King</a>
-                        <a href="https://www.walmart.com" target="_blank">Walmart</a>
-                        <a href="https://www.costco.com" target="_blank">Costco</a>
-                        <a href="https://www.youtube.com" target="_blank">YouTube</a>
-                        <a href="https://open.spotify.com" target="_blank">Spotify</a>
-                    </div>
+            <!-- Módulo de Asesoría Operativa / Carga Rápida (TVid) -->
+            <div id="mirror-active-module" style="margin-bottom: 20px;">
+                <h3 style="color: var(--accent-color); font-size: 1.1rem; margin-bottom: 8px;">Módulo Activo: Carga Rápida & TVid</h3>
+                <p style="font-size: 0.9rem; margin-bottom: 15px;">Seleccione la operación o active la asesoría especializada de 5 minutos con control de estiba y seguridad.</p>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px;">
+                    <button onclick="mirrorTriggerModule('tvid')" style="background: rgba(212,175,55,0.15); border: 1px solid var(--accent-color); color: var(--accent-color); padding: 10px; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 0.85rem;">Iniciar TVid (5 min)</button>
+                    <button onclick="mirrorTriggerModule('cargo')" style="background: rgba(255,255,255,0.05); border: 1px solid var(--border-color); color: var(--text-main); padding: 10px; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 0.85rem;">SmartCargo Asesor</button>
                 </div>
             </div>
 
-            <h2 id="travel-title">Asesor Conversacional Mirror To You</h2>
-            <div class="input-group">
-                <textarea id="travel-input" rows="3" placeholder="Escriba su consulta o use los botones de asistencia..."></textarea>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
-                    <button onclick="handleNoIdea()" id="btn-no" style="background-color: rgba(239, 68, 68, 0.15); border-color: rgba(239, 68, 68, 0.4);">❓ No sé</button>
-                    <button onclick="handleHelpMe()" id="btn-help" style="background-color: rgba(56, 189, 248, 0.15); border-color: var(--accent-color);">🤝 Ayúdame</button>
+            <!-- Interfaz de Entrada de Datos / Fotos Opcionales y Texto -->
+            <div style="border-top: 1px solid var(--border-color); padding-top: 15px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                    <label style="font-size: 0.85rem; color: var(--text-muted);">Descripción / Reporte Escrito (Opcional):</label>
+                    <button onclick="mirrorClearInput()" style="background: none; border: none; color: #ff5555; font-size: 0.8rem; cursor: pointer;">Borrar</button>
                 </div>
-                <button onclick="resolveTravelDirective()" id="btn-send" style="background-color: var(--accent-color); color: var(--bg-color); font-weight: 600; margin-top: 4px;">Enviar Conversación</button>
-            </div>
-            <div class="output-box" id="travel-output">Inicie una conversación o pulse un botón de asistencia guiada para recibir orientación experta en tiempo real...</div>
-        </div>
-    </main>
+                <textarea id="mirror-user-input" placeholder="Describa la estiba, carga o situación..." style="width: 100%; height: 80px; background: rgba(0,0,0,0.3); border: 1px solid var(--border-color); border-radius: 6px; color: var(--text-main); padding: 10px; font-size: 0.9rem; resize: none; margin-bottom: 10px;"></textarea>
 
-    <footer>
-        <span id="footer-text">Sesión Volátil Encriptada. Cero Datos Retenidos.</span>
-        <span id="timer-display" style="font-family: monospace; color: var(--accent-color);">10:00</span>
-    </footer>
-
-    <script>
-        let currentLang = 'es';
-        let voiceEnabled = false;
-        let currentModeInterval = null;
-        let phraseInterval = null;
-        let sessionTimer = null;
-        let timeLeft = 600;
-
-        // Memoria contextual oculta para mantener el hilo hasta 15 interacciones (preguntas y respuestas)
-        let conversationMemory = [];
-        const MAX_MEMORY_TURNS = 15;
-
-        const randomMapsLinks = [
-            "https://maps.google.com/?q=Central+Park+New+York",
-            "https://maps.google.com/?q=Aspen+Mountain+Ski+Resort",
-            "https://maps.google.com/?q=Grace+Bay+Turks+and+Caicos",
-            "https://maps.google.com/?q=Key+West+Florida",
-            "https://maps.google.com/?q=Yellowstone+National+Park"
-        ];
-
-        function updateMapsLink() {
-            const randomUrl = randomMapsLinks[Math.floor(Math.random() * randomMapsLinks.length)];
-            document.getElementById('m-maps').href = randomUrl;
-        }
-
-        function switchGateLang() {
-            currentLang = currentLang === 'es' ? 'en' : 'es';
-            updateTexts();
-        }
-
-        function startSession() {
-            document.getElementById('legal-gate').style.display = 'none';
-            updateMapsLink();
-            startSessionTimer();
-            if (voiceEnabled) speak(currentLang === 'es' ? 'Sesión iniciada. Bienvenido.' : 'Session started. Welcome.');
-        }
-
-        function startSessionTimer() {
-            sessionTimer = setInterval(() => {
-                timeLeft--;
-                let m = Math.floor(timeLeft / 60);
-                let s = timeLeft % 60;
-                document.getElementById('timer-display').innerText = `${m}:${s < 10 ? '0' : ''}${s}`;
-                if (timeLeft <= 0) {
-                    clearInterval(sessionTimer);
-                    document.getElementById('shutdown-overlay').style.display = 'flex';
-                }
-            }, 1000);
-        }
-
-        function closeSession() {
-            if (sessionTimer) clearInterval(sessionTimer);
-            document.getElementById('shutdown-overlay').style.display = 'flex';
-            document.getElementById('shut-title').innerText = currentLang === 'es' ? 'Sesión Cerrada' : 'Session Closed';
-            document.getElementById('shut-text').innerText = currentLang === 'es' ? 'La sesión ha sido cerrada manualmente por el usuario.' : 'Session manually closed by user.';
-        }
-
-        const masterPhrases = {
-            en: [
-                "Release every ounce of shoulder tension right now.",
-                "Your mind is clear, powerful, and entirely unburdened.",
-                "Banish fatigue; focus only on absolute control and stability.",
-                "Let go of urgency. Time bends to your strategic rhythm.",
-                "Silence the noise. Your inner sanctuary requires zero friction."
-            ],
-            es: [
-                "Libera cada gramo de tensión en tus hombros ahora mismo.",
-                "Tu mente es clara, poderosa y totalmente libre de cargas.",
-                "Desvanece el cansancio; concéntrate solo en el control absoluto.",
-                "Suelta la urgencia. El tiempo se adapta a tu ritmo estratégico.",
-                "Silencia el ruido externo. Tu santuario interior no tiene fricción."
-            ]
-        };
-
-        const verifiedStreams = [
-            "https://www.youtube.com/embed/1ZYbU82GVz4?autoplay=1",
-            "https://www.youtube.com/embed/WPni755-Krg?autoplay=1"
-        ];
-
-        let usedIndices = [];
-        let streamIndex = 0;
-
-        function getSmartPhrase() {
-            const list = masterPhrases[currentLang];
-            if (usedIndices.length >= list.length) usedIndices = [];
-            let idx;
-            do {
-                idx = Math.floor(Math.random() * list.length);
-            } while (usedIndices.includes(idx));
-            usedIndices.push(idx);
-            return list[idx];
-        }
-
-        function toggleLanguage() {
-            currentLang = currentLang === 'en' ? 'es' : 'en';
-            updateTexts();
-        }
-
-        function updateTexts() {
-            document.getElementById('lang-btn').innerText = currentLang === 'es' ? 'ES' : 'EN';
-            document.getElementById('gate-lang-btn').innerText = currentLang === 'es' ? 'EN / ES' : 'ES / EN';
-            document.getElementById('gate-title').innerText = currentLang === 'es' ? 'AVISO LEGAL Y PROTECCIÓN' : 'LEGAL DISCLAIMER & PROTECTION';
-            document.getElementById('gate-text').innerText = currentLang === 'es' ? 
-                'El acceso a esta plataforma implica la aceptación absoluta de nuestros términos de exención de responsabilidad. Este sistema opera exclusivamente como un facilitador de bienestar privado y orientación general de estilo de vida. No proporciona asesoría médica, legal ni financiera. Al presionar el botón de inicio, usted reconoce que utiliza este servicio bajo su propia discreción y soberanía.' :
-                'Access to this platform implies absolute acceptance of our liability waiver terms. This system operates exclusively as a private wellness facilitator and general lifestyle orientation. It does not provide medical, legal, or financial advice. By pressing start, you acknowledge you use this service under your own discretion.';
-            document.getElementById('gate-start-btn').innerText = currentLang === 'es' ? 'Empezar' : 'Start';
-            document.getElementById('wellness-title').innerText = currentLang === 'es' ? 'Bienestar y Antifatiga' : 'Precision Wellness';
-            document.getElementById('travel-title').innerText = currentLang === 'es' ? 'Asesor Conversacional' : 'Conversational Advisor';
-            document.getElementById('footer-text').innerText = currentLang === 'es' ? 'Sesión Volátil Encriptada. Cero Datos Retenidos.' : 'Encrypted Volatile Session. Zero Data Retained.';
-            document.getElementById('close-btn').innerText = currentLang === 'es' ? 'Cerrar' : 'Close';
-            document.getElementById('travel-input').placeholder = currentLang === 'es' ? 'Escriba su consulta o use los botones de asistencia...' : 'Type your query or use assistance buttons...';
-            document.getElementById('objective-desc').innerText = currentLang === 'es' ? 'Opciones cognitivas sin repetición y streams verificados.' : 'Unrepeated cognitive options and verified streams.';
-            document.getElementById('audio-btn').innerText = voiceEnabled ? (currentLang === 'es' ? '🔊 Voz: ON' : '🔊 Voice: ON') : (currentLang === 'es' ? '🔊 Voz: OFF' : '🔊 Voice: OFF');
-            document.getElementById('mortals-label').innerText = currentLang === 'es' ? 'Uso para mortales' : 'Standard Access';
-            document.getElementById('mortals-sub').innerText = currentLang === 'es' ? 'Enlaces externos' : 'External links';
-            document.getElementById('btn-p1').innerText = currentLang === 'es' ? 'Protocolo Antipánico' : 'Anti-Panic Protocol';
-            document.getElementById('btn-p2').innerText = currentLang === 'es' ? 'Enfoque Ejecutivo' : 'Executive Focus';
-            document.getElementById('btn-p3').innerText = currentLang === 'es' ? 'Restauración Profunda' : 'Deep Restoration';
-            document.getElementById('btn-p4').innerText = currentLang === 'es' ? 'Impulso Antifatiga' : 'Anti-Fatigue Boost';
-            document.getElementById('btn-p5').innerText = currentLang === 'es' ? '⚡ Reto Vital 60s' : '⚡ 60s Vitality Challenge';
-            document.getElementById('btn-p6').innerText = currentLang === 'es' ? '🎵 Frecuencias Antiestrés' : '🎵 Anti-Stress Frequencies';
-            document.getElementById('btn-no').innerText = currentLang === 'es' ? '❓ No sé' : '❓ No Idea';
-            document.getElementById('btn-help').innerText = currentLang === 'es' ? '🤝 Ayúdame' : '🤝 Help Me';
-            document.getElementById('btn-send').innerText = currentLang === 'es' ? 'Enviar Conversación' : 'Send Conversation';
-        }
-
-        function toggleVoiceGuide() {
-            voiceEnabled = !voiceEnabled;
-            document.getElementById('audio-btn').innerText = voiceEnabled ? (currentLang === 'es' ? '🔊 Voz: ON' : '🔊 Voice: ON') : (currentLang === 'es' ? '🔊 Voz: OFF' : '🔊 Voice: OFF');
-            if (voiceEnabled) speak(currentLang === 'es' ? 'Guía por voz activada.' : 'Voice guide activated.');
-        }
-
-        function speak(text) {
-            if (!voiceEnabled || !('speechSynthesis' in window)) return;
-            window.speechSynthesis.cancel();
-            const utterance = new SpeechSynthesisUtterance(text);
-            utterance.lang = currentLang === 'es' ? 'es-ES' : 'en-US';
-            utterance.rate = 0.95;
-            window.speechSynthesis.speak(utterance);
-        }
-       // Archivo completo unificado, optimizado y sin duplicaciones en la función de fetch:
-// (Se eliminó el bloque duplicado abajo de resolveTravelDirective y se aseguró el timeout de 30 segundos)
-function setBreathingMode(mode) {
-            if (currentModeInterval) clearInterval(currentModeInterval);
-            if (phraseInterval) clearInterval(phraseInterval);
-            const speechBox = document.getElementById('dynamic-speech');
-            const initialPhrase = getSmartPhrase();
-            speechBox.innerText = initialPhrase;
-            speak(initialPhrase);
-
-            phraseInterval = setInterval(() => {
-                const nextPhrase = getSmartPhrase();
-                speechBox.innerText = nextPhrase;
-                speak(nextPhrase);
-            }, 15000);
-
-            const circle = document.getElementById('b-circle');
-            const phase = document.getElementById('b-phase');
-            const counter = document.getElementById('b-counter');
-            let step = 0;
-            const sequence = [
-                { text: currentLang === 'es' ? 'Inhalar' : 'Inhale', scale: 'scale(1.3)', time: 4 },
-                { text: currentLang === 'es' ? 'Retener' : 'Hold', scale: 'scale(1.3)', time: 4 },
-                { text: currentLang === 'es' ? 'Exhalar' : 'Exhale', scale: 'scale(1)', time: 4 }
-            ];
-
-            function runStep() {
-                const current = sequence[step % sequence.length];
-                phase.innerText = current.text;
-                circle.style.transform = current.scale;
-                let t = current.time;
-                counter.innerText = `${t}s`;
-                currentModeInterval = setInterval(() => {
-                    t--;
-                    counter.innerText = `${t}s`;
-                    if (t <= 0) {
-                        clearInterval(currentModeInterval);
-                        step++;
-                        runStep();
-                    }
-                }, 1000);
-            }
-            runStep();
-        }
-
-        function startChallenge60() {
-            if (currentModeInterval) clearInterval(currentModeInterval);
-            if (phraseInterval) clearInterval(phraseInterval);
-            const speechBox = document.getElementById('dynamic-speech');
-            const counter = document.getElementById('b-counter');
-            const phase = document.getElementById('b-phase');
-            phase.innerText = currentLang === 'es' ? 'RETO VITAL' : 'VITALITY';
-            let totalTime = 60;
-            const challengeTexts = currentLang === 'es' ? [
-                "Silencio absoluto: Desconecta el ruido externo por 60 segundos.",
-                "Enfoque: Define con claridad tu próximo destino de paz.",
-                "Reinicio físico: Libera tensión acumulada en hombros y cuello."
-            ] : [
-                "Absolute silence: Disconnect from external noise for 60s.",
-                "Focus: Clearly define your next peaceful destination.",
-                "Physical reset: Release tension accumulated in shoulders."
-            ];
-            let textIdx = 0;
-            speechBox.innerText = challengeTexts[textIdx];
-            speak(challengeTexts[textIdx]);
-
-            currentModeInterval = setInterval(() => {
-                totalTime--;
-                counter.innerText = `${totalTime}s`;
-                if (totalTime % 20 === 0 && textIdx < challengeTexts.length - 1) {
-                    textIdx++;
-                    speechBox.innerText = challengeTexts[textIdx];
-                    speak(challengeTexts[textIdx]);
-                }
-                if (totalTime <= 0) {
-                    clearInterval(currentModeInterval);
-                    speechBox.innerText = currentLang === 'es' ? '¡Reto de 60 segundos superado con éxito!' : '60-second challenge successfully completed!';
-                    speak(speechBox.innerText);
-                }
-            }, 1000);
-        }
-
-        function toggleMusicModal() {
-            const container = document.getElementById('yt-container');
-            const player = document.getElementById('yt-player');
-            if (container.style.display === 'none') {
-                player.src = verifiedStreams[streamIndex % verifiedStreams.length];
-                streamIndex++;
-                container.style.display = 'block';
-                speak(currentLang === 'es' ? 'Frecuencia antiestrés activada.' : 'Anti-stress frequency activated.');
-            } else {
-                player.src = '';
-                container.style.display = 'none';
-            }
-        }
-
-        function handleNoIdea() {
-            const inputField = document.getElementById('travel-input');
-            inputField.value = currentLang === 'es' ? "No tengo un rumbo fijo, necesito orientación general." : "I don't have a fixed direction, I need general guidance.";
-            resolveTravelDirective();
-        }
-
-        function handleHelpMe() {
-            const inputField = document.getElementById('travel-input');
-            inputField.value = currentLang === 'es' ? "Ayúdame a encontrar la mejor opción de bienestar y estabilidad." : "Help me find the best wellness and stability option.";
-            resolveTravelDirective();
-        }
-
-        async function resolveTravelDirective() {
-            const inputField = document.getElementById('travel-input');
-            const userInput = inputField.value.trim();
-            const output = document.getElementById('travel-output');
-
-            if (!userInput) {
-                output.innerText = currentLang === 'es' ? 'Por favor, escribe tu mensaje o usa los botones de asistencia.' : 'Please type your message or use assistance buttons.';
-                return;
-            }
-
-            conversationMemory.push({ role: 'user', content: userInput });
-            
-            if (conversationMemory.length > MAX_MEMORY_TURNS * 2) {
-                conversationMemory = conversationMemory.slice(-MAX_MEMORY_TURNS * 2);
-            }
-
-            inputField.value = ''; 
-            output.innerText = currentLang === 'es' ? 'Analizando solicitud, por favor espere un momento...' : 'Analyzing request, please hold a moment...';
-
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 30000);
-
-            try {
-                const response = await fetch('/api/chat', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ messages: conversationMemory, lang: currentLang }),
-                    signal: controller.signal
-                });
-
-                clearTimeout(timeoutId);
-
-                if (!response.ok) throw new Error('Conexión en curso');
-
-                const data = await response.json();
-                let aiResponseText = data.reply;
-
-                if (aiResponseText.includes('?') && conversationMemory.length >= 4) {
-                    aiResponseText = currentLang === 'es' 
-                        ? 'Basado en tu perfil, la solución inmediata recomendada es estructurar pausas activas y aplicar técnicas de estabilidad para restablecer el equilibrio físico y mental de inmediato.'
-                        : 'Based on your profile, the immediate recommended solution is to establish active breaks and apply stability techniques to restore physical and mental balance immediately.';
-                }
-
-                conversationMemory.push({ role: 'assistant', content: aiResponseText });
-
-                output.innerText = aiResponseText;
-                speak(aiResponseText);
-            } catch (error) {
-                clearTimeout(timeoutId);
-                output.innerText = currentLang === 'es' ? 'Error de conexión o tiempo de espera agotado. Intente nuevamente.' : 'Connection error or timeout. Please try again.';
-            }
-        }
-
-function toggleMortalsDrawer() {
-            const drawer = document.getElementById('mortals-drawer');
-            drawer.style.display = drawer.style.display === 'block' ? 'none' : 'block';
-            updateMapsLink();
-        }         
-
-        let localAdvisorLang = 'es';
-
-        function toggleTravelAdvisorModal() {
-            const modal = document.getElementById('travel-advisor-modal');
-            modal.style.display = modal.style.display === 'flex' ? 'none' : 'flex';
-        }
-
-        function toggleAdvisorLang() {
-            localAdvisorLang = localAdvisorLang === 'es' ? 'en' : 'es';
-            const langBtn = document.getElementById('advisor-lang-btn');
-            langBtn.innerText = localAdvisorLang.toUpperCase();
-
-            const floatText = document.getElementById('float-btn-text');
-            const advisorTitle = document.getElementById('modal-advisor-title');
-            const advisorDesc = document.getElementById('modal-advisor-desc');
-            const waLabel = document.getElementById('wa-btn-label');
-            const emailLabel = document.getElementById('email-btn-label');
-            const waLink = document.getElementById('whatsapp-link');
-
-            if (localAdvisorLang === 'en') {
-                floatText.innerText = 'Private Travel Consulting';
-                advisorTitle.innerText = 'May Roga LLC - Luxury Travel';
-                advisorDesc.innerText = 'Connect directly with your certified private advisor to design tailor-made itineraries and manage your exclusive reservations.';
-                waLabel.innerText = 'Direct WhatsApp Chat';
-                emailLabel.innerText = 'Send Email';
-                waLink.href = 'https://wa.me/17866471371?text=Hello%20Maykel,%20I%20came%20from%20the%20app%20and%20want%20to%20quote%20a%20private%20trip%20or%20itinerary.';
-            } else {
-                floatText.innerText = 'Asesoría de Viaje Privada';
-                advisorTitle.innerText = 'May Roga LLC - Viajes de Lujo';
-                advisorDesc.innerText = 'Conecta directamente con tu asesor privado certificado para diseñar itinerarios a la medida y gestionar tus reservas exclusivas.';
-                waLabel.innerText = 'Chat Directo por WhatsApp';
-                emailLabel.innerText = 'Enviar Correo Electrónico';
-                waLink.href = 'https://wa.me/17866471371?text=Hola%20Maykel,%20vengo%20de%20la%20aplicación%20y%20deseo%20cotizar%20un%20viaje%20o%20itinerario%20privado.';
-            }
-        }
-    </script>
-
-<!-- Botón Flotante de Viajes y Selector de Idioma (Ventana 2) -->
-    <div id="travel-advisor-float" style="position: fixed; bottom: 20px; right: 20px; z-index: 1500; display: flex; align-items: center; gap: 8px;">
-        <button onclick="toggleAdvisorLang()" id="advisor-lang-btn" style="background: rgba(255, 255, 255, 0.15); backdrop-filter: blur(5px); border: 1px solid rgba(255, 255, 255, 0.3); color: var(--text-main, #ffffff); padding: 10px 12px; border-radius: 50%; font-weight: 600; font-size: 0.8rem; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.3); transition: background 0.2s ease;" title="Cambiar Idioma / Switch Language">
-            ES
-        </button>
-
-        <button onclick="toggleTravelAdvisorModal()" style="background-color: var(--accent-color, #d4af37); color: var(--bg-color, #0a0a0c); border: none; padding: 12px 20px; border-radius: 30px; font-weight: 600; font-size: 0.9rem; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.5); display: flex; align-items: center; gap: 8px; transition: transform 0.2s ease;">
-            ✈️ <span id="float-btn-text">Asesoría de Viaje Privada</span>
-        </button>
-    </div>
-
-    <!-- Botón Flotante de Carga Rápida (TVid) con su propio selector de idioma independiente -->
-    <div style="position: fixed; bottom: 20px; right: 280px; z-index: 1500; display: flex; align-items: center; gap: 6px; background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(8px); padding: 6px 12px; border-radius: 30px; border: 1px solid var(--border-color, rgba(255,255,255,0.2)); box-shadow: 0 4px 12px rgba(0,0,0,0.5);">
-        <button onclick="toggleTvidLang()" id="tvid-lang-btn" style="background: rgba(255, 255, 255, 0.15); border: 1px solid rgba(255, 255, 255, 0.3); color: var(--text-main, #ffffff); width: 28px; height: 28px; border-radius: 50%; font-weight: 600; font-size: 0.75rem; cursor: pointer; display: flex; align-items: center; justify-content: center;">ES</button>
-        <button onclick="toggleTvidWindow()" style="background: none; border: none; color: var(--text-main, #ffffff); padding: 4px 8px; font-weight: 600; font-size: 0.85rem; cursor: pointer; display: flex; align-items: center; gap: 6px;">
-            ⚡ <span id="tvid-float-label">Carga Rápida (TVid)</span>
-        </button>
-    </div>
-
-    <!-- Modal de Asesoría de Viaje -->
-    <div id="travel-advisor-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(11, 15, 25, 0.85); z-index: 2500; justify-content: center; align-items: center; padding: 20px;">
-        <div class="legal-box" style="position: relative; max-width: 450px; background: var(--card-bg, #141416); padding: 24px; border-radius: 16px; border: 1px solid var(--border-color, rgba(255,255,255,0.1)); color: var(--text-main, #f1f1f3);">
-            <button onclick="toggleTravelAdvisorModal()" style="position: absolute; top: 15px; right: 15px; background: none; border: none; color: var(--text-muted, #888); font-size: 1.2rem; cursor: pointer;">✕</button>
-            
-            <h2 id="modal-advisor-title" style="color: var(--accent-color, #d4af37); margin-bottom: 10px; font-size: 1.2rem;">May Roga LLC - Viajes de Lujo</h2>
-            <p id="modal-advisor-desc" style="color: var(--text-muted, #ccc); font-size: 0.9rem; margin-bottom: 20px; text-align: left;">
-                Conecta directamente con tu asesor privado certificado para diseñar itinerarios a la medida y gestionar tus reservas exclusivas.
-            </p>
-
-            <div style="display: flex; flex-direction: column; gap: 12px;">
-                <a id="whatsapp-link" href="https://wa.me/17866471371?text=Hola%20Maykel,%20vengo%20de%20la%20aplicación%20y%20deseo%20cotizar%20un%20viaje%20o%20itinerario%20privado." target="_blank" style="background: #25d366; color: #ffffff; padding: 12px; border-radius: 6px; text-decoration: none; font-weight: 600; font-size: 0.95rem; display: flex; align-items: center; justify-content: center; gap: 8px;">
-                    💬 <span id="wa-btn-label">Chat Directo por WhatsApp</span>
-                </a>
-                <a id="email-link" href="mailto:maykel75122805321@gmail.com?subject=Solicitud%20de%20Asesoría%20de%20Viaje%20Privada" style="background: var(--card-bg, #1e1e22); border: 1px solid var(--border-color, rgba(255,255,255,0.2)); color: var(--text-main, #fff); padding: 12px; border-radius: 6px; text-decoration: none; font-weight: 600; font-size: 0.95rem; display: flex; align-items: center; justify-content: center; gap: 8px;">
-                    ✉️ <span id="email-btn-label">Enviar Correo Electrónico</span>
-                </a>
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <label style="flex: 1; background: rgba(255,255,255,0.08); border: 1px dashed var(--border-color); padding: 8px; border-radius: 6px; text-align: center; font-size: 0.8rem; cursor: pointer; color: var(--text-muted);">
+                        📷 Subir Foto (Máx. 3) <input type="file" id="mirror-photo-input" accept="image/*" multiple style="display: none;" onchange="mirrorHandleFiles(this)">
+                    </label>
+                    <button onclick="mirrorSubmitData()" style="flex: 1; background: var(--accent-color); color: #0a0a0c; border: none; padding: 9px; border-radius: 6px; font-weight: 600; font-size: 0.85rem; cursor: pointer;">Generar PDF / Reporte</button>
+                </div>
+                <div id="mirror-files-status" style="font-size: 0.75rem; color: var(--text-muted); margin-top: 5px;"></div>
             </div>
         </div>
     </div>
-
-    <!-- VENTANA 1: PUERTO DE CARGA RÁPIDA (TVid) - Con Temporizador Exacto de 5 Min y Voz Automática -->
+   <!-- Ventana Flotante de Carga Rápida / TVid (21 IDs Kernel Bank) -->
     <div id="tvid-floating-window" class="tvid-modal-overlay" style="display: none;">
       <div class="tvid-modal-container">
         
         <div class="tvid-header">
           <div style="display: flex; align-items: center; gap: 8px;">
-            <span class="tvid-badge" id="tvid-badge-text">5-Min Recharge</span>
+            <span class="tvid-badge">21-ID Kernel Bank</span>
           </div>
           <h2 id="tvid-main-title">Puerto de Carga Rápida</h2>
           <button class="tvid-close-btn" onclick="closeTvidWindow()">&times;</button>
         </div>
 
-        <div id="tvid-selection-screen" class="tvid-content-view">
-          <p class="tvid-subtitle" id="tvid-subtitle-text">Selecciona tu protocolo de adaptación y bienestar:</p>
-          <div class="tvid-grid">
-            <button class="tvid-card-btn" onclick="loadTvidExercise('Madre')">❤️ <span data-es="Técnica de la Madre" data-en="Mother Technique">Técnica de la Madre</span></button>
-            <button class="tvid-card-btn" onclick="loadTvidExercise('Padre')">💪 <span data-es="Técnica del Padre" data-en="Father Technique">Técnica del Padre</span></button>
-            <button class="tvid-card-btn" onclick="loadTvidExercise('Niño')">🧒 <span data-es="Técnica del Niño" data-en="Child Technique">Técnica del Niño</span></button>
-            <button class="tvid-card-btn" onclick="loadTvidExercise('Beso')">💋 <span data-es="Técnica del Beso" data-en="Kiss Technique">Técnica del Beso</span></button>
-            <button class="tvid-card-btn" onclick="loadTvidExercise('Mal')">⚫ <span data-es="Técnica del Mal" data-en="Adversity Technique">Técnica del Mal</span></button>
-            <button class="tvid-card-btn" onclick="loadTvidExercise('Bien')">☀️ <span data-es="Técnica del Bien" data-en="Wellbeing Technique">Técnica del Bien</span></button>
-            <button class="tvid-card-btn tvid-full" onclick="loadTvidExercise('Guerra')">⚔️ <span data-es="Técnica de Guerra" data-en="Strategy Technique">Técnica de Guerra</span></button>
-          </div>
-        </div>
-
-        <div id="tvid-exercise-screen" class="tvid-content-view" style="display: none;">
+        <div id="tvid-exercise-screen" class="tvid-content-view">
           <div class="tvid-exercise-top">
-            <button class="tvid-back-btn" onclick="backTvidSelection()" id="tvid-back-text">← Volver</button>
+            <span id="tvid-protocol-indicator" style="font-size: 11px; color: var(--accent-color);">Kernel TVid ID: 1 / 21</span>
             <div class="tvid-timer" id="tvid-timer-display">05:00</div>
           </div>
           
-          <h3 id="tvid-exercise-title">Título del Ejercicio</h3>
+          <h3 id="tvid-exercise-title">Título del Protocolo</h3>
           
-          <!-- Círculo Respiratorio Dinámico -->
           <div class="tvid-breath-container">
             <div id="tvid-breath-circle" class="tvid-breath-circle">
               <span id="tvid-breath-label">Inhala</span>
             </div>
           </div>
 
-          <div id="tvid-objective-box" class="tvid-objective-box">
-            <strong>🎯 Objetivo:</strong> <span id="tvid-objective-text">Mantener estabilidad táctica y mental.</span>
+          <div class="tvid-objective-box">
+            <strong>🎯 Enfoque:</strong> <span id="tvid-objective-text">Estabilidad táctica y mental.</span>
           </div>
 
           <div id="tvid-exercise-steps" class="tvid-steps-container"></div>
           
           <div style="display: flex; gap: 8px;">
             <button id="tvid-speak-btn" class="tvid-sec-action" onclick="speakCurrentStep()">🔊 Escuchar</button>
-            <button id="tvid-action-btn" class="tvid-main-action" onclick="nextTvidStep()">Siguiente paso</button>
+            <button id="tvid-action-btn" class="tvid-main-action" onclick="nextTvidStep()">Siguiente instrucción</button>
           </div>
         </div>
 
       </div>
     </div>
 
-    <!-- Estilos CSS -->
-    <style>
-      .tvid-modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(10, 10, 12, 0.85); backdrop-filter: blur(12px); display: flex; justify-content: center; align-items: center; z-index: 9999; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-      .tvid-modal-container { background: var(--card-bg, #141416); border: 1px solid var(--border-color, rgba(255, 255, 255, 0.1)); width: 90%; max-width: 460px; border-radius: 16px; padding: 20px; color: var(--text-main, #f1f1f3); box-shadow: 0 20px 40px rgba(0,0,0,0.6); }
-      .tvid-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 1px solid var(--border-color, rgba(255, 255, 255, 0.08)); padding-bottom: 10px; }
-      .tvid-badge { background: rgba(212, 175, 55, 0.15); color: var(--accent-color, #d4af37); font-size: 10px; font-weight: 600; padding: 3px 6px; border-radius: 4px; text-transform: uppercase; }
-      .tvid-header h2 { font-size: 15px; margin: 0; font-weight: 500; }
-      .tvid-close-btn { background: none; border: none; color: var(--text-muted, #888); font-size: 22px; cursor: pointer; }
-      .tvid-subtitle { font-size: 12px; color: var(--text-muted, #999); margin-bottom: 12px; }
-      .tvid-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-      .tvid-card-btn { background: var(--card-bg, #1e1e22); border: 1px solid var(--border-color, rgba(255, 255, 255, 0.06)); color: var(--text-main, #f1f1f3); padding: 10px; border-radius: 8px; font-size: 12px; text-align: left; cursor: pointer; }
-      .tvid-card-btn:hover { border-color: var(--accent-color, #d4af37); }
-      .tvid-card-btn.tvid-full { grid-column: span 2; }
-      .tvid-exercise-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
-      .tvid-back-btn { background: none; border: none; color: var(--accent-color, #d4af37); cursor: pointer; font-size: 12px; }
-      .tvid-timer { font-family: monospace; font-size: 14px; color: var(--accent-color, #d4af37); background: rgba(212, 175, 55, 0.1); padding: 3px 6px; border-radius: 4px; }
-      
-      .tvid-breath-container { display: flex; justify-content: center; align-items: center; margin: 15px 0; }
-      .tvid-breath-circle { width: 90px; height: 90px; border-radius: 50%; background: rgba(212, 175, 55, 0.15); border: 2px solid var(--accent-color, #d4af37); display: flex; justify-content: center; align-items: center; font-size: 13px; font-weight: 600; color: var(--accent-color, #d4af37); transition: transform 4s ease-in-out; box-shadow: 0 0 20px rgba(212, 175, 55, 0.2); }
-      .tvid-breath-circle.inhale { transform: scale(1.35); }
-      .tvid-breath-circle.exhale { transform: scale(0.9); }
-
-      .tvid-objective-box { background: rgba(212, 175, 55, 0.08); border-left: 3px solid var(--accent-color, #d4af37); padding: 8px 12px; border-radius: 4px; font-size: 12px; margin-bottom: 10px; color: var(--text-main, #ddd); }
-      .tvid-steps-container { font-size: 13px; line-height: 1.5; color: var(--text-muted, #ccc); min-height: 70px; margin-bottom: 12px; background: rgba(0,0,0,0.2); padding: 12px; border-radius: 8px; }
-      
-      .tvid-sec-action { background: rgba(255,255,255,0.08); color: var(--text-main, #fff); border: 1px solid var(--border-color, rgba(255,255,255,0.2)); padding: 10px; border-radius: 8px; font-weight: 600; font-size: 13px; cursor: pointer; }
-      .tvid-main-action { flex: 1; background: var(--accent-color, #d4af37); color: var(--bg-color, #0a0a0c); border: none; padding: 10px; border-radius: 8px; font-weight: 600; font-size: 13px; cursor: pointer; }
-    </style>
-
-    <!-- Lógica JavaScript Funcional e Independiente -->
+    <!-- Lógica de Operación: MIRROR TO YOU & Banco de 21 IDs Kernel TVid -->
     <script>
       let tvidLang = 'es';
-      let advisorLang = 'es';
+      let mirrorSessionTimerInterval = null;
+      let quickRechargeInterval = null;
+      let breathAnimationInterval = null;
+      let currentKernelIndex = 0;
+      let currentStepIndex = 0;
 
-      const tvidData = {
-        'Madre': {
-          es: { title: "❤️ Técnica de la Madre", objective: "Desarrollar contención emocional y paciencia protectora.", steps: ["Inhala lentamente por la nariz en 4 segundos, expandiendo el pecho.", "Mantén el aire 2 segundos visualizando estabilidad.", "Exhala suavemente en 6 segundos liberando la presión.", "Decide con firmeza: 'Me trataré con paciencia hoy.'"] },
-          en: { title: "❤️ Mother Technique", objective: "Develop emotional containment and protective patience.", steps: ["Inhale slowly through your nose for 4 seconds.", "Hold the air for 2 seconds visualizing stability.", "Exhale smoothly in 6 seconds releasing pressure.", "Decide firmly: 'I will treat myself with patience today.'"] }
+      const tvidKernelMaster = [
+        // --- TÉCNICA DE LA MADRE (IDs 1 al 3) ---
+        {
+          id: 1, key: 'Madre',
+          es: { title: "❤️ Técnica de la Madre (I)", objective: "Contención emocional y paciencia protectora base.", steps: ["Inhala lentamente por la nariz expandiendo el pecho.", "Mantén el aire visualizando estabilidad y calma.", "Exhala suavemente liberando toda la presión.", "Decide con firmeza avanzar con equilibrio."] },
+          en: { title: "❤️ Mother Technique (I)", objective: "Emotional containment and protective patience.", steps: ["Inhale slowly through your nose expanding your chest.", "Hold the air visualizing stability and calm.", "Exhale smoothly releasing all pressure.", "Decide firmly to move forward with balance."] }
         },
-        'Padre': {
-          es: { title: "💪 Técnica del Padre", objective: "Establecer autoridad interna y dirección de decisiones.", steps: ["Ponte de pie con postura recta y firme.", "Inhala profundo fortaleciendo el tronco en 4 segundos.", "Retén 2 segundos afirmando tu control.", "Exhala en 6 segundos asumiendo la responsabilidad."] },
-          en: { title: "💪 Father Technique", objective: "Establish internal authority and decision direction.", steps: ["Stand straight and firm.", "Inhale deeply strengthening your core in 4 seconds.", "Hold for 2 seconds affirming your control.", "Exhale in 6 seconds taking responsibility."] }
+        {
+          id: 2, key: 'Madre',
+          es: { title: "❤️ Técnica de la Madre (II)", objective: "Refugio mental y acogida de seguridad.", steps: ["Coloca las manos en el pecho y respira con suavidad.", "Inhala sintiendo un calor protector interno.", "Retén el aire abrazando tus propios pensamientos.", "Exhala disipando cualquier rastro de duda."] },
+          en: { title: "❤️ Mother Technique (II)", objective: "Mental refuge and welcoming security.", steps: ["Place your hands on your chest and breathe softly.", "Inhale feeling an internal protective warmth.", "Hold the air embracing your thoughts.", "Exhale dissipating any trace of doubt."] }
         },
-        'Niño': {
-          es: { title: "🧒 Técnica del Niño", objective: "Romper la monotonía con curiosidad y frescura mental.", steps: ["Observa un objeto cotidiano descubriéndolo de nuevo.", "Inhala en 4 segundos con asombro e inocencia.", "Retén 2 segundos dibujando una sonrisa.", "Exhala en 6 segundos liberando la rigidez."] },
-          en: { title: "🧒 Child Technique", objective: "Break monotony with curiosity and mental freshness.", steps: ["Look around at an everyday object anew.", "Inhale in 4 seconds with wonder.", "Hold for 2 seconds with a light smile.", "Exhale in 6 seconds releasing rigidity."] }
+        {
+          id: 3, key: 'Madre',
+          es: { title: "❤️ Técnica de la Madre (III)", objective: "Nutrición emocional y resguardo interior.", steps: ["Inhala profundo imaginando un espacio seguro.", "Mantén el aire cultivando compasión hacia ti.", "Exhala vaciando tensiones del entorno.", "Afirma en silencio: 'Estoy protegido y centrado.'"] },
+          en: { title: "❤️ Mother Technique (III)", objective: "Emotional nourishment and inner shelter.", steps: ["Inhale deeply imagining a safe space.", "Hold the air cultivating self-compassion.", "Exhale emptying environmental tensions.", "Affirm silently: 'I am protected and centered.'"] }
         },
-        'Beso': {
-          es: { title: "💋 Técnica del Beso", objective: "Generar empatía y reconciliación pacífica.", steps: ["Cruza los brazos simulando un abrazo cálido.", "Inhala en 4 segundos aceptando tus procesos.", "Retén 2 segundos conectando con la paz.", "Exhala en 6 segundos proyectando consideración."] },
-          en: { title: "💋 Kiss Technique", objective: "Generate empathy and peaceful reconciliation.", steps: ["Cross your arms simulating a warm hug.", "Inhale in 4 seconds accepting your processes.", "Hold for 2 seconds connecting with peace.", "Exhale in 6 seconds projecting consideration."] }
+
+        // --- TÉCNICA DEL PADRE (IDs 4 al 6) ---
+        {
+          id: 4, key: 'Padre',
+          es: { title: "💪 Técnica del Padre (I)", objective: "Autoridad interna y dirección de decisiones.", steps: ["Ponte de pie con postura recta y firme.", "Inhala profundo fortaleciendo el centro del cuerpo.", "Retén el aire afirmando tu control absoluto.", "Exhala asumiendo la responsabilidad directa."] },
+          en: { title: "💪 Father Technique (I)", objective: "Internal authority and decision direction.", steps: ["Stand straight and firm.", "Inhale deeply strengthening your core.", "Hold the air affirming absolute control.", "Exhale taking direct responsibility."] }
         },
-        'Mal': {
-          es: { title: "⚫ Técnica del Mal", objective: "Transformar adversidades en aprendizajes útiles.", steps: ["Lleva una mano al abdomen y respira ante la dificultad.", "Inhala en 4 segundos analizando el aprendizaje.", "Retén 2 segundos separando el problema de tu valor.", "Exhala en 6 segundos aplicando un cambio positivo."] },
-          en: { title: "⚫ Adversity Technique", objective: "Transform adversities into useful lessons.", steps: ["Place one hand on your abdomen and breathe.", "Inhale in 4 seconds analyzing the lesson.", "Hold for 2 seconds separating the problem from self-worth.", "Exhale in 6 seconds applying positive change."] }
+        {
+          id: 5, key: 'Padre',
+          es: { title: "💪 Técnica del Padre (II)", objective: "Estructura ejecutiva y enfoque de mando.", steps: ["Alinea los hombros y respira con determinación.", "Inhala absorbiendo claridad y orden táctico.", "Retén fijando prioridades esenciales.", "Exhala proyectando autoridad serena."] },
+          en: { title: "💪 Father Technique (II)", objective: "Executive structure and command focus.", steps: ["Align your shoulders and breathe with determination.", "Inhale absorbing clarity and tactical order.", "Hold fixing essential priorities.", "Exhale projecting serene authority."] }
         },
-        'Bien': {
-          es: { title: "☀️ Técnica del Bien", objective: "Valorar logros diarios y optimizar enfoque.", steps: ["Identifica un logro y un disfrute de tu jornada.", "Inhala profundamente absorbiendo energía positiva.", "Retén 2 segundos sintiendo gratitud.", "Exhala dejando ir lo innecesario."] },
-          en: { title: "☀️ Wellbeing Technique", objective: "Appreciate daily achievements and constructive focus.", steps: ["Identify an achievement from today.", "Inhale deeply absorbing positive energy.", "Hold for 2 seconds feeling gratitude.", "Exhale letting go of the unnecessary."] }
+        {
+          id: 6, key: 'Padre',
+          es: { title: "💪 Técnica del Padre (III)", objective: "Firmeza operativa ante escenarios complejos.", steps: ["Inhala tomando el timón de tu situación actual.", "Mantén el aire consolidando tu criterio.", "Exhala liberando vacilaciones externas.", "Camina mentalmente hacia la solución directa."] },
+          en: { title: "💪 Father Technique (III)", objective: "Operational firmness in complex scenarios.", steps: ["Inhale taking the helm of your current situation.", "Hold consolidating your criteria.", "Exhale releasing external hesitations.", "Walk mentally toward direct resolution."] }
         },
-        'Guerra': {
-          es: { title: "⚔️ Técnica de Guerra", objective: "Adaptación táctica y serenidad ante retos críticos.", steps: ["Adopta una postura firme y centrada.", "Inhala evaluando con frialdad la realidad.", "Retén decidiendo con sensatez tu próximo paso.", "Exhala afirmando tu capacidad de resolución."] },
-          en: { title: "⚔️ Strategy Technique", objective: "Tactical adaptation and serenity under challenges.", steps: ["Adopt a firm, centered posture.", "Inhale evaluating reality with clarity.", "Hold deciding sensibly your next move.", "Exhale affirming your resolution capacity."] }
+
+        // --- TÉCNICA DEL NIÑO (IDs 7 al 9) ---
+        {
+          id: 7, key: 'Niño',
+          es: { title: "🧒 Técnica del Niño (I)", objective: "Curiosidad y frescura mental espontánea.", steps: ["Observa tu entorno descubriéndolo de nuevo.", "Inhala con asombro e inocencia renovada.", "Retén el aire dibujando una sonrisa interior.", "Exhala liberando toda rigidez mental."] },
+          en: { title: "🧒 Child Technique (I)", objective: "Curiosity and spontaneous mental freshness.", steps: ["Observe your surroundings discovering them anew.", "Inhale with wonder and renewed innocence.", "Hold drawing an inner smile.", "Exhale releasing all mental rigidity."] }
+        },
+        {
+          id: 8, key: 'Niño',
+          es: { title: "🧒 Técnica del Niño (II)", objective: "Juego cognitivo y ligereza creativa.", steps: ["Inhala imaginando soluciones simples y lúdicas.", "Retén el aire soltando la autocrítica excesiva.", "Exhala riendo por dentro ante lo absurdo del estrés.", "Permítete empezar de cero con alegría."] },
+          en: { title: "🧒 Child Technique (II)", objective: "Cognitive play and creative lightness.", steps: ["Inhale imagining simple, playful solutions.", "Hold letting go of excessive self-criticism.", "Exhale smiling inwardly at stress.", "Allow yourself to start over with joy."] }
+        },
+        {
+          id: 9, key: 'Niño',
+          es: { title: "🧒 Técnica del Niño (III)", objective: "Asombro activo y flexibilidad de perspectiva.", steps: ["Inhala observando detalles pequeños con interés.", "Retén el aire sin juzgar lo que ves.", "Exhala renovando tu capacidad de sorpresa.", "Integra una mirada fresca a tu labor."] },
+          en: { title: "🧒 Child Technique (III)", objective: "Active wonder and perspective flexibility.", steps: ["Inhale observing small details with interest.", "Hold without judging what you see.", "Exhale renewing your capacity for surprise.", "Integrate a fresh look into your work."] }
+        },
+
+        // --- TÉCNICA DEL BESO (IDs 10 al 12) ---
+        {
+          id: 10, key: 'Beso',
+          es: { title: "💋 Técnica del Beso (I)", objective: "Empatía y reconciliación pacífica.", steps: ["Cruza los brazos simulando un abrazo cálido.", "Inhala aceptando tus procesos actuales.", "Retén conectando con la paz interior.", "Exhala proyectando consideración y afecto."] },
+          en: { title: "💋 Kiss Technique (I)", objective: "Empathy and peaceful reconciliation.", steps: ["Cross your arms simulating a warm hug.", "Inhale accepting your current processes.", "Hold connecting with inner peace.", "Exhale projecting consideration and affection."] }
+        },
+        {
+          id: 11, key: 'Beso',
+          es: { title: "💋 Técnica del Beso (II)", objective: "Afabilidad y disolución de fricciones.", steps: ["Inhala suavizando la expresión facial.", "Retén enviando un mensaje de tregua interna.", "Exhala soltando resentimientos o asperezas.", "Camina hacia el entendimiento mutuo."] },
+          en: { title: "💋 Kiss Technique (II)", objective: "Affability and friction dissolution.", steps: ["Inhale softening your facial expression.", "Hold sending an internal truce message.", "Exhale releasing resentments or roughness.", "Move toward mutual understanding."] }
+        },
+        {
+          id: 12, key: 'Beso',
+          es: { title: "💋 Técnica del Beso (III)", objective: "Armonía interpersonal y diplomacia.", steps: ["Inhala visualizando un trato amable y cordial.", "Retén valorando la conexión con los demás.", "Exhala disipando la urgencia defensiva.", "Valora el poder de un gesto conciliador."] },
+          en: { title: "💋 Kiss Technique (III)", objective: "Interpersonal harmony and diplomacy.", steps: ["Inhale visualizing kind and cordial treatment.", "Hold valuing connection with others.", "Exhale dissipating defensive urgency.", "Value the power of a conciliatory gesture."] }
+        },
+
+        // --- TÉCNICA DEL MAL (IDs 13 al 15) ---
+        {
+          id: 13, key: 'Mal',
+          es: { title: "⚫ Técnica del Mal (I)", objective: "Transformar adversidades en aprendizajes.", steps: ["Lleva una mano al abdomen y respira ante la dificultad.", "Inhala analizando el aprendizaje oculto.", "Retén separando el problema de tu valor personal.", "Exhala aplicando un cambio constructivo."] },
+          en: { title: "⚫ Adversity Technique (I)", objective: "Transform adversities into lessons.", steps: ["Place one hand on your abdomen and breathe.", "Inhale analyzing the hidden lesson.", "Hold separating the problem from self-worth.", "Exhale applying constructive change."] }
+        },
+        {
+          id: 14, key: 'Mal',
+          es: { title: "⚫ Técnica del Mal (II)", objective: "Digestión de crisis y resiliencia.", steps: ["Inhala reconociendo el obstáculo sin dramatizar.", "Retén buscando el dato útil dentro del problema.", "Exhala transformando el tropiezo en combustible.", "Actúa con templanza pragmática."] },
+          en: { title: "⚫ Adversity Technique (II)", objective: "Crisis digestion and resilience.", steps: ["Inhale acknowledging the obstacle without drama.", "Hold seeking the useful data within the problem.", "Exhale turning the stumble into fuel.", "Act with pragmatic temperance."] }
+        },
+        {
+          id: 15, key: 'Mal',
+          es: { title: "⚫ Técnica del Mal (III)", objective: "Neutralización de reveses imprevistos.", steps: ["Inhala aceptando que la fricción forma parte del camino.", "Retén evaluando recursos disponibles de emergencia.", "Exhala rediseñando el plan de ruta inmediato.", "Avanza sin mirar atrás."] },
+          en: { title: "⚫ Adversity Technique (III)", objective: "Neutralizing unexpected setbacks.", steps: ["Inhale accepting friction as part of the path.", "Hold evaluating available emergency resources.", "Exhale redesigning the immediate roadmap.", "Move forward without looking back."] }
+        },
+
+        // --- TÉCNICA DEL BIEN (IDs 16 al 18) ---
+        {
+          id: 16, key: 'Bien',
+          es: { title: "☀️ Técnica del Bien (I)", objective: "Valorar logros diarios y optimizar enfoque.", steps: ["Identifica un logro reciente de tu jornada.", "Inhala profundamente absorbiendo energía positiva.", "Retén sintiendo gratitud genuina.", "Exhala dejando ir lo innecesario."] },
+          en: { title: "☀️ Wellbeing Technique (I)", objective: "Appreciate daily achievements.", steps: ["Identify a recent achievement from your day.", "Inhale deeply absorbing positive energy.", "Hold feeling genuine gratitude.", "Exhale letting go of the unnecessary."] }
+        },
+        {
+          id: 17, key: 'Bien',
+          es: { title: "☀️ Técnica del Bien (II)", objective: "Multiplicación de aciertos y bienestar.", steps: ["Inhala recordando un momento de alta eficacia.", "Retén anclando esa sensación de éxito.", "Exhala proyectando abundancia operativa.", "Disfruta el impulso del trabajo bien hecho."] },
+          en: { title: "☀️ Wellbeing Technique (II)", objective: "Multiplication of successes.", steps: ["Inhale recalling a moment of high efficiency.", "Hold anchoring that feeling of success.", "Exhale projecting operational abundance.", "Enjoy the momentum of good work."] }
+        },
+        {
+          id: 18, key: 'Bien',
+          es: { title: "☀️ Técnica del Bien (III)", objective: "Consolidación de satisfacción y optimismo.", steps: ["Inhala respirando la estabilidad conseguida hoy.", "Retén saboreando el progreso alcanzado.", "Exhala compartiendo una actitud constructiva.", "Valora el fruto de tu constancia."] },
+          en: { title: "☀️ Wellbeing Technique (III)", objective: "Consolidation of satisfaction.", steps: ["Inhale breathing in stability achieved today.", "Hold savoring the progress made.", "Exhale sharing a constructive attitude.", "Value the fruit of your consistency."] }
+        },
+
+        // --- TÉCNICA DE GUERRA (IDs 19 al 21) ---
+        {
+          id: 19, key: 'Guerra',
+          es: { title: "⚔️ Técnica de Guerra (I)", objective: "Adaptación táctica y serenidad ante retos críticos.", steps: ["Adopta una postura firme y centrada.", "Inhala evaluando con frialdad la realidad.", "Retén decidiendo con sensatez tu siguiente movimiento.", "Exhala afirmando tu capacidad de resolución."] },
+          en: { title: "⚔️ Strategy Technique (I)", objective: "Tactical adaptation and serenity.", steps: ["Adopt a firm, centered posture.", "Inhale evaluating reality with clarity.", "Hold deciding sensibly your next move.", "Exhale affirming your resolution capacity."] }
+        },
+        {
+          id: 20, key: 'Guerra',
+          es: { title: "⚔️ Técnica de Guerra (II)", objective: "Cálculo de riesgos y templanza bajo presión.", steps: ["Inhala midiendo el escenario con precisión militar.", "Retén filtrando las distracciones secundarias.", "Exhala ejecutando la acción clave sin dudar.", "Mantén el control absoluto del terreno."] },
+          en: { title: "⚔️ Strategy Technique (II)", objective: "Risk calculation and temperance.", steps: ["Inhale measuring the scenario with precision.", "Hold filtering out secondary distractions.", "Exhale executing key action without hesitation.", "Maintain absolute control of the terrain."] }
+        },
+        {
+          id: 21, key: 'Guerra',
+          es: { title: "⚔️ Técnica de Guerra (III)", objective: "Estrategia de contención y victoria firme.", steps: ["Inhala visualizando la meta sin margen de error.", "Retén blindando tu concentración táctica.", "Exhala avanzando con paso seguro y medido.", "Corona el reto con disciplina total."] },
+          en: { title: "⚔️ Strategy Technique (III)", objective: "Containment strategy and firm victory.", steps: ["Inhale visualizing the goal without error.", "Hold shielding tactical concentration.", "Exhale moving forward with measured steps.", "Crown the challenge with total discipline."] }
         }
+      ];
+
+      // Inicializar Temporizador App Madre (10 minutos) al cargar la página
+      window.onload = function() {
+        startMirrorMotherTimer(600);
       };
 
-      let currentTechKey = null;
-      let currentStepIndex = 0;
-      let countdownInterval = null;
-      let breathAnimationInterval = null;
+      function startMirrorMotherTimer(duration) {
+        if (mirrorSessionTimerInterval) clearInterval(mirrorSessionTimerInterval);
+        let timer = duration, minutes, seconds;
+        mirrorSessionTimerInterval = setInterval(function () {
+          minutes = parseInt(timer / 60, 10);
+          seconds = parseInt(timer % 60, 10);
+          minutes = minutes < 10 ? "0" + minutes : minutes;
+          seconds = seconds < 10 ? "0" + seconds : seconds;
+          
+          const timerEl = document.getElementById('mirror-session-timer');
+          if (timerEl) timerEl.textContent = minutes + ":" + seconds;
 
-      // Idioma y control de Viajes
-      function toggleAdvisorLang() {
-        advisorLang = advisorLang === 'es' ? 'en' : 'es';
-        document.getElementById('advisor-lang-btn').innerText = advisorLang.toUpperCase();
-        
-        if (advisorLang === 'en') {
-          document.getElementById('float-btn-text').innerText = "Private Travel Advisory";
-          document.getElementById('modal-advisor-title').innerText = "May Roga LLC - Luxury Travel";
-          document.getElementById('modal-advisor-desc').innerText = "Connect directly with your certified private advisor to design custom itineraries and manage exclusive bookings.";
-          document.getElementById('wa-btn-label').innerText = "Direct WhatsApp Chat";
-          document.getElementById('email-btn-label').innerText = "Send Email";
+          if (--timer < 0) {
+            clearInterval(mirrorSessionTimerInterval);
+            closeTvidWindow();
+            if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+          }
+        }, 1000);
+      }
+
+      function mirrorTriggerModule(type) {
+        if (type === 'tvid') {
+          launchSmartTvidExercise();
         } else {
-          document.getElementById('float-btn-text').innerText = "Asesoría de Viaje Privada";
-          document.getElementById('modal-advisor-title').innerText = "May Roga LLC - Viajes de Lujo";
-          document.getElementById('modal-advisor-desc').innerText = "Conecta directamente con tu asesor privado certificado para diseñar itinerarios a la medida y gestionar tus reservas exclusivas.";
-          document.getElementById('wa-btn-label').innerText = "Chat Directo por WhatsApp";
-          document.getElementById('email-btn-label').innerText = "Enviar Correo Electrónico";
+          alert("SmartCargo Asesor activo. Ingrese su reporte o estiba abajo.");
         }
       }
 
-      function toggleTravelAdvisorModal() {
-        const modal = document.getElementById('travel-advisor-modal');
-        modal.style.display = modal.style.display === 'flex' ? 'none' : 'flex';
+      function mirrorClearInput() {
+        document.getElementById('mirror-user-input').value = '';
+        document.getElementById('mirror-files-status').innerText = '';
       }
 
-      // Idioma y control de Carga Rápida (TVid) con voz automática en todo momento
-      function toggleTvidWindow() {
+      function mirrorHandleFiles(input) {
+        const status = document.getElementById('mirror-files-status');
+        if (input.files.length > 3) {
+          status.innerText = "⚠️ Máximo 3 fotos permitidas.";
+          input.value = "";
+        } else {
+          status.innerText = `📎 ${input.files.length} foto(s) seleccionada(s).`;
+        }
+      }
+
+      function mirrorSubmitData() {
+        const text = document.getElementById('mirror-user-input').value;
+        if (!text.trim()) {
+          alert("Por favor ingrese una descripción o reporte para procesar la asesoría.");
+          return;
+        }
+        alert("Reporte procesado con éxito bajo la arquitectura de MIRROR TO YOU.");
+        mirrorClearInput();
+      }
+
+      function launchSmartTvidExercise() {
         const modal = document.getElementById('tvid-floating-window');
-        const isVisible = modal.style.display === 'flex';
-        modal.style.display = isVisible ? 'none' : 'flex';
-        if (!isVisible) {
-          document.getElementById('tvid-selection-screen').style.display = 'block';
-          document.getElementById('tvid-exercise-screen').style.display = 'none';
-          stopTvidTimers();
-        } else {
-          stopTvidTimers();
-        }
-      }
-
-      function toggleTvidLang() {
-        tvidLang = tvidLang === 'es' ? 'en' : 'es';
-        document.getElementById('tvid-lang-btn').innerText = tvidLang.toUpperCase();
-        
-        document.getElementById('tvid-main-title').innerText = tvidLang === 'es' ? 'Puerto de Carga Rápida' : 'Quick Recharge Port';
-        document.getElementById('tvid-subtitle-text').innerText = tvidLang === 'es' ? 'Selecciona tu protocolo de adaptación y bienestar:' : 'Select your protocol:';
-        document.getElementById('tvid-back-text').innerText = tvidLang === 'es' ? '← Volver' : '← Back';
-        document.getElementById('tvid-speak-btn').innerText = tvidLang === 'es' ? '🔊 Escuchar' : '🔊 Listen';
-        document.getElementById('tvid-float-label').innerText = tvidLang === 'es' ? 'Carga Rápida (TVid)' : 'Quick Recharge (TVid)';
-        
-        if (currentTechKey) {
-          updateTvidViewLang();
-        }
-      }
-
-      function loadTvidExercise(techKey) {
-        currentTechKey = techKey;
+        modal.style.display = 'flex';
         currentStepIndex = 0;
-        document.getElementById('tvid-selection-screen').style.display = 'none';
-        document.getElementById('tvid-exercise-screen').style.display = 'block';
-        updateTvidViewLang();
-        startTvidTimer(300); // Exactos 300 segundos (5 minutos)
-        startBreathCycle();
-        speakCurrentStep(); // La voz habla automáticamente al iniciar el ejercicio
+        loadCurrentKernelProtocol();
+        startQuickRechargeTimer(300); // 5 minutos subordinados
+        startSyncedBreathCycle();
+        speakCurrentStep();
       }
 
-      function updateTvidViewLang() {
-        if (!currentTechKey) return;
-        const langData = tvidData[currentTechKey][tvidLang];
+      function loadCurrentKernelProtocol() {
+        const protocol = tvidKernelMaster[currentKernelIndex];
+        const langData = protocol[tvidLang];
+        
         document.getElementById('tvid-exercise-title').innerText = langData.title;
         document.getElementById('tvid-objective-text').innerText = langData.objective;
         document.getElementById('tvid-exercise-steps').innerText = langData.steps[currentStepIndex];
+        document.getElementById('tvid-protocol-indicator').innerText = `Kernel TVid ID: ${protocol.id} / ${tvidKernelMaster.length}`;
         
         const actionBtn = document.getElementById('tvid-action-btn');
         if (currentStepIndex === langData.steps.length - 1) {
-          actionBtn.innerText = tvidLang === 'es' ? 'Finalizar Carga' : 'Finish Recharge';
+          actionBtn.innerText = tvidLang === 'es' ? 'Siguiente ID Protocolo' : 'Next ID Protocol';
         } else {
-          actionBtn.innerText = tvidLang === 'es' ? 'Siguiente paso' : 'Next step';
+          actionBtn.innerText = tvidLang === 'es' ? 'Siguiente instrucción' : 'Next step';
         }
       }
 
       function nextTvidStep() {
-        const langData = tvidData[currentTechKey][tvidLang];
+        const protocol = tvidKernelMaster[currentKernelIndex];
+        const langData = protocol[tvidLang];
         currentStepIndex++;
+
         if (currentStepIndex < langData.steps.length) {
-          updateTvidViewLang();
-          speakCurrentStep(); // Habla automáticamente al cambiar de paso
+          loadCurrentKernelProtocol();
+          speakCurrentStep();
         } else {
-          closeTvidWindow();
+          currentKernelIndex = (currentKernelIndex + 1) % tvidKernelMaster.length;
+          currentStepIndex = 0;
+          loadCurrentKernelProtocol();
+          speakCurrentStep();
         }
       }
 
-      function backTvidSelection() {
-        stopTvidTimers();
-        document.getElementById('tvid-exercise-screen').style.display = 'none';
-        document.getElementById('tvid-selection-screen').style.display = 'block';
-      }
-
       function speakCurrentStep() {
-        if (!currentTechKey) return;
-        const langData = tvidData[currentTechKey][tvidLang];
+        const protocol = tvidKernelMaster[currentKernelIndex];
+        const langData = protocol[tvidLang];
         const textToSpeak = langData.steps[currentStepIndex];
         if ('speechSynthesis' in window) {
           window.speechSynthesis.cancel();
@@ -1007,39 +382,40 @@ function toggleMortalsDrawer() {
         }
       }
 
-      function startBreathCycle() {
+      function startSyncedBreathCycle() {
         const circle = document.getElementById('tvid-breath-circle');
         const label = document.getElementById('tvid-breath-label');
-        let state = 0;
+        let cycleState = 0;
 
         if (breathAnimationInterval) clearInterval(breathAnimationInterval);
 
         breathAnimationInterval = setInterval(() => {
-          if (state === 0) {
+          if (cycleState === 0) {
             circle.className = 'tvid-breath-circle inhale';
             label.innerText = tvidLang === 'es' ? 'Inhala' : 'Inhale';
-            state = 1;
-          } else if (state === 1) {
-            circle.className = 'tvid-breath-circle inhale';
+            cycleState = 1;
+          } else if (cycleState === 1) {
+            circle.className = 'tvid-breath-circle hold';
             label.innerText = tvidLang === 'es' ? 'Mantén' : 'Hold';
-            state = 2;
+            cycleState = 2;
           } else {
             circle.className = 'tvid-breath-circle exhale';
             label.innerText = tvidLang === 'es' ? 'Exhala' : 'Exhale';
-            state = 0;
+            cycleState = 0;
           }
         }, 4000);
       }
 
-      function startTvidTimer(duration) {
-        stopTvidTimers();
+      function startQuickRechargeTimer(duration) {
+        if (quickRechargeInterval) clearInterval(quickRechargeInterval);
         let timer = duration, minutes, seconds;
-        countdownInterval = setInterval(function () {
+        quickRechargeInterval = setInterval(function () {
           minutes = parseInt(timer / 60, 10);
           seconds = parseInt(timer % 60, 10);
           minutes = minutes < 10 ? "0" + minutes : minutes;
           seconds = seconds < 10 ? "0" + seconds : seconds;
-          document.getElementById('tvid-timer-display').textContent = minutes + ":" + seconds;
+          const disp = document.getElementById('tvid-timer-display');
+          if (disp) disp.textContent = minutes + ":" + seconds;
           if (--timer < 0) {
             stopTvidTimers();
             closeTvidWindow();
@@ -1048,15 +424,16 @@ function toggleMortalsDrawer() {
       }
 
       function stopTvidTimers() {
-        if (countdownInterval) clearInterval(countdownInterval);
+        if (quickRechargeInterval) clearInterval(quickRechargeInterval);
         if (breathAnimationInterval) clearInterval(breathAnimationInterval);
         if ('speechSynthesis' in window) window.speechSynthesis.cancel();
       }
 
       function closeTvidWindow() {
         stopTvidTimers();
-        document.getElementById('tvid-floating-window').style.display = 'none';
+        const win = document.getElementById('tvid-floating-window');
+        if (win) win.style.display = 'none';
       }
     </script>
 </body>
-</html>
+</html> 
