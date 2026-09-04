@@ -732,334 +732,145 @@ function toggleMortalsDrawer() {
             }
         }
     </script>
-<!-- ==========================================================
-     VENTANA 1: FAST CHARGE PORT (TVid)
-     ========================================================== -->
-    <div id="tvid-floating-window" class="tvid-modal-overlay" style="display: none;">
-      <div class="tvid-modal-container">
-        <div class="tvid-header">
-          <span class="tvid-badge" data-i18n="badge">5-Min Recharge</span>
-          <h2 data-i18n="tvid_title">Fast Charge Port</h2>
-          <button class="tvid-close-btn" onclick="closeTvidWindow()">&times;</button>
-        </div>
-        <div id="tvid-selection-screen" class="tvid-content-view">
-          <p class="tvid-subtitle" data-i18n="tvid_subtitle">Select your adaptation protocol:</p>
-          <div class="tvid-grid">
-            <button class="tvid-card-btn" onclick="loadTvidExercise('Madre')">❤️ <span data-i18n="tech_mother">Mother Technique</span></button>
-            <button class="tvid-card-btn" onclick="loadTvidExercise('Padre')">💪 <span data-i18n="tech_father">Father Technique</span></button>
-            <button class="tvid-card-btn" onclick="loadTvidExercise('Niño')">🧒 <span data-i18n="tech_child">Child Technique</span></button>
-            <button class="tvid-card-btn" onclick="loadTvidExercise('Beso')">💋 <span data-i18n="tech_kiss">Kiss Technique</span></button>
-            <button class="tvid-card-btn" onclick="loadTvidExercise('Mal')">⚫ <span data-i18n="tech_bad">Bad Technique</span></button>
-            <button class="tvid-card-btn" onclick="loadTvidExercise('Bien')">☀️ <span data-i18n="tech_good">Good Technique</span></button>
-            <button class="tvid-card-btn tvid-full" onclick="loadTvidExercise('Guerra')">⚔️ <span data-i18n="tech_war">War Technique</span></button>
-          </div>
-        </div>
-        <div id="tvid-exercise-screen" class="tvid-content-view" style="display: none;">
-          <div class="tvid-exercise-top">
-            <button class="tvid-back-btn" onclick="backToTvidSelection()" data-i18n="back_btn">← Back</button>
-            <div class="tvid-timer" id="tvid-timer-display">05:00</div>
-          </div>
-          <h3 id="tvid-exercise-title">Exercise Title</h3>
-          <div id="tvid-exercise-steps" class="tvid-steps-container"></div>
-          <button id="tvid-action-btn" class="tvid-main-action" onclick="nextTvidStep()" data-i18n="next_btn">Next step</button>
-        </div>
-      </div>
-    </div>
 
-    <!-- ==========================================================
-     VENTANA 2: SMARTCARGO ADVISORY
-     ========================================================== -->
-    <div id="smartcargo-floating-window" class="smartcargo-modal-overlay" style="display: none;">
-      <div class="smartcargo-modal-container">
-        <div class="smartcargo-header">
-          <span class="smartcargo-badge" data-i18n="sc_badge">SmartCargo Advisor</span>
-          <h2 data-i18n="sc_title">Avianca Cargo & Terminal Operations</h2>
-          <div style="display: flex; gap: 8px; align-items: center;">
-            <button class="smartcargo-icon-btn" onclick="printSmartCargoPDF()" title="Print / PDF">🖨️</button>
-            <button class="smartcargo-icon-btn" onclick="clearSmartCargoData()" title="Delete">🗑️</button>
-            <button class="smartcargo-close-btn" onclick="toggleSmartCargoWindow()">&times;</button>
-          </div>
-        </div>
-        <div id="smartcargo-content-view" class="smartcargo-content-view">
-          <p class="smartcargo-subtitle" data-i18n="sc_subtitle">Select operation or review standards:</p>
-          <div class="smartcargo-grid">
-            <button class="smartcargo-card-btn" onclick="loadSmartCargoModule('ULD')">📦 <span data-i18n="mod_uld">ULDs & Pallets</span></button>
-            <button class="smartcargo-card-btn" onclick="loadSmartCargoModule('DG')">⚠️ <span data-i18n="mod_dg">Dangerous Goods (DG)</span></button>
-            <button class="smartcargo-card-btn" onclick="loadSmartCargoModule('AWB')">📋 <span data-i18n="mod_awb">AWB & Documentation</span></button>
-            <button class="smartcargo-card-btn" onclick="loadSmartCargoModule('PAX')">✈️ <span data-i18n="mod_pax">Bellies (PAX) & Transfer</span></button>
-            <button class="smartcargo-card-btn" onclick="loadSmartCargoModule('COMAT')">🔄 <span data-i18n="mod_comat">COMAT & Interlines</span></button>
-            <button class="smartcargo-card-btn" onclick="loadSmartCargoModule('SECURITY')">🛡️ <span data-i18n="mod_security">TSA & CBP Compliance</span></button>
-          </div>
-          <div id="smartcargo-display-box" class="smartcargo-display-box" style="display: none;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-              <h3 id="smartcargo-display-title" style="color: #d4af37; font-size: 14px; margin: 0;">Module Title</h3>
-              <button onclick="backToSmartCargoGrid()" style="background:none; border:none; color:#d4af37; cursor:pointer; font-size:12px;" data-i18n="sc_back">← Menu</button>
-            </div>
-            <div id="smartcargo-table-container"></div>
-          </div>
-          <div style="margin-top: 15px;">
-            <textarea id="smartcargo-user-query" rows="2" placeholder="Describe cargo issue..." style="width: 100%; background: #1a1a1e; border: 1px solid rgba(255,255,255,0.1); color: #fff; padding: 10px; border-radius: 8px; font-size: 12px; resize: none;"></textarea>
-            <button onclick="consultSmartCargoAdvisor()" style="width: 100%; margin-top: 8px; background: #d4af37; color: #0a0a0c; border: none; padding: 10px; border-radius: 8px; font-weight: 600; font-size: 13px; cursor: pointer;" data-i18n="sc_btn_consult">Consult Advisor</button>
-          </div>
-        </div>
-      </div>
-    </div>
+    <!-- Botón Flotante y Modal de Asesoría de Viaje con Selector de Idioma Transparente -->
+    <div id="travel-advisor-float" style="position: fixed; bottom: 20px; right: 20px; z-index: 1500; display: flex; align-items: center; gap: 8px;">
+        <button onclick="toggleAdvisorLang()" id="advisor-lang-btn" style="background: rgba(255, 255, 255, 0.15); backdrop-filter: blur(5px); border: 1px solid rgba(255, 255, 255, 0.3); color: var(--text-main, #ffffff); padding: 10px 12px; border-radius: 50%; font-weight: 600; font-size: 0.8rem; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.3); transition: background 0.2s ease;" title="Cambiar Idioma / Switch Language">
+            ES
+        </button>
 
-    <!-- ==========================================================
-     FLOATING BUTTONS BAR
-     ========================================================== -->
-    <div style="position: fixed; bottom: 20px; right: 20px; z-index: 1500; display: flex; align-items: center; gap: 8px;">
-        <button onclick="toggleTvidWindow()" style="background: rgba(212, 175, 55, 0.2); backdrop-filter: blur(5px); border: 1px solid #d4af37; color: #d4af37; padding: 12px 18px; border-radius: 30px; font-weight: 600; font-size: 0.9rem; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.3); display: flex; align-items: center; gap: 6px;">
-            ⚡ <span id="float-tvid-text">Fast Charge</span>
-        </button>
-        <button onclick="toggleSmartCargoWindow()" style="background: rgba(212, 175, 55, 0.2); backdrop-filter: blur(5px); border: 1px solid #d4af37; color: #d4af37; padding: 12px 18px; border-radius: 30px; font-weight: 600; font-size: 0.9rem; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.3); display: flex; align-items: center; gap: 6px;">
-            📦 <span id="float-cargo-text">SmartCargo</span>
-        </button>
-        <button onclick="toggleAdvisorLang()" id="advisor-lang-btn" style="background: rgba(255, 255, 255, 0.15); backdrop-filter: blur(5px); border: 1px solid rgba(255, 255, 255, 0.3); color: #ffffff; padding: 10px 12px; border-radius: 50%; font-weight: 600; font-size: 0.8rem; cursor: pointer;">
-            EN
-        </button>
-        <button onclick="toggleTravelAdvisorModal()" style="background-color: var(--accent-color, #d4af37); color: #0a0a0c; border: none; padding: 12px 20px; border-radius: 30px; font-weight: 600; font-size: 0.9rem; cursor: pointer;">
-            ✈️ <span id="float-btn-text">Private Travel Advisory</span>
+        <button onclick="toggleTravelAdvisorModal()" style="background-color: var(--accent-color); color: var(--bg-color); border: none; padding: 12px 20px; border-radius: 30px; font-weight: 600; font-size: 0.9rem; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.5); display: flex; align-items: center; gap: 8px; transition: transform 0.2s ease;">
+            ✈️ <span id="float-btn-text">Asesoría de Viaje Privada</span>
         </button>
     </div>
 
-    <!-- Travel Advisor Modal (Window 3) -->
-    <div id="travel-advisor-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(11, 15, 25, 0.85); z-index: 2500; justify-content: center; align-items: center; padding: 20px;">
-        <div class="legal-box" style="position: relative; max-width: 450px; background: #141416; padding: 24px; border-radius: 16px; color: #fff;">
-            <button onclick="toggleTravelAdvisorModal()" style="position: absolute; top: 15px; right: 15px; background: none; border: none; color: #888; font-size: 1.2rem; cursor: pointer;">✕</button>
-            <h2 data-i18n="modal_title" style="color: #d4af37; margin-bottom: 10px;">May Roga LLC - Luxury Travel</h2>
-            <p data-i18n="modal_desc" style="color: #999; font-size: 0.9rem; margin-bottom: 20px;">Connect directly with your certified private advisor.</p>
+<div id="travel-advisor-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(11, 15, 25, 0.85); z-index: 2500; justify-content: center; align-items: center; padding: 20px;">
+        <div class="legal-box" style="position: relative; max-width: 450px;">
+            <button onclick="toggleTravelAdvisorModal()" style="position: absolute; top: 15px; right: 15px; background: none; border: none; color: var(--text-muted); font-size: 1.2rem; cursor: pointer;">✕</button>
+            
+            <h2 id="modal-advisor-title" style="color: var(--accent-color); margin-bottom: 10px;">May Roga LLC - Viajes de Lujo</h2>
+            <p id="modal-advisor-desc" style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 20px; text-align: left;">
+                Conecta directamente con tu asesor privado certificado para diseñar itinerarios a la medida y gestionar tus reservas exclusivas.
+            </p>
+
             <div style="display: flex; flex-direction: column; gap: 12px;">
-                <a href="https://wa.me/17866471371?text=Hello%20Maykel,%20I%20am%20coming%20from%20the%20app." target="_blank" style="background: #25d366; color: #fff; padding: 12px; border-radius: 6px; text-decoration: none; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 8px;">
-                    💬 <span data-i18n="wa_label">Direct WhatsApp Chat</span>
+                <a id="whatsapp-link" href="https://wa.me/17866471371?text=Hola%20Maykel,%20vengo%20de%20la%20aplicación%20y%20deseo%20cotizar%20un%20viaje%20o%20itinerario%20privado." target="_blank" style="background: #25d366; color: #ffffff; padding: 12px; border-radius: 6px; text-decoration: none; font-weight: 600; font-size: 0.95rem; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                    💬 <span id="wa-btn-label">Chat Directo por WhatsApp</span>
+                </a>
+                <a id="email-link" href="mailto:maykel75122805321@gmail.com?subject=Solicitud%20de%20Asesoría%20de%20Viaje%20Privada" style="background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-main); padding: 12px; border-radius: 6px; text-decoration: none; font-weight: 600; font-size: 0.95rem; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                    ✉️ <span id="email-btn-label">Enviar Correo Electrónico</span>
                 </a>
             </div>
         </div>
     </div>
 
-    <!-- Styles -->
+    <!-- ==========================================================
+         VENTANA 1: PUERTO DE Carga Rápida (TVid) - HTML & Script
+         ========================================================== -->
+    <div id="tvid-floating-window" class="tvid-modal-overlay" style="display: none;">
+      <div class="tvid-modal-container">
+        <div class="tvid-header">
+          <span class="tvid-badge" id="tvid-badge-text">5-Min Recharge</span>
+          <h2 id="tvid-main-title">Puerto de Carga Rápida</h2>
+          <button class="tvid-close-btn" onclick="closeTvidWindow()">&times;</button>
+        </div>
+        <div id="tvid-selection-screen" class="tvid-content-view">
+          <p class="tvid-subtitle" id="tvid-subtitle-text">Selecciona tu protocolo de adaptación y bienestar biopsicosocial:</p>
+          <div class="tvid-grid">
+            <button class="tvid-card-btn" onclick="loadTvidExercise('Madre')">❤️ <span data-es="Técnica de la Madre" data-en="Mother Technique">Técnica de la Madre</span></button>
+            <button class="tvid-card-btn" onclick="loadTvidExercise('Padre')">💪 <span data-es="Técnica del Padre" data-en="Father Technique">Técnica del Padre</span></button>
+            <button class="tvid-card-btn" onclick="loadTvidExercise('Niño')">🧒 <span data-es="Técnica del Niño" data-en="Child Technique">Técnica del Niño</span></button>
+            <button class="tvid-card-btn" onclick="loadTvidExercise('Beso')">💋 <span data-es="Técnica del Beso" data-en="Kiss Technique">Técnica del Beso</span></button>
+            <button class="tvid-card-btn" onclick="loadTvidExercise('Mal')">⚫ <span data-es="Técnica del Mal" data-en="Adversity Technique">Técnica del Mal</span></button>
+            <button class="tvid-card-btn" onclick="loadTvidExercise('Bien')">☀️ <span data-es="Técnica del Bien" data-en="Wellbeing Technique">Técnica del Bien</span></button>
+            <button class="tvid-card-btn tvid-full" onclick="loadTvidExercise('Guerra')">⚔️ <span data-es="Técnica de Guerra" data-en="Strategy Technique">Técnica de Guerra</span></button>
+          </div>
+        </div>
+        <div id="tvid-exercise-screen" class="tvid-content-view" style="display: none;">
+          <div class="tvid-exercise-top">
+            <button class="tvid-back-btn" onclick="backToTvidSelection()" id="tvid-back-text">← Volver</button>
+            <div class="tvid-timer" id="tvid-timer-display">05:00</div>
+          </div>
+          <h3 id="tvid-exercise-title">Título del Ejercicio</h3>
+          <div id="tvid-exercise-steps" class="tvid-steps-container"></div>
+          <button id="tvid-action-btn" class="tvid-main-action" onclick="nextTvidStep()">Siguiente paso</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Botón flotante para abrir el Puerto de Carga Rápida -->
+    <div style="position: fixed; bottom: 20px; right: 220px; z-index: 1500;">
+        <button onclick="toggleTvidWindow()" style="background: rgba(212, 175, 55, 0.2); border: 1px solid var(--accent-color, #d4af37); color: var(--text-main, #ffffff); padding: 12px 18px; border-radius: 30px; font-weight: 600; font-size: 0.9rem; cursor: pointer; backdrop-filter: blur(5px); box-shadow: 0 4px 12px rgba(0,0,0,0.5);">
+            ⚡ Carga Rápida (TVid)
+        </button>
+    </div>
+
+    <!-- Estilos CSS y Lógica JS del Puerto de Carga Rápida -->
     <style>
-      .tvid-modal-overlay, .smartcargo-modal-overlay {
-        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-        background: rgba(10, 10, 12, 0.85); backdrop-filter: blur(12px);
-        display: flex; justify-content: center; align-items: center; z-index: 2500;
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      }
-      .tvid-modal-container, .smartcargo-modal-container {
-        background: #141416; border: 1px solid rgba(255, 255, 255, 0.1);
-        width: 90%; max-width: 480px; border-radius: 16px; padding: 24px; color: #f1f1f3;
-        box-shadow: 0 20px 40px rgba(0,0,0,0.6);
-      }
-      .tvid-header, .smartcargo-header {
-        display: flex; justify-content: space-between; align-items: center;
-        margin-bottom: 20px; border-bottom: 1px solid rgba(255, 255, 255, 0.08); padding-bottom: 12px;
-      }
-      .tvid-badge, .smartcargo-badge {
-        background: rgba(212, 175, 55, 0.15); color: #d4af37; font-size: 11px; font-weight: 600; padding: 4px 8px; border-radius: 6px; text-transform: uppercase;
-      }
-      .tvid-close-btn, .smartcargo-close-btn, .smartcargo-icon-btn { background: none; border: none; color: #888; font-size: 20px; cursor: pointer; }
-      .tvid-subtitle, .smartcargo-subtitle { font-size: 13px; color: #999; margin-bottom: 16px; }
-      .tvid-grid, .smartcargo-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-      .tvid-card-btn, .smartcargo-card-btn {
-        background: #1e1e22; border: 1px solid rgba(255, 255, 255, 0.06); color: #f1f1f3;
-        padding: 12px; border-radius: 10px; font-size: 12px; text-align: left; cursor: pointer; transition: 0.2s;
-      }
-      .tvid-card-btn:hover, .smartcargo-card-btn:hover { background: #28282d; border-color: #d4af37; }
+      .tvid-modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(10, 10, 12, 0.85); backdrop-filter: blur(12px); display: flex; justify-content: center; align-items: center; z-index: 9999; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+      .tvid-modal-container { background: var(--card-bg, #141416); border: 1px solid var(--border-color, rgba(255, 255, 255, 0.1)); width: 90%; max-width: 480px; border-radius: 16px; padding: 24px; color: var(--text-main, #f1f1f3); box-shadow: 0 20px 40px rgba(0,0,0,0.6); }
+      .tvid-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--border-color, rgba(255, 255, 255, 0.08)); padding-bottom: 12px; }
+      .tvid-badge { background: rgba(212, 175, 55, 0.15); color: var(--accent-color, #d4af37); font-size: 11px; font-weight: 600; padding: 4px 8px; border-radius: 6px; text-transform: uppercase; }
+      .tvid-header h2 { font-size: 16px; margin: 0; font-weight: 500; }
+      .tvid-close-btn { background: none; border: none; color: var(--text-muted, #888); font-size: 24px; cursor: pointer; }
+      .tvid-subtitle { font-size: 13px; color: var(--text-muted, #999); margin-bottom: 16px; }
+      .tvid-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+      .tvid-card-btn { background: var(--card-bg, #1e1e22); border: 1px solid var(--border-color, rgba(255, 255, 255, 0.06)); color: var(--text-main, #f1f1f3); padding: 12px; border-radius: 10px; font-size: 13px; text-align: left; cursor: pointer; }
+      .tvid-card-btn:hover { border-color: var(--accent-color, #d4af37); }
       .tvid-card-btn.tvid-full { grid-column: span 2; }
       .tvid-exercise-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
-      .tvid-back-btn { background: none; border: none; color: #d4af37; cursor: pointer; font-size: 13px; }
-      .tvid-timer { font-family: monospace; font-size: 15px; color: #d4af37; background: rgba(212, 175, 55, 0.1); padding: 4px 8px; border-radius: 6px; }
-      .tvid-steps-container { font-size: 14px; line-height: 1.6; color: #ccc; min-height: 120px; margin-bottom: 20px; background: #1a1a1e; padding: 16px; border-radius: 10px; }
-      .tvid-main-action { width: 100%; background: #d4af37; color: #0a0a0c; border: none; padding: 12px; border-radius: 10px; font-weight: 600; cursor: pointer; }
-      .smartcargo-display-box { background: #1a1a1e; border: 1px solid rgba(212, 175, 55, 0.2); border-radius: 10px; padding: 14px; margin-top: 10px; }
-      .smartcargo-table { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 8px; }
-      .smartcargo-table th, .smartcargo-table td { border: 1px solid rgba(255,255,255,0.08); padding: 8px; text-align: left; }
-      .smartcargo-table th { background: rgba(212, 175, 55, 0.1); color: #d4af37; }
+      .tvid-back-btn { background: none; border: none; color: var(--accent-color, #d4af37); cursor: pointer; font-size: 13px; }
+      .tvid-timer { font-family: monospace; font-size: 15px; color: var(--accent-color, #d4af37); background: rgba(212, 175, 55, 0.1); padding: 4px 8px; border-radius: 6px; }
+      .tvid-steps-container { font-size: 14px; line-height: 1.6; color: var(--text-muted, #ccc); min-height: 120px; margin-bottom: 20px; background: rgba(0,0,0,0.2); padding: 16px; border-radius: 10px; }
+      .tvid-main-action { width: 100%; background: var(--accent-color, #d4af37); color: var(--bg-color, #0a0a0c); border: none; padding: 12px; border-radius: 10px; font-weight: 600; font-size: 14px; cursor: pointer; }
     </style>
 
-    <!-- JavaScript Unificado y Sincronizado -->
     <script>
-      let currentLang = 'en';
-
-      const translations = {
-        en: {
-          float_tvid: "Fast Charge",
-          float_cargo: "SmartCargo",
-          float_advisor: "Private Travel Advisory",
-          badge: "5-Min Recharge",
-          tvid_title: "Fast Charge Port",
-          tvid_subtitle: "Select your adaptation protocol:",
-          tech_mother: "Mother Technique",
-          tech_father: "Father Technique",
-          tech_child: "Child Technique",
-          tech_kiss: "Kiss Technique",
-          tech_bad: "Bad Technique",
-          tech_good: "Good Technique",
-          tech_war: "War Technique",
-          back_btn: "← Back",
-          next_btn: "Next step",
-          finish_btn: "Finish Fast Charge",
-          sc_badge: "SmartCargo Advisor",
-          sc_title: "Avianca Cargo & Terminal Operations",
-          sc_subtitle: "Select operation or review standards:",
-          mod_uld: "ULDs & Pallets",
-          mod_dg: "Dangerous Goods (DG)",
-          mod_awb: "AWB & Documentation",
-          mod_pax: "Bellies (PAX) & Transfer",
-          mod_comat: "COMAT & Interlines",
-          mod_security: "TSA & CBP Compliance",
-          sc_back: "← Menu",
-          sc_btn_consult: "Consult Advisor",
-          modal_title: "May Roga LLC - Luxury Travel",
-          modal_desc: "Connect directly with your certified private advisor.",
-          wa_label: "Direct WhatsApp Chat"
-        },
-        es: {
-          float_tvid: "Carga Rápida",
-          float_cargo: "SmartCargo",
-          float_advisor: "Asesoría de Viaje Privada",
-          badge: "5-Min Recharge",
-          tvid_title: "Puerto de Carga Rápida",
-          tvid_subtitle: "Selecciona tu protocolo de adaptación:",
-          tech_mother: "Técnica de la Madre",
-          tech_father: "Técnica del Padre",
-          tech_child: "Técnica del Niño",
-          tech_kiss: "Técnica del Beso",
-          tech_bad: "Técnica del Mal",
-          tech_bien: "Técnica del Bien",
-          tech_war: "Técnica de Guerra",
-          back_btn: "← Volver",
-          next_btn: "Siguiente paso",
-          finish_btn: "Finalizar Carga Rápida",
-          sc_badge: "Asesor SmartCargo",
-          sc_title: "Avianca Cargo y Operaciones",
-          sc_subtitle: "Selecciona operación o revisa estándares:",
-          mod_uld: "Estibas y ULDs",
-          mod_dg: "Mercancías Peligrosas (DG)",
-          mod_awb: "AWB y Documentación",
-          mod_pax: "Bellies (PAX) y Transferencias",
-          mod_comat: "COMAT e Interlines",
-          mod_security: "Cumplimiento TSA y CBP",
-          sc_back: "← Menú",
-          sc_btn_consult: "Consultar Asesor",
-          modal_title: "May Roga LLC - Viajes de Lujo",
-          modal_desc: "Conecta directamente con tu asesor privado.",
-          wa_label: "Chat Directo por WhatsApp"
-        }
-      };
-
       const tvidData = {
         'Madre': {
-          en: { title: "❤️ Mother Technique", steps: ["Sit comfortably and breathe slowly for 4 seconds.", "Ask yourself: 'If this were my child, how would I care for it?'", "Place one hand on your chest and relax."] },
-          es: { title: "❤️ Técnica de la Madre", steps: ["Siéntate cómodamente y respira despacio por 4 segundos.", "Pregúntate: 'Si esto fuera mi hijo, ¿cómo lo cuidaría?'", "Coloca una mano sobre el pecho y relájate."] }
+          es: { title: "❤️ Técnica de la Madre", steps: ["Siéntate cómodamente. Respira lentamente por la nariz 4s, mantén 2s, expulsa 6s.", "Piensa en algo que necesita cuidado: 'Si esto fuera mi hijo, ¿cómo lo cuidaría?'", "Coloca una mano en el pecho y otra en el abdomen: 'Voy a tratarme con paciencia.'", "Visualiza un sueño un minuto y haz una acción mental para cuidarlo hoy."] },
+          en: { title: "❤️ Mother Technique", steps: ["Sit comfortably. Breathe slowly 4s, hold 2s, exhale 6s.", "Think of something needing care: 'If this were my child, how would I care for it?'", "Place hands on chest and abdomen: 'I will treat myself with patience.'", "Visualize a dream for a minute and take a mental action to care for it today."] }
         },
         'Padre': {
-          en: { title: "💪 Father Technique", steps: ["Maintain a firm posture.", "Repeat: 'I am here, I can face this.'", "Analyze Reality -> Decision -> Action."] },
-          es: { title: "💪 Técnica del Padre", steps: ["Mantén postura firme.", "Repite: 'Estoy aquí, puedo enfrentar esto.'", "Analiza Realidad -> Decisión -> Acción."] }
+          es: { title: "💪 Técnica del Padre", steps: ["Ponte de pie con pies separados al ancho de hombros. Mantén postura firme.", "Repite mentalmente: 'Estoy aquí. Puedo enfrentar esto con claridad.'", "Divide el problema: Realidad -> Decisión -> Acción.", "Adopta postura firme y asume control de tu próxima decisión."] },
+          en: { title: "💪 Father Technique", steps: ["Stand with feet shoulder-width apart. Maintain firm posture.", "Repeat mentally: 'I am here. I can face this with clarity.'", "Divide problem: Reality -> Decision -> Action.", "Adopt firm posture and take control of your next decision."] }
         },
         'Niño': {
-          en: { title: "🧒 Child Technique", steps: ["Observe three everyday items with curiosity.", "Smile gently while breathing.", "Imagine the solution simply."] },
-          es: { title: "🧒 Técnica del Niño", steps: ["Observa tres elementos con curiosidad.", "Sonríe suavemente al respirar.", "Imagina la solución con sencillez."] }
+          es: { title: "🧒 Técnica del Niño", steps: ["Mira a tu alrededor un minuto identificando tres elementos cotidianos.", "Respira tres veces recordando un detalle gracioso o inocente.", "Sonríe unos segundos respirando con curiosidad.", "Imagina tu situación solucionada sin lógica estricta."] },
+          en: { title: "🧒 Child Technique", steps: ["Look around for one minute identifying three everyday elements.", "Breathe three times recalling a funny detail.", "Smile a few seconds breathing with curiosity.", "Imagine your situation solved without strict logic."] }
         },
         'Beso': {
-          en: { title: "💋 Kiss Technique", steps: ["Cross arms in a protective embrace.", "Inhale acceptance, exhale affection.", "Send internal peace."] },
-          es: { title: "💋 Técnica del Beso", steps: ["Cruza los brazos en abrazo protector.", "Inhala aceptación, exhala afecto.", "Envía paz interna."] }
+          es: { title: "💋 Técnica del Beso", steps: ["Cruza los brazos simulando un abrazo protector y respira despacio.", "Al inhalar: 'Me acepto.' Al exhalar: 'Me trato con cariño.'", "Piensa en tres personas clave y define una consideración para ellas.", "Envía un abrazo simbólico externo e interno."] },
+          en: { title: "💋 Kiss Technique", steps: ["Cross arms simulating a protective hug and breathe slowly.", "Inhaling: 'I accept myself.' Exhaling: 'I treat myself with care.'", "Think of three key people and define a consideration for them.", "Send a symbolic external and internal hug."] }
         },
         'Mal': {
-          en: { title: "⚫ Bad Technique", steps: ["Face a past difficulty calmly.", "Analyze: What happened and what did I learn?", "Decide action with the new scar."] },
-          es: { title: "⚫ Técnica del Mal", steps: ["Afronta una dificultad pasada con calma.", "Analiza qué aprendiste.", "Decide qué hacer con el aprendizaje."] }
+          es: { title: "⚫ Técnica del Mal", steps: ["Coloca una mano en el pecho y respira ante una dificultad pasada.", "Analiza: ¿Qué pasó? ¿Qué aprendí? ¿Qué haré diferente?", "Identifica una enseñanza concreta o cicatriz útil.", "Acepta lo ocurrido decidiendo qué hacer con el aprendizaje."] },
+          en: { title: "⚫ Adversity Technique", steps: ["Place hand on chest and breathe facing a past difficulty.", "Analyze: What happened? What did I learn? What will I do differently?", "Identify a concrete lesson or useful scar.", "Accept what happened deciding what to do with the learning."] }
         },
         'Bien': {
-          en: { title: "☀️ Good Technique", steps: ["Identify an achievement today.", "Receive the good, let go of the rest.", "Plan a micro-action."] },
-          es: { title: "☀️ Técnica del Bien", steps: ["Identifica un logro de hoy.", "Recibe lo bueno y suelta lo innecesario.", "Planea una microacción."] }
+          es: { title: "☀️ Técnica del Bien", steps: ["Examina tu jornada identificando un logro, un beneficio y un disfrute.", "Inhala: 'Recibo lo bueno.' Exhala: 'Dejo salir lo innecesario.'", "Identifica un aspecto positivo aprovechable en tu desafío actual.", "Fija una microacción para potenciar tu bienestar hoy."] },
+          en: { title: "☀️ Wellbeing Technique", steps: ["Examine your day identifying an achievement, benefit, and enjoyment.", "Inhale: 'I receive the good.' Exhale: 'I release the unnecessary.'", "Identify a usable positive aspect in your current challenge.", "Set a micro-action to boost wellbeing today."] }
         },
         'Guerra': {
-          en: { title: "⚔️ War Technique", steps: ["Adopt a balanced, firm posture.", "Choose the required technique.", "Act with wisdom and adaptation."] },
-          es: { title: "⚔️ Técnica de Guerra", steps: ["Adopta postura equilibrada y firme.", "Elige la técnica requerida.", "Actúa con sabiduría y adaptación."] }
+          es: { title: "⚔️ Técnica de Guerra", steps: ["Realiza tres respiraciones profundas adoptando postura equilibrada.", "Identifica la técnica requerida: ¿Madre, Padre, Niño, Beso, Mal o Bien?", "Evalúa: ¿Esperar o actuar? ¿Luchar o aceptar?", "Afirma: 'No necesito ser el más fuerte, necesito ser sensato y adaptarme.'"] },
+          en: { title: "⚔️ Strategy Technique", steps: ["Take three deep breaths adopting a balanced posture.", "Identify required technique: Mother, Father, Child, Kiss, Adversity, Wellbeing?", "Evaluate: Wait or act? Fight or accept?", "Affirm: 'I don't need to be the strongest; I need to be sensible and adapt.'"] }
         }
       };
 
-      const smartCargoModules = {
-        'ULD': {
-          en: { title: "📦 ULDs & Pallets", content: `<table class="smartcargo-table"><tr><th>Type</th><th>Action</th></tr><tr><td>Wooden Pallet</td><td>Inspect HT ISPM 15 stamp or replace with plastic.</td></tr></table>` },
-          es: { title: "📦 Estibas y ULDs", content: `<table class="smartcargo-table"><tr><th>Tipo</th><th>Acción</th></tr><tr><td>Estiba de Madera</td><td>Verificar sello HT ISPM 15 o cambiar a plástico.</td></tr></table>` }
-        },
-        'DG': {
-          en: { title: "⚠️ Dangerous Goods", content: `<table class="smartcargo-table"><tr><th>Parameter</th><th>Guideline</th></tr><tr><td>DGD</td><td>Verify signature, UN numbers, and packing group.</td></tr></table>` },
-          es: { title: "⚠️ Mercancías Peligrosas", content: `<table class="smartcargo-table"><tr><th>Parámetro</th><th>Pauta</th></tr><tr><td>DGD</td><td>Verificar firma, números UN y grupo de embalaje.</td></tr></table>` }
-        },
-        'AWB': {
-          en: { title: "📋 AWB Acceptance", content: `<table class="smartcargo-table"><tr><th>Field</th><th>Action</th></tr><tr><td>Weight</td><td>Cross-check scale reading with booking data.</td></tr></table>` },
-          es: { title: "📋 Aceptación AWB", content: `<table class="smartcargo-table"><tr><th>Campo</th><th>Acción</th></tr><tr><td>Peso</td><td>Contrastar báscula con reserva.</td></tr></table>` }
-        },
-        'PAX': {
-          en: { title: "✈️ Bellies (PAX)", content: `<table class="smartcargo-table"><tr><th>Operation</th><th>Action</th></tr><tr><td>Belly</td><td>Prioritize ULD buildup within limits.</td></tr></table>` },
-          es: { title: "✈️ Bellies (PAX)", content: `<table class="smartcargo-table"><tr><th>Operación</th><th>Acción</th></tr><tr><td>Belly</td><td>Priorizar armado dentro de límites.</td></tr></table>` }
-        },
-        'COMAT': {
-          en: { title: "🔄 COMAT", content: `<table class="smartcargo-table"><tr><th>Category</th><th>Guideline</th></tr><tr><td>COMAT</td><td>Verify internal routing label.</td></tr></table>` },
-          es: { title: "🔄 COMAT", content: `<table class="smartcargo-table"><tr><th>Categoría</th><th>Pauta</th></tr><tr><td>COMAT</td><td>Verificar etiqueta de ruta interna.</td></tr></table>` }
-        },
-        'SECURITY': {
-          en: { title: "🛡️ TSA & CBP", content: `<table class="smartcargo-table"><tr><th>Standard</th><th>Instruction</th></tr><tr><td>CBP</td><td>Verify customs hold release.</td></tr></table>` },
-          es: { title: "🛡️ TSA y CBP", content: `<table class="smartcargo-table"><tr><th>Norma</th><th>Instrucción</th></tr><tr><td>CBP</td><td>Verificar liberación de retención.</td></tr></table>` }
-        }
-      };
-
-      const techKeysOrder = ['Madre', 'Padre', 'Niño', 'Beso', 'Mal', 'Bien', 'Guerra'];
       let currentTechKey = null;
       let currentStepIndex = 0;
       let countdownInterval = null;
-      let activeCargoModule = null;
-
-      function toggleAdvisorLang() {
-        currentLang = currentLang === 'en' ? 'es' : 'en';
-        document.getElementById('advisor-lang-btn').innerText = currentLang === 'en' ? 'EN' : 'ES';
-        
-        const t = translations[currentLang];
-        document.getElementById('float-tvid-text').innerText = t.float_tvid;
-        document.getElementById('float-cargo-text').innerText = t.float_cargo;
-        document.getElementById('float-btn-text').innerText = t.float_advisor;
-        
-        document.querySelectorAll('[data-i18n]').forEach(el => {
-          const key = el.getAttribute('data-i18n');
-          if (t[key]) el.innerText = t[key];
-        });
-
-        if (currentTechKey) {
-          document.getElementById('tvid-exercise-title').innerText = tvidData[currentTechKey][currentLang].title;
-          updateStepView();
-        }
-        if (activeCargoModule) {
-          loadSmartCargoModule(activeCargoModule);
-        }
-      }
 
       function toggleTvidWindow() {
         const modal = document.getElementById('tvid-floating-window');
-        if (modal.style.display === 'flex') {
-          modal.style.display = 'none';
-          clearInterval(countdownInterval);
-        } else {
-          modal.style.display = 'flex';
-          if (document.getElementById('tvid-exercise-screen').style.display !== 'block') {
-            loadNextSmartExercise();
-          }
+        const isVisible = modal.style.display === 'flex';
+        modal.style.display = isVisible ? 'none' : 'flex';
+        if (!isVisible) {
+          document.getElementById('tvid-selection-screen').style.display = 'block';
+          document.getElementById('tvid-exercise-screen').style.display = 'none';
+          if (window.currentModeInterval) clearInterval(window.currentModeInterval);
+          if (countdownInterval) clearInterval(countdownInterval);
         }
-      }
-
-      function closeTvidWindow() {
-        clearInterval(countdownInterval);
-        document.getElementById('tvid-floating-window').style.display = 'none';
-        document.getElementById('tvid-exercise-screen').style.display = 'none';
-        document.getElementById('tvid-selection-screen').style.display = 'block';
-      }
-
-      function loadNextSmartExercise() {
-        let lastIndex = parseInt(localStorage.getItem('mayroga_tvid_index') || "-1", 10);
-        let nextIndex = (lastIndex + 1) % techKeysOrder.length;
-        localStorage.setItem('mayroga_tvid_index', nextIndex);
-        loadTvidExercise(techKeysOrder[nextIndex]);
       }
 
       function loadTvidExercise(techKey) {
@@ -1067,23 +878,33 @@ function toggleMortalsDrawer() {
         currentStepIndex = 0;
         document.getElementById('tvid-selection-screen').style.display = 'none';
         document.getElementById('tvid-exercise-screen').style.display = 'block';
-        document.getElementById('tvid-exercise-title').innerText = tvidData[currentTechKey][currentLang].title;
-        updateStepView();
+        updateTvidViewLang();
         startTvidTimer(300);
       }
 
-      function updateStepView() {
-        const tech = tvidData[currentTechKey][currentLang];
-        document.getElementById('tvid-exercise-steps').innerText = tech.steps[currentStepIndex];
-        const t = translations[currentLang];
-        document.getElementById('tvid-action-btn').innerText = (currentStepIndex === tech.steps.length - 1) ? t.finish_btn : t.next_btn;
+      function updateTvidViewLang() {
+        if (!currentTechKey) return;
+        const langData = tvidData[currentTechKey][typeof currentLang !== 'undefined' ? currentLang : 'es'] || tvidData[currentTechKey]['es'];
+        document.getElementById('tvid-exercise-title').innerText = langData.title;
+        document.getElementById('tvid-exercise-steps').innerText = langData.steps[currentStepIndex];
+        
+        const actionBtn = document.getElementById('tvid-action-btn');
+        const isEs = (typeof currentLang === 'undefined' || currentLang === 'es');
+        if (currentStepIndex === langData.steps.length - 1) {
+          actionBtn.innerText = isEs ? 'Finalizar Carga Rápida' : 'Finish Quick Recharge';
+        } else {
+          actionBtn.innerText = isEs ? 'Siguiente paso' : 'Next step';
+        }
+        document.getElementById('tvid-back-text').innerText = isEs ? '← Volver' : '← Back';
+        document.getElementById('tvid-main-title').innerText = isEs ? 'Puerto de Carga Rápida' : 'Quick Recharge Port';
+        document.getElementById('tvid-subtitle-text').innerText = isEs ? 'Selecciona tu protocolo de adaptación y bienestar biopsicosocial:' : 'Select your adaptation and biopsychosocial wellness protocol:';
       }
 
       function nextTvidStep() {
-        const tech = tvidData[currentTechKey][currentLang];
+        const langData = tvidData[currentTechKey][typeof currentLang !== 'undefined' ? currentLang : 'es'] || tvidData[currentTechKey]['es'];
         currentStepIndex++;
-        if (currentStepIndex < tech.steps.length) {
-          updateStepView();
+        if (currentStepIndex < langData.steps.length) {
+          updateTvidViewLang();
         } else {
           closeTvidWindow();
         }
@@ -1098,10 +919,12 @@ function toggleMortalsDrawer() {
       function startTvidTimer(duration) {
         clearInterval(countdownInterval);
         let timer = duration, minutes, seconds;
-        countdownInterval = setInterval(() => {
-          minutes = String(Math.floor(timer / 60)).padStart(2, '0');
-          seconds = String(timer % 60).padStart(2, '0');
-          document.getElementById('tvid-timer-display').textContent = `${minutes}:${seconds}`;
+        countdownInterval = setInterval(function () {
+          minutes = parseInt(timer / 60, 10);
+          seconds = parseInt(timer % 60, 10);
+          minutes = minutes < 10 ? "0" + minutes : minutes;
+          seconds = seconds < 10 ? "0" + seconds : seconds;
+          document.getElementById('tvid-timer-display').textContent = minutes + ":" + seconds;
           if (--timer < 0) {
             clearInterval(countdownInterval);
             closeTvidWindow();
@@ -1109,59 +932,10 @@ function toggleMortalsDrawer() {
         }, 1000);
       }
 
-      function toggleSmartCargoWindow() {
-        const modal = document.getElementById('smartcargo-floating-window');
-        modal.style.display = (modal.style.display === 'flex') ? 'none' : 'flex';
-      }
-
-      function loadSmartCargoModule(modKey) {
-        activeCargoModule = modKey;
-        document.querySelector('.smartcargo-grid').style.display = 'none';
-        document.querySelector('.smartcargo-subtitle').style.display = 'none';
-        document.getElementById('smartcargo-display-box').style.display = 'block';
-        
-        const data = smartCargoModules[modKey][currentLang];
-        document.getElementById('smartcargo-display-title').innerText = data.title;
-        document.getElementById('smartcargo-table-container').innerHTML = data.content;
-      }
-
-      function backToSmartCargoGrid() {
-        activeCargoModule = null;
-        document.getElementById('smartcargo-display-box').style.display = 'none';
-        document.querySelector('.smartcargo-grid').style.display = 'grid';
-        document.querySelector('.smartcargo-subtitle').style.display = 'block';
-      }
-
-      function clearSmartCargoData() {
-        document.getElementById('smartcargo-user-query').value = '';
-        backToSmartCargoGrid();
-      }
-
-      function printSmartCargoPDF() {
-        const printWindow = window.open('', '_blank');
-        const content = activeCargoModule ? smartCargoModules[activeCargoModule][currentLang].content : "<p>SmartCargo Report</p>";
-        printWindow.document.write(`<html><head><title>Report</title><style>body{font-family:sans-serif;padding:20px;}table{width:100%;border-collapse:collapse;}th,td{border:1px solid #000;padding:8px;text-align:left;}</style></head><body><h2>SmartCargo Report</h2>${content}</body></html>`);
-        printWindow.document.close();
-        printWindow.print();
-      }
-
-      function consultSmartCargoAdvisor() {
-        const query = document.getElementById('smartcargo-user-query').value.trim();
-        if (!query) return;
-        document.getElementById('smartcargo-display-box').style.display = 'block';
-        document.querySelector('.smartcargo-grid').style.display = 'none';
-        document.querySelector('.smartcargo-subtitle').style.display = 'none';
-        document.getElementById('smartcargo-display-title').innerText = currentLang === 'en' ? "💡 Advisor Recommendation" : "💡 Recomendación del Asesor";
-        document.getElementById('smartcargo-table-container').innerHTML = `<p style="font-size:12px; color:#ccc; margin-bottom:8px;"><strong>Query:</strong> ${query}</p><p style="font-size:12px; color:#d4af37;"><strong>Action:</strong> Verify documentation and comply strictly with acceptance standards.</p>`;
-      }
-
-      function toggleTravelAdvisorModal() {
-        const modal = document.getElementById('travel-advisor-modal');
-        modal.style.display = (modal.style.display === 'flex') ? 'none' : 'flex';
+      function closeTvidWindow() {
+        clearInterval(countdownInterval);
+        document.getElementById('tvid-floating-window').style.display = 'none';
       }
     </script>
-            </div>
-        </div>
-    </div>
 </body>
 </html>
