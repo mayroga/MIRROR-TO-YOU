@@ -1,185 +1,810 @@
-:root {
-    --bg-color: #0b0f19;
-    --card-bg: #111827;
-    --accent-color: #38bdf8;
-    --text-main: #f3f4f6;
-    --text-muted: #9ca3af;
-    --border-color: #1f2937;
-    --danger-color: #ef4444;
+:root{
+--bg-color:#0b0f19;
+--card-bg:#111827;
+--accent-color:#38bdf8;
+--text-main:#f3f4f6;
+--text-muted:#9ca3af;
+--border-color:#1f2937;
+--danger-color:#ef4444;
+--shadow:0 18px 50px rgba(0,0,0,.45);
+--radius:12px;
+--safe-top:env(safe-area-inset-top,0px);
+--safe-right:env(safe-area-inset-right,0px);
+--safe-bottom:env(safe-area-inset-bottom,0px);
+--safe-left:env(safe-area-inset-left,0px)
 }
 
-* {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+*{
+box-sizing:border-box;
+margin:0;
+padding:0;
+font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif
 }
 
-body {
-    background-color: var(--bg-color);
-    color: var(--text-main);
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    padding: 20px;
+html{
+min-height:100%;
+background:var(--bg-color);
+-webkit-text-size-adjust:100%
 }
 
-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    max-width: 1000px;
-    width: 100%;
-    margin: 0 auto;
-    padding-bottom: 20px;
-    border-bottom: 1px solid var(--border-color);
+body{
+background:var(--bg-color);
+color:var(--text-main);
+min-height:100vh;
+min-height:100dvh;
+display:flex;
+flex-direction:column;
+justify-content:space-between;
+padding:20px;
+padding-top:max(20px,var(--safe-top));
+padding-right:max(20px,var(--safe-right));
+padding-bottom:max(20px,var(--safe-bottom));
+padding-left:max(20px,var(--safe-left));
+overflow-x:hidden
 }
 
-.logo {
-    font-size: 1.25rem;
-    font-weight: 600;
-    letter-spacing: 2px;
-    color: var(--accent-color);
+body.modal-open{
+overflow:hidden
 }
 
-.controls {
-    display: flex;
-    gap: 10px;
+header{
+display:flex;
+justify-content:space-between;
+align-items:center;
+max-width:1000px;
+width:100%;
+margin:0 auto;
+padding-bottom:20px;
+border-bottom:1px solid var(--border-color);
+gap:16px
 }
 
-button {
-    background-color: var(--card-bg);
-    color: var(--text-main);
-    border: 1px solid var(--border-color);
-    padding: 8px 16px;
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 0.9rem;
-    transition: all 0.2s ease;
+.logo{
+font-size:1.25rem;
+font-weight:600;
+letter-spacing:2px;
+color:var(--accent-color);
+white-space:nowrap
 }
 
-button:hover {
-    border-color: var(--accent-color);
+.controls{
+display:flex;
+gap:10px;
+align-items:center;
+flex-wrap:wrap;
+justify-content:flex-end
 }
 
-.btn-danger {
-    color: var(--danger-color);
-    border-color: rgba(239, 68, 68, 0.3);
+button{
+background-color:var(--card-bg);
+color:var(--text-main);
+border:1px solid var(--border-color);
+padding:9px 16px;
+min-height:40px;
+border-radius:6px;
+cursor:pointer;
+font-size:.9rem;
+transition:border-color .2s ease,background-color .2s ease,transform .15s ease;
+-webkit-tap-highlight-color:transparent;
+touch-action:manipulation
 }
 
-.btn-danger:hover {
-    border-color: var(--danger-color);
+button:hover{
+border-color:var(--accent-color)
 }
 
-main {
-    max-width: 1000px;
-    width: 100%;
-    margin: 20px auto;
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 20px;
+button:active{
+transform:scale(.98)
 }
 
-@media (max-width: 768px) {
-    main {
-        grid-template-columns: 1fr;
-    }
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible{
+outline:2px solid var(--accent-color);
+outline-offset:2px
 }
 
-.panel {
-    background-color: var(--card-bg);
-    border: 1px solid var(--border-color);
-    border-radius: 12px;
-    padding: 24px;
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
+.btn-danger{
+color:var(--danger-color);
+border-color:rgba(239,68,68,.3)
 }
 
-.panel h2 {
-    font-size: 1.1rem;
-    font-weight: 500;
-    color: var(--text-muted);
-    text-transform: uppercase;
-    letter-spacing: 1px;
+.btn-danger:hover{
+border-color:var(--danger-color)
 }
 
-.breathing-circle {
-    width: 120px;
-    height: 120px;
-    border: 2px solid var(--accent-color);
-    border-radius: 50%;
-    margin: 20px auto;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: transform 4s ease-in-out;
-    font-size: 0.85rem;
-    color: var(--accent-color);
+main{
+max-width:1000px;
+width:100%;
+margin:20px auto;
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:20px;
+flex:1
 }
 
-.input-group {
-    display: flex;
-    gap: 8px;
+.panel{
+background-color:var(--card-bg);
+border:1px solid var(--border-color);
+border-radius:var(--radius);
+padding:24px;
+display:flex;
+flex-direction:column;
+gap:16px;
+min-width:0;
+box-shadow:0 8px 30px rgba(0,0,0,.15)
 }
 
-input, textarea {
-    flex: 1;
-    background-color: var(--bg-color);
-    border: 1px solid var(--border-color);
-    border-radius: 6px;
-    padding: 10px;
-    color: var(--text-main);
-    font-size: 0.95rem;
-    resize: none;
+.panel h2{
+font-size:1.1rem;
+font-weight:500;
+color:var(--text-muted);
+text-transform:uppercase;
+letter-spacing:1px
 }
 
-input:focus, textarea:focus {
-    outline: none;
-    border-color: var(--accent-color);
+.breathing-circle{
+width:120px;
+height:120px;
+border:2px solid var(--accent-color);
+border-radius:50%;
+margin:20px auto;
+display:flex;
+align-items:center;
+justify-content:center;
+transition:transform 4s ease-in-out;
+font-size:.85rem;
+color:var(--accent-color);
+flex-shrink:0
 }
 
-.output-box {
-    background-color: var(--bg-color);
-    border: 1px solid var(--border-color);
-    border-radius: 6px;
-    padding: 12px;
-    min-height: 80px;
-    font-size: 0.95rem;
-    color: var(--text-muted);
+.input-group{
+display:flex;
+gap:8px;
+width:100%;
+min-width:0
 }
 
-footer {
-    text-align: center;
-    font-size: 0.8rem;
-    color: var(--text-muted);
-    padding-top: 20px;
-    border-top: 1px solid var(--border-color);
-    max-width: 1000px;
-    width: 100%;
-    margin: 0 auto;
+input,textarea{
+flex:1;
+min-width:0;
+background-color:var(--bg-color);
+border:1px solid var(--border-color);
+border-radius:6px;
+padding:10px;
+color:var(--text-main);
+font-size:.95rem;
+resize:none
 }
 
-#warning-modal {
-    display: none;
-    position: fixed;
-    top: 0; 
-    left: 0; 
-    width: 100%; 
-    height: 100%;
-    background: rgba(0,0,0,0.8);
-    justify-content: center;
-    align-items: center;
-    z-index: 1000;
+input{
+min-height:42px
 }
 
-.modal-content {
-    background: var(--card-bg);
-    padding: 30px;
-    border-radius: 12px;
-    border: 1px solid var(--border-color);
-    text-align: center;
-    max-width: 400px;
-    width: 90%;
+textarea{
+min-height:90px
+}
+
+input:focus,textarea:focus{
+outline:none;
+border-color:var(--accent-color)
+}
+
+.output-box{
+background-color:var(--bg-color);
+border:1px solid var(--border-color);
+border-radius:6px;
+padding:12px;
+min-height:80px;
+font-size:.95rem;
+color:var(--text-muted);
+overflow-wrap:anywhere;
+word-break:break-word;
+overflow:auto
+}
+
+footer{
+text-align:center;
+font-size:.8rem;
+color:var(--text-muted);
+padding-top:20px;
+border-top:1px solid var(--border-color);
+max-width:1000px;
+width:100%;
+margin:0 auto;
+overflow-wrap:anywhere
+}
+
+/* =========================================================
+   MODAL DE INACTIVIDAD
+   ========================================================= */
+
+#warning-modal{
+display:none;
+position:fixed;
+inset:0;
+width:100%;
+height:100%;
+height:100dvh;
+padding:max(20px,var(--safe-top)) max(20px,var(--safe-right)) max(20px,var(--safe-bottom)) max(20px,var(--safe-left));
+background:rgba(0,0,0,.82);
+justify-content:center;
+align-items:center;
+z-index:10000;
+overscroll-behavior:contain
+}
+
+.modal-content{
+background:var(--card-bg);
+padding:30px;
+border-radius:var(--radius);
+border:1px solid var(--border-color);
+text-align:center;
+max-width:400px;
+width:min(400px,100%);
+max-height:calc(100dvh - 40px);
+overflow:auto;
+box-shadow:var(--shadow);
+overflow-wrap:anywhere
+}
+
+.modal-content button{
+margin-top:18px
+}
+
+/* =========================================================
+   CONTENEDORES Y VENTANAS FLOTANTES
+   Compatible con TVid y asesor privado
+   ========================================================= */
+
+#tvid-floating-window,
+#travel-advisor-modal,
+#travel-advisor-window,
+.tvid-floating-window,
+.travel-advisor-modal,
+.travel-advisor-window{
+position:fixed;
+inset:0;
+width:100%;
+height:100%;
+height:100dvh;
+padding:max(16px,var(--safe-top)) max(16px,var(--safe-right)) max(16px,var(--safe-bottom)) max(16px,var(--safe-left));
+display:none;
+justify-content:center;
+align-items:center;
+z-index:9000;
+background:rgba(0,0,0,.72);
+overscroll-behavior:contain;
+overflow:hidden
+}
+
+/* Cuando JavaScript utiliza flex para mostrar la ventana */
+#tvid-floating-window[style*="display: flex"],
+#travel-advisor-modal[style*="display: flex"],
+#travel-advisor-window[style*="display: flex"]{
+display:flex
+}
+
+/* Panel interno de ventanas flotantes */
+#tvid-floating-window>div,
+#travel-advisor-modal>div,
+#travel-advisor-window>div,
+.tvid-floating-window>div,
+.travel-advisor-modal>div,
+.travel-advisor-window>div{
+width:min(680px,100%);
+max-width:680px;
+max-height:calc(100dvh - 32px);
+background:var(--card-bg);
+border:1px solid var(--border-color);
+border-radius:16px;
+box-shadow:var(--shadow);
+overflow:hidden;
+display:flex;
+flex-direction:column;
+min-width:0
+}
+
+/* =========================================================
+   TVID
+   ========================================================= */
+
+#tvid-floating-window{
+z-index:9100
+}
+
+#tvid-floating-window .tvid-window,
+#tvid-floating-window .tvid-content,
+#tvid-floating-window .tvid-modal-content{
+width:min(680px,100%);
+max-width:680px;
+max-height:calc(100dvh - 32px);
+background:var(--card-bg);
+border:1px solid var(--border-color);
+border-radius:16px;
+box-shadow:var(--shadow);
+overflow:hidden;
+display:flex;
+flex-direction:column;
+min-width:0
+}
+
+#tvid-floating-window .tvid-header,
+#tvid-floating-window .tvid-exercise-top,
+#tvid-floating-window .tvid-footer{
+flex:0 0 auto
+}
+
+#tvid-floating-window .tvid-body,
+#tvid-floating-window .tvid-exercise-content,
+#tvid-floating-window .tvid-scroll{
+min-height:0;
+overflow-y:auto;
+overflow-x:hidden;
+-webkit-overflow-scrolling:touch;
+overscroll-behavior:contain
+}
+
+#tvid-floating-window h1,
+#tvid-floating-window h2,
+#tvid-floating-window h3,
+#tvid-floating-window p,
+#tvid-floating-window span{
+overflow-wrap:anywhere
+}
+
+.tvid-exercise-top{
+display:flex;
+align-items:center;
+justify-content:flex-start;
+gap:10px;
+padding:14px 18px;
+border-bottom:1px solid var(--border-color);
+flex:0 0 auto
+}
+
+.tvid-back-btn{
+min-height:42px
+}
+
+.tvid-buttons,
+.tvid-techniques,
+.tvid-technique-grid{
+display:grid;
+grid-template-columns:repeat(2,minmax(0,1fr));
+gap:10px
+}
+
+.tvid-buttons button,
+.tvid-techniques button,
+.tvid-technique-grid button{
+width:100%;
+min-height:48px;
+white-space:normal;
+overflow-wrap:anywhere
+}
+
+.tvid-step,
+.tvid-exercise-step{
+padding:20px;
+line-height:1.65;
+overflow-wrap:anywhere
+}
+
+.tvid-next-btn,
+#tvid-next-btn{
+width:100%;
+min-height:48px;
+margin-top:12px
+}
+
+/* =========================================================
+   ASESOR PRIVADO
+   ========================================================= */
+
+#travel-advisor-modal,
+#travel-advisor-window,
+.travel-advisor-modal,
+.travel-advisor-window{
+z-index:9000
+}
+
+#travel-advisor-modal .advisor-content,
+#travel-advisor-window .advisor-content,
+.travel-advisor-modal .advisor-content,
+.travel-advisor-window .advisor-content{
+width:min(680px,100%);
+max-width:680px;
+max-height:calc(100dvh - 32px);
+background:var(--card-bg);
+border:1px solid var(--border-color);
+border-radius:16px;
+box-shadow:var(--shadow);
+display:flex;
+flex-direction:column;
+overflow:hidden;
+min-width:0
+}
+
+#travel-advisor-modal .advisor-header,
+#travel-advisor-window .advisor-header,
+.travel-advisor-modal .advisor-header,
+.travel-advisor-window .advisor-header{
+display:flex;
+align-items:center;
+justify-content:space-between;
+gap:10px;
+padding:14px 18px;
+border-bottom:1px solid var(--border-color);
+flex:0 0 auto
+}
+
+#travel-advisor-modal .advisor-body,
+#travel-advisor-window .advisor-body,
+.travel-advisor-modal .advisor-body,
+.travel-advisor-window .advisor-body{
+min-height:0;
+overflow-y:auto;
+overflow-x:hidden;
+-webkit-overflow-scrolling:touch;
+overscroll-behavior:contain;
+padding:18px
+}
+
+#travel-advisor-modal .advisor-footer,
+#travel-advisor-window .advisor-footer,
+.travel-advisor-modal .advisor-footer,
+.travel-advisor-window .advisor-footer{
+padding:14px 18px;
+border-top:1px solid var(--border-color);
+flex:0 0 auto
+}
+
+/* =========================================================
+   BOTONES FLOTANTES
+   ========================================================= */
+
+#tvid-floating-button,
+#travel-advisor-button,
+#travel-advisor-floating-button,
+.tvid-floating-button,
+.travel-advisor-button,
+.travel-advisor-floating-button{
+position:fixed;
+z-index:8000;
+min-width:48px;
+min-height:48px;
+border-radius:50%;
+box-shadow:0 8px 25px rgba(0,0,0,.35);
+display:flex;
+align-items:center;
+justify-content:center
+}
+
+#tvid-floating-button,
+.tvid-floating-button{
+right:max(18px,var(--safe-right));
+bottom:max(18px,var(--safe-bottom))
+}
+
+#travel-advisor-button,
+#travel-advisor-floating-button,
+.travel-advisor-button,
+.travel-advisor-floating-button{
+left:max(18px,var(--safe-left));
+bottom:max(18px,var(--safe-bottom))
+}
+
+/* =========================================================
+   BLOQUEO VISUAL CUANDO UNA VENTANA ESTÁ ABIERTA
+   ========================================================= */
+
+.modal-backdrop,
+.overlay{
+position:fixed;
+inset:0;
+z-index:8500;
+background:rgba(0,0,0,.7);
+overscroll-behavior:contain
+}
+
+[aria-hidden="true"]{
+pointer-events:none
+}
+
+[hidden]{
+display:none!important
+}
+
+/* =========================================================
+   RESPONSIVE TABLET
+   ========================================================= */
+
+@media(max-width:768px){
+body{
+padding:16px
+}
+
+header{
+align-items:flex-start;
+flex-direction:column;
+padding-bottom:16px
+}
+
+.controls{
+width:100%;
+justify-content:flex-start
+}
+
+main{
+grid-template-columns:1fr;
+margin:16px auto
+}
+
+.panel{
+padding:20px
+}
+
+#tvid-floating-window,
+#travel-advisor-modal,
+#travel-advisor-window,
+.tvid-floating-window,
+.travel-advisor-modal,
+.travel-advisor-window{
+padding:12px
+}
+
+#tvid-floating-window>div,
+#travel-advisor-modal>div,
+#travel-advisor-window>div,
+.tvid-floating-window>div,
+.travel-advisor-modal>div,
+.travel-advisor-window>div,
+#tvid-floating-window .tvid-window,
+#tvid-floating-window .tvid-content,
+#tvid-floating-window .tvid-modal-content,
+#travel-advisor-modal .advisor-content,
+#travel-advisor-window .advisor-content{
+max-height:calc(100dvh - 24px);
+border-radius:14px
+}
+}
+
+/* =========================================================
+   RESPONSIVE TELEFONO
+   ========================================================= */
+
+@media(max-width:520px){
+body{
+padding:12px
+}
+
+.logo{
+font-size:1.05rem
+}
+
+.controls{
+gap:6px
+}
+
+button{
+padding:9px 12px;
+font-size:.88rem
+}
+
+.input-group{
+flex-direction:column
+}
+
+.input-group button{
+width:100%
+}
+
+.panel{
+padding:16px;
+border-radius:10px
+}
+
+.panel h2{
+font-size:1rem
+}
+
+.breathing-circle{
+width:105px;
+height:105px;
+margin:14px auto
+}
+
+footer{
+padding-top:14px;
+font-size:.75rem
+}
+
+#warning-modal{
+padding:10px
+}
+
+.modal-content{
+width:100%;
+max-width:none;
+max-height:calc(100dvh - 20px);
+padding:22px 18px;
+border-radius:12px
+}
+
+#tvid-floating-window,
+#travel-advisor-modal,
+#travel-advisor-window,
+.tvid-floating-window,
+.travel-advisor-modal,
+.travel-advisor-window{
+padding:0
+}
+
+#tvid-floating-window>div,
+#travel-advisor-modal>div,
+#travel-advisor-window>div,
+.tvid-floating-window>div,
+.travel-advisor-modal>div,
+.travel-advisor-window>div,
+#tvid-floating-window .tvid-window,
+#tvid-floating-window .tvid-content,
+#tvid-floating-window .tvid-modal-content,
+#travel-advisor-modal .advisor-content,
+#travel-advisor-window .advisor-content{
+width:100%;
+max-width:none;
+height:min(100dvh,100%);
+max-height:100dvh;
+border-radius:0;
+border-left:0;
+border-right:0
+}
+
+.tvid-techniques,
+.tvid-technique-grid,
+.tvid-buttons{
+grid-template-columns:1fr
+}
+
+.tvid-exercise-top{
+padding:12px
+}
+
+.tvid-step,
+.tvid-exercise-step{
+padding:16px;
+line-height:1.55
+}
+
+#tvid-floating-button,
+#travel-advisor-button,
+#travel-advisor-floating-button,
+.tvid-floating-button,
+.travel-advisor-button,
+.travel-advisor-floating-button{
+min-width:50px;
+min-height:50px;
+bottom:max(12px,var(--safe-bottom))
+}
+
+#tvid-floating-button,
+.tvid-floating-button{
+right:max(12px,var(--safe-right))
+}
+
+#travel-advisor-button,
+#travel-advisor-floating-button,
+.travel-advisor-button,
+.travel-advisor-floating-button{
+left:max(12px,var(--safe-left))
+}
+
+#travel-advisor-modal .advisor-body,
+#travel-advisor-window .advisor-body,
+.travel-advisor-modal .advisor-body,
+.travel-advisor-window .advisor-body{
+padding:14px
+}
+
+input,textarea{
+font-size:16px
+}
+}
+
+/* =========================================================
+   PANTALLAS MUY PEQUEÑAS
+   ========================================================= */
+
+@media(max-width:360px){
+body{
+padding:8px
+}
+
+.panel{
+padding:13px
+}
+
+button{
+min-height:44px;
+padding:8px 10px
+}
+
+.modal-content{
+padding:18px 14px
+}
+
+.tvid-step,
+.tvid-exercise-step{
+padding:13px
+}
+}
+
+/* =========================================================
+   PANTALLAS EN MODO HORIZONTAL
+   ========================================================= */
+
+@media(max-height:520px) and (orientation:landscape){
+#tvid-floating-window,
+#travel-advisor-modal,
+#travel-advisor-window,
+.tvid-floating-window,
+.travel-advisor-modal,
+.travel-advisor-window{
+padding:8px
+}
+
+#tvid-floating-window>div,
+#travel-advisor-modal>div,
+#travel-advisor-window>div,
+.tvid-floating-window>div,
+.travel-advisor-modal>div,
+.travel-advisor-window>div,
+#tvid-floating-window .tvid-window,
+#tvid-floating-window .tvid-content,
+#tvid-floating-window .tvid-modal-content,
+#travel-advisor-modal .advisor-content,
+#travel-advisor-window .advisor-content{
+max-height:calc(100dvh - 16px)
+}
+
+.tvid-exercise-top{
+padding:8px 12px
+}
+
+.tvid-step,
+.tvid-exercise-step{
+padding:12px
+}
+}
+
+/* =========================================================
+   REDUCCIÓN DE MOVIMIENTO
+   ========================================================= */
+
+@media(prefers-reduced-motion:reduce){
+*{
+scroll-behavior:auto!important;
+transition-duration:.01ms!important;
+animation-duration:.01ms!important;
+animation-iteration-count:1!important
+}
+
+.breathing-circle{
+transition:none
+}
+
+button{
+transition:none
+}
+}
+
+/* =========================================================
+   EVITAR SELECCIÓN ACCIDENTAL EN CONTROLES
+   ========================================================= */
+
+button,
+.logo{
+-webkit-user-select:none;
+user-select:none
 }
