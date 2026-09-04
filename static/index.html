@@ -41,6 +41,13 @@ footer{text-align:center;font-size:.8rem;color:var(--text-muted);padding-top:20p
 #shutdown-overlay{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:#0b0f19;z-index:3000;justify-content:center;align-items:center;text-align:center;padding:20px}
 </style>
 </head>
+```[cite: 3]
+
+---
+
+**Respuesta 2: Puertas de acceso, cabecera y paneles principales**
+
+```html
 <body>
 
 <div id="legal-gate">
@@ -138,7 +145,13 @@ footer{text-align:center;font-size:.8rem;color:var(--text-muted);padding-top:20p
 <span id="footer-text">Sesión Volátil Encriptada. Cero Datos Retenidos.</span>
 <span id="timer-display" style="font-family:monospace;color:var(--accent-color)">10:00</span>
 </footer>
+```[cite: 3]
 
+---
+
+**Respuesta 3: Funciones principales y lógica de sesión (JavaScript part 1)**
+
+```javascript
 <script>
 let currentLang='es',voiceEnabled=false,currentModeInterval=null,phraseInterval=null,sessionTimer=null,timeLeft=600;
 let conversationMemory=[],MAX_MEMORY_TURNS=15;
@@ -252,7 +265,13 @@ document.getElementById('btn-no').innerText=currentLang==='es'?'❓ No sé':'❓
 document.getElementById('btn-help').innerText=currentLang==='es'?'🤝 Ayúdame':'🤝 Help Me';
 document.getElementById('btn-send').innerText=currentLang==='es'?'Enviar Conversación':'Send Conversation'
 }
+```[cite: 3]
 
+---
+
+**Respuesta 4: Control de voz, retos vitales y API de chat (JavaScript part 2)**
+
+```javascript
 function toggleVoiceGuide(){
 voiceEnabled=!voiceEnabled;
 document.getElementById('audio-btn').innerText=voiceEnabled?(currentLang==='es'?'🔊 Voz: ON':'🔊 Voice: ON'):(currentLang==='es'?'🔊 Voz: OFF':'🔊 Voice: OFF');
@@ -363,7 +382,7 @@ resolveTravelDirective()
 
 function handleHelpMe(){
 const inputField=document.getElementById('travel-input');
-inputField.value=currentLang==='es'?"Ayúdame a encontrar la mejor opción de bienestar y estabilidad.":"Help me find the best wellness and stability option.";
+inputField.value=currentLang==='es'?"Ayúdame à encontrar la mejor opción de bienestar y estabilidad.":"Help me find the best wellness and stability option.";
 resolveTravelDirective()
 }
 
@@ -417,7 +436,13 @@ clearTimeout(timeoutId);
 output.innerText=currentLang==='es'?'Error de conexión o tiempo de espera agotado. Intente nuevamente.':'Connection error or timeout. Please try again.'
 }
 }
+```[cite: 3]
 
+---
+
+**Respuesta 5: Módulo de Asesoría Privada y Estilos CSS Integrados**
+
+```javascript
 function toggleMortalsDrawer(){
 const drawer=document.getElementById('mortals-drawer');
 drawer.style.display=drawer.style.display==='block'?'none':'block';
@@ -572,7 +597,13 @@ document.getElementById('whatsapp-link').href='https://wa.me/17866471371?text=Ho
 .tvid-sec-action,.tvid-main-action{font-size:12px;padding:9px 7px}
 }
 </style>
+```[cite: 3]
 
+---
+
+**Respuesta 6: Diccionario de Técnicas TVid y Lógica de Progreso**
+
+```javascript
 <script>
 let tvidLang='es';
 const TVID_PROGRESS_KEY='mirror_to_you_tvid_technique_progress_v3';
@@ -585,7 +616,7 @@ es:[
 {title:"❤️ Técnica de la Madre — Protege tu sueño",objective:"Cuidar un sueño o deseo y convertirlo en una posibilidad de crecimiento.",steps:["Piensa en un sueño que quieras conservar.","Inhala durante 4 segundos imaginándolo pequeño pero vivo.","Mantén 2 segundos como si protegieras una semilla.","Exhala durante 6 segundos y decide una acción sencilla que pueda ayudarlo a crecer."]},
 {title:"❤️ Técnica de la Madre — Alimenta lo bueno",objective:"Identificar algo positivo que necesita atención para desarrollarse.",steps:["Busca algo bueno que exista hoy en tu vida.","Inhala durante 4 segundos concentrándote en ello.","Mantén 2 segundos preguntándote qué podría hacerlo crecer.","Exhala durante 6 segundos y elige una forma concreta de alimentarlo con atención."]},
 {title:"❤️ Técnica de la Madre — Dale espacio para crecer",objective:"Aprender a cuidar sin controlar y permitir que las cosas evolucionen.",steps:["Piensa en algo que quieres mejorar sin forzarlo.","Inhala durante 4 segundos y relaja hombros y manos.","Mantén 2 segundos aceptando que crecer requiere tiempo.","Exhala durante 6 segundos y decide qué puedes hacer sin intentar controlar todo."]},
-{title:"❤️ Técnica de la Madre — Presencia protectora",objective:"Convertir la presencia y la atención en una forma práctica de cuidado.",steps:["Siéntate con comodidad y coloca ambos pies firmemente en el suelo.","Inhala durante 4 segundos prestando atención plena al momento.","Mantén 2 segundos preguntándote qué merece tu atención ahora.","Exhala durante 6 segundos y ofrece tu presencia completa a esa prioridad."]}
+{title:"❤️ Técnica de la Madre — Presencia protectora",objective:"Convertir la presencia y la atención en una práctica de cuidado.",steps:["Siéntate con comodidad y coloca ambos pies firmemente en el suelo.","Inhala durante 4 segundos prestando atención plena al momento.","Mantén 2 segundos preguntándote qué merece tu atención ahora.","Exhala durante 6 segundos y ofrece tu presencia completa a esa prioridad."]}
 ],
 en:[
 {title:"❤️ Mother Technique — Care for what matters",objective:"Care for what matters, protect it, and help it grow with patience.",steps:["Pause and adopt a comfortable, protective posture.","Inhale for 4 seconds while thinking of something that truly matters to you.","Hold for 2 seconds and ask what that important thing needs.","Exhale for 6 seconds and choose one small action to protect or help it grow."]},
@@ -940,3 +971,4 @@ if(arrow)arrow.innerText='＋'
 
 </body>
 </html>
+```[cite: 3]
