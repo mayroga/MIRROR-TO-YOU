@@ -863,124 +863,35 @@ function toggleMortalsDrawer() {
       let advisorLang = 'es';
 
       const tvidData = {
-        {
-          id: 1, key: 'Madre',
-          es: { title: "❤️ Técnica de la Madre (I)", objective: "Contención emocional y paciencia protectora base.", steps: ["Inhala lentamente por la nariz expandiendo el pecho.", "Mantén el aire visualizando estabilidad y calma.", "Exhala suavemente liberando toda la presión.", "Decide con firmeza avanzar con equilibrio."] },
-          en: { title: "❤️ Mother Technique (I)", objective: "Emotional containment and protective patience.", steps: ["Inhale slowly through your nose expanding your chest.", "Hold the air visualizing stability and calm.", "Exhale smoothly releasing all pressure.", "Decide firmly to move forward with balance."] }
+        'Madre': {
+          es: { title: "❤️ Técnica de la Madre", objective: "Desarrollar contención emocional y paciencia protectora.", steps: ["Inhala lentamente por la nariz en 4 segundos, expandiendo el pecho.", "Mantén el aire 2 segundos visualizando estabilidad.", "Exhala suavemente en 6 segundos liberando la presión.", "Decide con firmeza: 'Me trataré con paciencia hoy.'"] },
+          en: { title: "❤️ Mother Technique", objective: "Develop emotional containment and protective patience.", steps: ["Inhale slowly through your nose for 4 seconds.", "Hold the air for 2 seconds visualizing stability.", "Exhale smoothly in 6 seconds releasing pressure.", "Decide firmly: 'I will treat myself with patience today.'"] }
         },
-        {
-          id: 2, key: 'Madre',
-          es: { title: "❤️ Técnica de la Madre (II)", objective: "Refugio mental y acogida de seguridad.", steps: ["Coloca las manos en el pecho y respira con suavidad.", "Inhala sintiendo un calor protector interno.", "Retén el aire abrazando tus propios pensamientos.", "Exhala disipando cualquier rastro de duda."] },
-          en: { title: "❤️ Mother Technique (II)", objective: "Mental refuge and welcoming security.", steps: ["Place your hands on your chest and breathe softly.", "Inhale feeling an internal protective warmth.", "Hold the air embracing your thoughts.", "Exhale dissipating any trace of doubt."] }
+        'Padre': {
+          es: { title: "💪 Técnica del Padre", objective: "Establecer autoridad interna y dirección de decisiones.", steps: ["Ponte de pie con postura recta y firme.", "Inhala profundo fortaleciendo el tronco en 4 segundos.", "Retén 2 segundos afirmando tu control.", "Exhala en 6 segundos asumiendo la responsabilidad."] },
+          en: { title: "💪 Father Technique", objective: "Establish internal authority and decision direction.", steps: ["Stand straight and firm.", "Inhale deeply strengthening your core in 4 seconds.", "Hold for 2 seconds affirming your control.", "Exhale in 6 seconds taking responsibility."] }
         },
-        {
-          id: 3, key: 'Madre',
-          es: { title: "❤️ Técnica de la Madre (III)", objective: "Nutrición emocional y resguardo interior.", steps: ["Inhala profundo imaginando un espacio seguro.", "Mantén el aire cultivando compasión hacia ti.", "Exhala vaciando tensiones del entorno.", "Afirma en silencio: 'Estoy protegido y centrado.'"] },
-          en: { title: "❤️ Mother Technique (III)", objective: "Emotional nourishment and inner shelter.", steps: ["Inhale deeply imagining a safe space.", "Hold the air cultivating self-compassion.", "Exhale emptying environmental tensions.", "Affirm silently: 'I am protected and centered.'"] }
+        'Niño': {
+          es: { title: "🧒 Técnica del Niño", objective: "Romper la monotonía con curiosidad y frescura mental.", steps: ["Observa un objeto cotidiano descubriéndolo de nuevo.", "Inhala en 4 segundos con asombro e inocencia.", "Retén 2 segundos dibujando una sonrisa.", "Exhala en 6 segundos liberando la rigidez."] },
+          en: { title: "🧒 Child Technique", objective: "Break monotony with curiosity and mental freshness.", steps: ["Look around at an everyday object anew.", "Inhale in 4 seconds with wonder.", "Hold for 2 seconds with a light smile.", "Exhale in 6 seconds releasing rigidity."] }
         },
-
-        // --- TÉCNICA DEL PADRE (IDs 4 al 6) ---
-        {
-          id: 4, key: 'Padre',
-          es: { title: "💪 Técnica del Padre (I)", objective: "Autoridad interna y dirección de decisiones.", steps: ["Ponte de pie con postura recta y firme.", "Inhala profundo fortaleciendo el centro del cuerpo.", "Retén el aire afirmando tu control absoluto.", "Exhala asumiendo la responsabilidad directa."] },
-          en: { title: "💪 Father Technique (I)", objective: "Internal authority and decision direction.", steps: ["Stand straight and firm.", "Inhale deeply strengthening your core.", "Hold the air affirming absolute control.", "Exhale taking direct responsibility."] }
+        'Beso': {
+          es: { title: "💋 Técnica del Beso", objective: "Generar empatía y reconciliación pacífica.", steps: ["Cruza los brazos simulando un abrazo cálido.", "Inhala en 4 segundos aceptando tus procesos.", "Retén 2 segundos conectando con la paz.", "Exhala en 6 segundos proyectando consideración."] },
+          en: { title: "💋 Kiss Technique", objective: "Generate empathy and peaceful reconciliation.", steps: ["Cross your arms simulating a warm hug.", "Inhale in 4 seconds accepting your processes.", "Hold for 2 seconds connecting with peace.", "Exhale in 6 seconds projecting consideration."] }
         },
-        {
-          id: 5, key: 'Padre',
-          es: { title: "💪 Técnica del Padre (II)", objective: "Estructura ejecutiva y enfoque de mando.", steps: ["Alinea los hombros y respira con determinación.", "Inhala absorbiendo claridad y orden táctico.", "Retén fijando prioridades esenciales.", "Exhala proyectando autoridad serena."] },
-          en: { title: "💪 Father Technique (II)", objective: "Executive structure and command focus.", steps: ["Align your shoulders and breathe with determination.", "Inhale absorbing clarity and tactical order.", "Hold fixing essential priorities.", "Exhale projecting serene authority."] }
+        'Mal': {
+          es: { title: "⚫ Técnica del Mal", objective: "Transformar adversidades en aprendizajes útiles.", steps: ["Lleva una mano al abdomen y respira ante la dificultad.", "Inhala en 4 segundos analizando el aprendizaje.", "Retén 2 segundos separando el problema de tu valor.", "Exhala en 6 segundos aplicando un cambio positivo."] },
+          en: { title: "⚫ Adversity Technique", objective: "Transform adversities into useful lessons.", steps: ["Place one hand on your abdomen and breathe.", "Inhale in 4 seconds analyzing the lesson.", "Hold for 2 seconds separating the problem from self-worth.", "Exhale in 6 seconds applying positive change."] }
         },
-        {
-          id: 6, key: 'Padre',
-          es: { title: "💪 Técnica del Padre (III)", objective: "Firmeza operativa ante escenarios complejos.", steps: ["Inhala tomando el timón de tu situación actual.", "Mantén el aire consolidando tu criterio.", "Exhala liberando vacilaciones externas.", "Camina mentalmente hacia la solución directa."] },
-          en: { title: "💪 Father Technique (III)", objective: "Operational firmness in complex scenarios.", steps: ["Inhale taking the helm of your current situation.", "Hold consolidating your criteria.", "Exhale releasing external hesitations.", "Walk mentally toward direct resolution."] }
+        'Bien': {
+          es: { title: "☀️ Técnica del Bien", objective: "Valorar logros diarios y optimizar enfoque.", steps: ["Identifica un logro y un disfrute de tu jornada.", "Inhala profundamente absorbiendo energía positiva.", "Retén 2 segundos sintiendo gratitud.", "Exhala dejando ir lo innecesario."] },
+          en: { title: "☀️ Wellbeing Technique", objective: "Appreciate daily achievements and constructive focus.", steps: ["Identify an achievement from today.", "Inhale deeply absorbing positive energy.", "Hold for 2 seconds feeling gratitude.", "Exhale letting go of the unnecessary."] }
         },
-
-        // --- TÉCNICA DEL NIÑO (IDs 7 al 9) ---
-        {
-          id: 7, key: 'Niño',
-          es: { title: "🧒 Técnica del Niño (I)", objective: "Curiosidad y frescura mental espontánea.", steps: ["Observa tu entorno descubriéndolo de nuevo.", "Inhala con asombro e inocencia renovada.", "Retén el aire dibujando una sonrisa interior.", "Exhala liberando toda rigidez mental."] },
-          en: { title: "🧒 Child Technique (I)", objective: "Curiosity and spontaneous mental freshness.", steps: ["Observe your surroundings discovering them anew.", "Inhale with wonder and renewed innocence.", "Hold drawing an inner smile.", "Exhale releasing all mental rigidity."] }
-        },
-        {
-          id: 8, key: 'Niño',
-          es: { title: "🧒 Técnica del Niño (II)", objective: "Juego cognitivo y ligereza creativa.", steps: ["Inhala imaginando soluciones simples y lúdicas.", "Retén el aire soltando la autocrítica excesiva.", "Exhala riendo por dentro ante lo absurdo del estrés.", "Permítete empezar de cero con alegría."] },
-          en: { title: "🧒 Child Technique (II)", objective: "Cognitive play and creative lightness.", steps: ["Inhale imagining simple, playful solutions.", "Hold letting go of excessive self-criticism.", "Exhale smiling inwardly at stress.", "Allow yourself to start over with joy."] }
-        },
-        {
-          id: 9, key: 'Niño',
-          es: { title: "🧒 Técnica del Niño (III)", objective: "Asombro activo y flexibilidad de perspectiva.", steps: ["Inhala observando detalles pequeños con interés.", "Retén el aire sin juzgar lo que ves.", "Exhala renovando tu capacidad de sorpresa.", "Integra una mirada fresca a tu labor."] },
-          en: { title: "🧒 Child Technique (III)", objective: "Active wonder and perspective flexibility.", steps: ["Inhale observing small details with interest.", "Hold without judging what you see.", "Exhale renewing your capacity for surprise.", "Integrate a fresh look into your work."] }
-        },
-
-        // --- TÉCNICA DEL BESO (IDs 10 al 12) ---
-        {
-          id: 10, key: 'Beso',
-          es: { title: "💋 Técnica del Beso (I)", objective: "Empatía y reconciliación pacífica.", steps: ["Cruza los brazos simulando un abrazo cálido.", "Inhala aceptando tus procesos actuales.", "Retén conectando con la paz interior.", "Exhala proyectando consideración y afecto."] },
-          en: { title: "💋 Kiss Technique (I)", objective: "Empathy and peaceful reconciliation.", steps: ["Cross your arms simulating a warm hug.", "Inhale accepting your current processes.", "Hold connecting with inner peace.", "Exhale projecting consideration and affection."] }
-        },
-        {
-          id: 11, key: 'Beso',
-          es: { title: "💋 Técnica del Beso (II)", objective: "Afabilidad y disolución de fricciones.", steps: ["Inhala suavizando la expresión facial.", "Retén enviando un mensaje de tregua interna.", "Exhala soltando resentimientos o asperezas.", "Camina hacia el entendimiento mutuo."] },
-          en: { title: "💋 Kiss Technique (II)", objective: "Affability and friction dissolution.", steps: ["Inhale softening your facial expression.", "Hold sending an internal truce message.", "Exhale releasing resentments or roughness.", "Move toward mutual understanding."] }
-        },
-        {
-          id: 12, key: 'Beso',
-          es: { title: "💋 Técnica del Beso (III)", objective: "Armonía interpersonal y diplomacia.", steps: ["Inhala visualizando un trato amable y cordial.", "Retén valorando la conexión con los demás.", "Exhala disipando la urgencia defensiva.", "Valora el poder de un gesto conciliador."] },
-          en: { title: "💋 Kiss Technique (III)", objective: "Interpersonal harmony and diplomacy.", steps: ["Inhale visualizing kind and cordial treatment.", "Hold valuing connection with others.", "Exhale dissipating defensive urgency.", "Value the power of a conciliatory gesture."] }
-        },
-
-        // --- TÉCNICA DEL MAL (IDs 13 al 15) ---
-        {
-          id: 13, key: 'Mal',
-          es: { title: "⚫ Técnica del Mal (I)", objective: "Transformar adversidades en aprendizajes.", steps: ["Lleva una mano al abdomen y respira ante la dificultad.", "Inhala analizando el aprendizaje oculto.", "Retén separando el problema de tu valor personal.", "Exhala aplicando un cambio constructivo."] },
-          en: { title: "⚫ Adversity Technique (I)", objective: "Transform adversities into lessons.", steps: ["Place one hand on your abdomen and breathe.", "Inhale analyzing the hidden lesson.", "Hold separating the problem from self-worth.", "Exhale applying constructive change."] }
-        },
-        {
-          id: 14, key: 'Mal',
-          es: { title: "⚫ Técnica del Mal (II)", objective: "Digestión de crisis y resiliencia.", steps: ["Inhala reconociendo el obstáculo sin dramatizar.", "Retén buscando el dato útil dentro del problema.", "Exhala transformando el tropiezo en combustible.", "Actúa con templanza pragmática."] },
-          en: { title: "⚫ Adversity Technique (II)", objective: "Crisis digestion and resilience.", steps: ["Inhale acknowledging the obstacle without drama.", "Hold seeking the useful data within the problem.", "Exhale turning the stumble into fuel.", "Act with pragmatic temperance."] }
-        },
-        {
-          id: 15, key: 'Mal',
-          es: { title: "⚫ Técnica del Mal (III)", objective: "Neutralización de reveses imprevistos.", steps: ["Inhala aceptando que la fricción forma parte del camino.", "Retén evaluando recursos disponibles de emergencia.", "Exhala rediseñando el plan de ruta inmediato.", "Avanza sin mirar atrás."] },
-          en: { title: "⚫ Adversity Technique (III)", objective: "Neutralizing unexpected setbacks.", steps: ["Inhale accepting friction as part of the path.", "Hold evaluating available emergency resources.", "Exhale redesigning the immediate roadmap.", "Move forward without looking back."] }
-        },
-
-        // --- TÉCNICA DEL BIEN (IDs 16 al 18) ---
-        {
-          id: 16, key: 'Bien',
-          es: { title: "☀️ Técnica del Bien (I)", objective: "Valorar logros diarios y optimizar enfoque.", steps: ["Identifica un logro reciente de tu jornada.", "Inhala profundamente absorbiendo energía positiva.", "Retén sintiendo gratitud genuina.", "Exhala dejando ir lo innecesario."] },
-          en: { title: "☀️ Wellbeing Technique (I)", objective: "Appreciate daily achievements.", steps: ["Identify a recent achievement from your day.", "Inhale deeply absorbing positive energy.", "Hold feeling genuine gratitude.", "Exhale letting go of the unnecessary."] }
-        },
-        {
-          id: 17, key: 'Bien',
-          es: { title: "☀️ Técnica del Bien (II)", objective: "Multiplicación de aciertos y bienestar.", steps: ["Inhala recordando un momento de alta eficacia.", "Retén anclando esa sensación de éxito.", "Exhala proyectando abundancia operativa.", "Disfruta el impulso del trabajo bien hecho."] },
-          en: { title: "☀️ Wellbeing Technique (II)", objective: "Multiplication of successes.", steps: ["Inhale recalling a moment of high efficiency.", "Hold anchoring that feeling of success.", "Exhale projecting operational abundance.", "Enjoy the momentum of good work."] }
-        },
-        {
-          id: 18, key: 'Bien',
-          es: { title: "☀️ Técnica del Bien (III)", objective: "Consolidación de satisfacción y optimismo.", steps: ["Inhala respirando la estabilidad conseguida hoy.", "Retén saboreando el progreso alcanzado.", "Exhala compartiendo una actitud constructiva.", "Valora el fruto de tu constancia."] },
-          en: { title: "☀️ Wellbeing Technique (III)", objective: "Consolidation of satisfaction.", steps: ["Inhale breathing in stability achieved today.", "Hold savoring the progress made.", "Exhale sharing a constructive attitude.", "Value the fruit of your consistency."] }
-        },
-
-        // --- TÉCNICA DE GUERRA (IDs 19 al 21) ---
-        {
-          id: 19, key: 'Guerra',
-          es: { title: "⚔️ Técnica de Guerra (I)", objective: "Adaptación táctica y serenidad ante retos críticos.", steps: ["Adopta una postura firme y centrada.", "Inhala evaluando con frialdad la realidad.", "Retén decidiendo con sensatez tu siguiente movimiento.", "Exhala afirmando tu capacidad de resolución."] },
-          en: { title: "⚔️ Strategy Technique (I)", objective: "Tactical adaptation and serenity.", steps: ["Adopt a firm, centered posture.", "Inhale evaluating reality with clarity.", "Hold deciding sensibly your next move.", "Exhale affirming your resolution capacity."] }
-        },
-        {
-          id: 20, key: 'Guerra',
-          es: { title: "⚔️ Técnica de Guerra (II)", objective: "Cálculo de riesgos y templanza bajo presión.", steps: ["Inhala midiendo el escenario con precisión militar.", "Retén filtrando las distracciones secundarias.", "Exhala ejecutando la acción clave sin dudar.", "Mantén el control absoluto del terreno."] },
-          en: { title: "⚔️ Strategy Technique (II)", objective: "Risk calculation and temperance.", steps: ["Inhale measuring the scenario with precision.", "Hold filtering out secondary distractions.", "Exhale executing key action without hesitation.", "Maintain absolute control of the terrain."] }
-        },
-        {
-          id: 21, key: 'Guerra',
-          es: { title: "⚔️ Técnica de Guerra (III)", objective: "Estrategia de contención y victoria firme.", steps: ["Inhala visualizando la meta sin margen de error.", "Retén blindando tu concentración táctica.", "Exhala avanzando con paso seguro y medido.", "Corona el reto con disciplina total."] },
-          en: { title: "⚔️ Strategy Technique (III)", objective: "Containment strategy and firm victory.", steps: ["Inhale visualizing the goal without error.", "Hold shielding tactical concentration.", "Exhale moving forward with measured steps.", "Crown the challenge with total discipline."] }
+        'Guerra': {
+          es: { title: "⚔️ Técnica de Guerra", objective: "Adaptación táctica y serenidad ante retos críticos.", steps: ["Adopta una postura firme y centrada.", "Inhala evaluando con frialdad la realidad.", "Retén decidiendo con sensatez tu próximo paso.", "Exhala afirmando tu capacidad de resolución."] },
+          en: { title: "⚔️ Strategy Technique", objective: "Tactical adaptation and serenity under challenges.", steps: ["Adopt a firm, centered posture.", "Inhale evaluating reality with clarity.", "Hold deciding sensibly your next move.", "Exhale affirming your resolution capacity."] }
         }
-      ];
+      };
 
       let currentTechKey = null;
       let currentStepIndex = 0;
@@ -1149,14 +1060,3 @@ function toggleMortalsDrawer() {
     </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
