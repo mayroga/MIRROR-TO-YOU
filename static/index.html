@@ -468,14 +468,12 @@ document.getElementById('whatsapp-link').href='https://wa.me/17866471371?text=Ho
 <a id="email-link" href="mailto:maykel75122805321@gmail.com?subject=Solicitud%20de%20Asesoría%20de%20Viaje%20Privada" style="background:var(--card-bg,#1e1e22);border:1px solid var(--border-color,rgba(255,255,255,.2));color:var(--text-main,#fff);padding:12px;border-radius:6px;text-decoration:none;font-weight:600;font-size:.95rem;display:flex;align-items:center;justify-content:center;gap:8px">✉️ <span id="email-btn-label">Enviar Correo Electrónico</span></a>
 </div>
 <div class="tvid-curtain">
-    <div class="tvid-curtain-toggle" onclick="toggleTvidWindow()" role="button" tabindex="0">
-        <span>⚡ <span id="tvid-float-label">Carga Rápida (TVid)</span></span>
-    </div>
-    <div class="tvid-curtain-controls">
-        <span id="tvid-curtain-arrow">＋</span>
-        <span onclick="toggleTvidLang()" id="tvid-lang-btn" class="tvid-lang-btn">ES</span>
-    </div>
-</div>
+<button class="tvid-curtain-toggle" onclick="toggleTvidWindow()" type="button">
+<span>⚡ <span id="tvid-float-label">Carga Rápida (TVid)</span></span>
+<span class="tvid-curtain-controls">
+<span id="tvid-curtain-arrow">＋</span>
+<span onclick="event.stopPropagation();toggleTvidLang()" id="tvid-lang-btn" class="tvid-lang-btn">ES</span>
+</span>
 </button>
 <div id="tvid-floating-window" class="tvid-modal-overlay" style="display:none">
 <div class="tvid-modal-container">
@@ -714,341 +712,231 @@ en:[
 }
 };
 
-<div class="paywall-container" id="paywallModal">
-    <div class="paywall-card">
-        <h1 class="brand-title">MIRROR TO YOU</h1>
-        <p class="brand-subtitle">Exclusive Wellness & Advisory Platform</p>
-        
-        <div class="pricing-options">
-            <button class="price-btn" onclick="startCheckout('1')">
-                <span>Daily Access Pass</span>
-                <span class="price">$200</span>
-            </button>
-            <button class="price-btn" onclick="startCheckout('2')">
-                <span>Monthly Unlimited Pass</span>
-                <span class="price">$499</span>
-            </button>
-        </div>
+let currentTechKey=null,currentExerciseIndex=0,currentStepIndex=0,breathAnimationInterval=null,tvidLimitInterval=null,tvidExerciseStartedAt=0,tvidExerciseCompleted=false;
 
-        <div class="divider">Or Admin Access</div>
+function getTvidProgress(){
+try{
+const saved=JSON.parse(localStorage.getItem(TVID_PROGRESS_KEY)||'{}');
+const progress={};
+Object.keys(tvidData).forEach(k=>{
+const max=tvidData[k].es.length;
+const n=parseInt(saved[k],10);
+progress[k]=Number.isInteger(n)&&n>=0&&n<max?n:0
+});
+return progress
+}catch(e){
+const progress={};
+Object.keys(tvidData).forEach(k=>progress[k]=0);
+return progress
+}
+}
 
-        <div class="login-form">
-            <input type="text" id="usernameInput" class="login-input" placeholder="Username">
-            <input type="password" id="passwordInput" class="login-input" placeholder="Password">
-            <button class="login-btn" onclick="handleLogin()">Enter Platform</button>
-            <div class="error-msg" id="errorMsg">Invalid credentials supplied.</div>
-        </div>
-    </div>
-</div>
+function getTvidNextIndex(techKey){
+const progress=getTvidProgress();
+return progress[techKey]||0
+}
 
-<div class="app-container" id="appInterface">
-    <!-- Main Application Interface Goes Here -->
-</div>
+function setTvidNextIndex(techKey,n){
+const progress=getTvidProgress();
+const total=tvidData[techKey].es.length;
+progress[techKey]=((n%total)+total)%total;
+localStorage.setItem(TVID_PROGRESS_KEY,JSON.stringify(progress))
+}
 
-<script>
-    const TVID_PROGRESS_KEY = 'tvid_user_progress_key';
-    let tvidLang = 'es';
-    let timeLeft = 300;
+function toggleTvidWindow(){
+const modal=document.getElementById('tvid-floating-window');
+const arrow=document.getElementById('tvid-curtain-arrow');
+const isVisible=modal.style.display==='flex';
 
-    // Respaldo de seguridad por si tvidData no está definido externamente
-    const tvidData = window.tvidData || {
-        "bien": {
-            es: [{ title: "Técnica del Bien", objective: "Adaptación", steps: ["Paso 1: Respira profundamente.", "Paso 2: Visualiza estabilidad."] }],
-            en: [{ title: "Good Technique", objective: "Adaptation", steps: ["Step 1: Breathe deeply.", "Step 2: Visualize stability."] }]
-        }
-    };
+if(isVisible){
+stopTvidTimers();
+modal.style.display='none';
+if(arrow)arrow.innerText='＋'
+}else{
+modal.style.display='flex';
+document.getElementById('tvid-selection-screen').style.display='block';
+document.getElementById('tvid-exercise-screen').style.display='none';
+stopTvidTimers();
+if(arrow)arrow.innerText='−'
+}
+}
 
-    window.addEventListener('DOMContentLoaded', () => {
-        const urlParams = new URLSearchParams(window.location.search);
-        if (urlParams.get('success') === 'true') {
-            document.getElementById('paywallModal').style.display = 'none';
-            document.getElementById('appInterface').style.display = 'flex';
-        }
-    });
+function toggleTvidLang(){
+tvidLang=tvidLang==='es'?'en':'es';
+document.getElementById('tvid-lang-btn').innerText=tvidLang.toUpperCase();
+document.getElementById('tvid-main-title').innerText=tvidLang==='es'?'Puerto de Carga Rápida':'Quick Recharge Port';
+document.getElementById('tvid-subtitle-text').innerText=tvidLang==='es'?'Selecciona tu protocolo de adaptación y bienestar:':'Select your protocol:';
+document.getElementById('tvid-back-text').innerText=tvidLang==='es'?'← Volver':'← Back';
+document.getElementById('tvid-speak-btn').innerText=tvidLang==='es'?'🔊 Escuchar':'🔊 Listen';
+document.getElementById('tvid-float-label').innerText=tvidLang==='es'?'Carga Rápida (TVid)':'Quick Recharge (TVid)';
 
-    async function startCheckout(priceType) {
-        try {
-            const response = await fetch('/api/create-checkout-session', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ price_type: priceType })
-            });
-            const data = await response.json();
-            if (data.url) {
-                window.location.href = data.url;
-            } else {
-                alert('Could not initiate checkout session.');
-            }
-        } catch (err) {
-            alert('Connection error with Stripe gateway.');
-        }
-    }
+document.querySelectorAll('.tvid-card-btn span[data-es]').forEach(span=>{
+span.innerText=span.dataset[tvidLang]
+});
 
-    async function handleLogin() {
-        const username = document.getElementById('usernameInput').value;
-        const password = document.getElementById('passwordInput').value;
-        const errorMsg = document.getElementById('errorMsg');
+if(currentTechKey)updateTvidViewLang()
+}
 
-        try {
-            const response = await fetch('/api/login', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ username, password })
-            });
+function loadTvidExercise(techKey){
+if(timeLeft<=0){
+closeSession();
+return
+}
 
-            if (response.ok) {
-                document.getElementById('paywallModal').style.display = 'none';
-                document.getElementById('appInterface').style.display = 'flex';
-            } else {
-                errorMsg.style.display = 'block';
-            }
-        } catch (err) {
-            errorMsg.style.display = 'block';
-        }
-    }
+if(!tvidData[techKey])return;
 
-    let currentTechKey = null, currentExerciseIndex = 0, currentStepIndex = 0, breathAnimationInterval = null, tvidLimitInterval = null, tvidExerciseStartedAt = 0, tvidExerciseCompleted = false;
+const localIndex=getTvidNextIndex(techKey);
 
-    function getTvidProgress(){
-        try{
-            const saved = JSON.parse(localStorage.getItem(TVID_PROGRESS_KEY) || '{}');
-            const progress = {};
-            Object.keys(tvidData).forEach(k => {
-                const max = tvidData[k].es.length;
-                const n = parseInt(saved[k], 10);
-                progress[k] = Number.isInteger(n) && n >= 0 && n < max ? n : 0;
-            });
-            return progress;
-        }catch(e){
-            const progress = {};
-            Object.keys(tvidData).forEach(k => progress[k] = 0);
-            return progress;
-        }
-    }
+currentTechKey=techKey;
+currentExerciseIndex=localIndex;
+currentStepIndex=0;
+tvidExerciseCompleted=false;
 
-    function getTvidNextIndex(techKey){
-        const progress = getTvidProgress();
-        return progress[techKey] || 0;
-    }
+document.getElementById('tvid-selection-screen').style.display='none';
+document.getElementById('tvid-exercise-screen').style.display='block';
 
-    function setTvidNextIndex(techKey, n){
-        const progress = getTvidProgress();
-        const total = tvidData[techKey].es.length;
-        progress[techKey] = ((n % total) + total) % total;
-        localStorage.setItem(TVID_PROGRESS_KEY, JSON.stringify(progress));
-    }
+updateTvidViewLang();
+startTvidLimit();
+startBreathCycle();
+speakCurrentStep()
+}
 
-    function toggleTvidWindow(){
-        const modal = document.getElementById('tvid-floating-window');
-        const arrow = document.getElementById('tvid-curtain-arrow');
-        if (!modal) return;
-        const isVisible = modal.style.display === 'flex';
+function updateTvidViewLang(){
+if(!currentTechKey)return;
 
-        if(isVisible){
-            stopTvidTimers();
-            modal.style.display = 'none';
-            if(arrow) arrow.innerText = '＋';
-        }else{
-            modal.style.display = 'flex';
-            const selScreen = document.getElementById('tvid-selection-screen');
-            const exScreen = document.getElementById('tvid-exercise-screen');
-            if(selScreen) selScreen.style.display = 'block';
-            if(exScreen) exScreen.style.display = 'none';
-            stopTvidTimers();
-            if(arrow) arrow.innerText = '−';
-        }
-    }
+const exerciseData=tvidData[currentTechKey][tvidLang][currentExerciseIndex];
 
-    function toggleTvidLang(){
-        tvidLang = tvidLang === 'es' ? 'en' : 'es';
-        const langBtn = document.getElementById('tvid-lang-btn');
-        const mainTitle = document.getElementById('tvid-main-title');
-        const subText = document.getElementById('tvid-subtitle-text');
-        const backText = document.getElementById('tvid-back-text');
-        const speakBtn = document.getElementById('tvid-speak-btn');
-        const floatLabel = document.getElementById('tvid-float-label');
+if(!exerciseData)return;
 
-        if(langBtn) langBtn.innerText = tvidLang.toUpperCase();
-        if(mainTitle) mainTitle.innerText = tvidLang === 'es' ? 'Puerto de Carga Rápida' : 'Quick Recharge Port';
-        if(subText) subText.innerText = tvidLang === 'es' ? 'Selecciona tu protocolo de adaptación y bienestar:' : 'Select your protocol:';
-        if(backText) backText.innerText = tvidLang === 'es' ? '← Volver' : '← Back';
-        if(speakBtn) speakBtn.innerText = tvidLang === 'es' ? '🔊 Escuchar' : '🔊 Listen';
-        if(floatLabel) floatLabel.innerText = tvidLang === 'es' ? 'Carga Rápida (TVid)' : 'Quick Recharge (TVid)';
+document.getElementById('tvid-exercise-title').innerText=exerciseData.title;
+document.getElementById('tvid-objective-text').innerText=exerciseData.objective;
+document.getElementById('tvid-exercise-steps').innerText=exerciseData.steps[currentStepIndex];
 
-        document.querySelectorAll('.tvid-card-btn span[data-es]').forEach(span => {
-            if(span.dataset[tvidLang]) span.innerText = span.dataset[tvidLang];
-        });
+const actionBtn=document.getElementById('tvid-action-btn');
 
-        if(currentTechKey) updateTvidViewLang();
-    }
+actionBtn.innerText=currentStepIndex===exerciseData.steps.length-1
+?(tvidLang==='es'?'Finalizar Carga':'Finish Recharge')
+:(tvidLang==='es'?'Siguiente paso':'Next step');
 
-    function loadTvidExercise(techKey){
-        if(typeof timeLeft !== 'undefined' && timeLeft <= 0){
-            if(typeof closeSession === 'function') closeSession();
-            return;
-        }
+const label=document.getElementById('tvid-breath-label');
+if(label)label.innerText=tvidLang==='es'?'Inhala':'Inhale'
+}
 
-        if(!tvidData[techKey]) return;
+function nextTvidStep(){
+if(!currentTechKey||tvidExerciseCompleted)return;
 
-        const localIndex = getTvidNextIndex(techKey);
+const exerciseData=tvidData[currentTechKey][tvidLang][currentExerciseIndex];
 
-        currentTechKey = techKey;
-        currentExerciseIndex = localIndex;
-        currentStepIndex = 0;
-        tvidExerciseCompleted = false;
+if(currentStepIndex<exerciseData.steps.length-1){
+currentStepIndex++;
+updateTvidViewLang();
+speakCurrentStep();
+return
+}
 
-        const selScreen = document.getElementById('tvid-selection-screen');
-        const exScreen = document.getElementById('tvid-exercise-screen');
-        if(selScreen) selScreen.style.display = 'none';
-        if(exScreen) exScreen.style.display = 'block';
+tvidExerciseCompleted=true;
 
-        updateTvidViewLang();
-        startTvidLimit();
-        startBreathCycle();
-        speakCurrentStep();
-    }
+const nextIndex=(currentExerciseIndex+1)%tvidData[currentTechKey].es.length;
+setTvidNextIndex(currentTechKey,nextIndex);
 
-    function updateTvidViewLang(){
-        if(!currentTechKey || !tvidData[currentTechKey]) return;
+stopTvidTimers();
+document.getElementById('tvid-exercise-screen').style.display='none';
+document.getElementById('tvid-selection-screen').style.display='block';
+document.getElementById('tvid-floating-window').style.display='flex';
+const arrow=document.getElementById('tvid-curtain-arrow');
+if(arrow)arrow.innerText='−'
+}
 
-        const exerciseData = tvidData[currentTechKey][tvidLang][currentExerciseIndex];
-        if(!exerciseData) return;
+function backTvidSelection(){
+stopTvidTimers();
+tvidExerciseCompleted=false;
+document.getElementById('tvid-exercise-screen').style.display='none';
+document.getElementById('tvid-selection-screen').style.display='block'
+}
 
-        const exTitle = document.getElementById('tvid-exercise-title');
-        const objText = document.getElementById('tvid-objective-text');
-        const exSteps = document.getElementById('tvid-exercise-steps');
-        if(exTitle) exTitle.innerText = exerciseData.title;
-        if(objText) objText.innerText = exerciseData.objective;
-        if(exSteps) exSteps.innerText = exerciseData.steps[currentStepIndex];
+function speakCurrentStep(){
+if(!currentTechKey)return;
 
-        const actionBtn = document.getElementById('tvid-action-btn');
-        if(actionBtn){
-            actionBtn.innerText = currentStepIndex === exerciseData.steps.length - 1
-                ? (tvidLang === 'es' ? 'Finalizar Carga' : 'Finish Recharge')
-                : (tvidLang === 'es' ? 'Siguiente paso' : 'Next step');
-        }
+const exerciseData=tvidData[currentTechKey][tvidLang][currentExerciseIndex];
+if(!exerciseData)return;
 
-        const label = document.getElementById('tvid-breath-label');
-        if(label) label.innerText = tvidLang === 'es' ? 'Inhala' : 'Inhale';
-    }
+const textToSpeak=exerciseData.steps[currentStepIndex];
 
-    function nextTvidStep(){
-        if(!currentTechKey || tvidExerciseCompleted || !tvidData[currentTechKey]) return;
+if('speechSynthesis'in window){
+window.speechSynthesis.cancel();
+const utterance=new SpeechSynthesisUtterance(textToSpeak);
+utterance.lang=tvidLang==='es'?'es-ES':'en-US';
+utterance.rate=.95;
+window.speechSynthesis.speak(utterance)
+}
+}
 
-        const exerciseData = tvidData[currentTechKey][tvidLang][currentExerciseIndex];
+function startBreathCycle(){
+const circle=document.getElementById('tvid-breath-circle');
+const label=document.getElementById('tvid-breath-label');
+let state=0;
 
-        if(currentStepIndex < exerciseData.steps.length - 1){
-            currentStepIndex++;
-            updateTvidViewLang();
-            speakCurrentStep();
-            return;
-        }
+if(breathAnimationInterval)clearInterval(breathAnimationInterval);
 
-        tvidExerciseCompleted = true;
+function applyBreath(){
+if(state===0){
+circle.className='tvid-breath-circle inhale';
+label.innerText=tvidLang==='es'?'Inhala':'Inhale';
+state=1
+}else if(state===1){
+circle.className='tvid-breath-circle inhale';
+label.innerText=tvidLang==='es'?'Mantén':'Hold';
+state=2
+}else{
+circle.className='tvid-breath-circle exhale';
+label.innerText=tvidLang==='es'?'Exhala':'Exhale';
+state=0
+}
+}
 
-        const nextIndex = (currentExerciseIndex + 1) % tvidData[currentTechKey].es.length;
-        setTvidNextIndex(currentTechKey, nextIndex);
+applyBreath();
+breathAnimationInterval=setInterval(applyBreath,4000)
+}
 
-        stopTvidTimers();
-        const exScreen = document.getElementById('tvid-exercise-screen');
-        const selScreen = document.getElementById('tvid-selection-screen');
-        const modal = document.getElementById('tvid-floating-window');
-        if(exScreen) exScreen.style.display = 'none';
-        if(selScreen) selScreen.style.display = 'block';
-        if(modal) modal.style.display = 'flex';
-        const arrow = document.getElementById('tvid-curtain-arrow');
-        if(arrow) arrow.innerText = '−';
-    }
+function startTvidLimit(){
+stopTvidTimers();
 
-    function backTvidSelection(){
-        stopTvidTimers();
-        tvidExerciseCompleted = false;
-        const exScreen = document.getElementById('tvid-exercise-screen');
-        const selScreen = document.getElementById('tvid-selection-screen');
-        if(exScreen) exScreen.style.display = 'none';
-        if(selScreen) selScreen.style.display = 'block';
-    }
+tvidExerciseStartedAt=Date.now();
 
-    function speakCurrentStep(){
-        if(!currentTechKey || !tvidData[currentTechKey]) return;
+const allowed=Math.max(0,Math.min(300,timeLeft));
 
-        const exerciseData = tvidData[currentTechKey][tvidLang][currentExerciseIndex];
-        if(!exerciseData) return;
+if(allowed<=0){
+closeSession();
+return
+}
 
-        const textToSpeak = exerciseData.steps[currentStepIndex];
+tvidLimitInterval=setInterval(()=>{
+const elapsed=(Date.now()-tvidExerciseStartedAt)/1000;
 
-        if('speechSynthesis' in window){
-            window.speechSynthesis.cancel();
-            const utterance = new SpeechSynthesisUtterance(textToSpeak);
-            utterance.lang = tvidLang === 'es' ? 'es-ES' : 'en-US';
-            utterance.rate = .95;
-            window.speechSynthesis.speak(utterance);
-        }
-    }
+if(elapsed>=allowed||elapsed>=300||timeLeft<=0){
+stopTvidTimers();
+document.getElementById('tvid-floating-window').style.display='none'
+}
+},500)
+}
 
-    function startBreathCycle(){
-        const circle = document.getElementById('tvid-breath-circle');
-        const label = document.getElementById('tvid-breath-label');
-        let state = 0;
+function stopTvidTimers(){
+if(tvidLimitInterval)clearInterval(tvidLimitInterval);
+if(breathAnimationInterval)clearInterval(breathAnimationInterval);
 
-        if(breathAnimationInterval) clearInterval(breathAnimationInterval);
+tvidLimitInterval=null;
+breathAnimationInterval=null;
 
-        function applyBreath(){
-            if(!circle || !label) return;
-            if(state === 0){
-                circle.className = 'tvid-breath-circle inhale';
-                label.innerText = tvidLang === 'es' ? 'Inhala' : 'Inhale';
-                state = 1;
-            }else if(state === 1){
-                circle.className = 'tvid-breath-circle inhale';
-                label.innerText = tvidLang === 'es' ? 'Mantén' : 'Hold';
-                state = 2;
-            }else{
-                circle.className = 'tvid-breath-circle exhale';
-                label.innerText = tvidLang === 'es' ? 'Exhala' : 'Exhale';
-                state = 0;
-            }
-        }
+if('speechSynthesis'in window)window.speechSynthesis.cancel()
+}
 
-        applyBreath();
-        breathAnimationInterval = setInterval(applyBreath, 4000);
-    }
-
-    function startTvidLimit(){
-        stopTvidTimers();
-        tvidExerciseStartedAt = Date.now();
-        const allowed = Math.max(0, Math.min(300, timeLeft));
-
-        if(allowed <= 0){
-            if(typeof closeSession === 'function') closeSession();
-            return;
-        }
-
-        tvidLimitInterval = setInterval(() => {
-            const elapsed = (Date.now() - tvidExerciseStartedAt) / 1000;
-            if(elapsed >= allowed || elapsed >= 300 || timeLeft <= 0){
-                stopTvidTimers();
-                const modal = document.getElementById('tvid-floating-window');
-                if(modal) modal.style.display = 'none';
-            }
-        }, 500);
-    }
-
-    function stopTvidTimers(){
-        if(tvidLimitInterval) clearInterval(tvidLimitInterval);
-        if(breathAnimationInterval) clearInterval(breathAnimationInterval);
-        tvidLimitInterval = null;
-        breathAnimationInterval = null;
-        if('speechSynthesis' in window) window.speechSynthesis.cancel();
-    }
-
-    function closeTvidWindow(){
-        stopTvidTimers();
-        const modal = document.getElementById('tvid-floating-window');
-        if(modal) modal.style.display = 'none';
-        const arrow = document.getElementById('tvid-curtain-arrow');
-        if(arrow) arrow.innerText = '＋';
-    }
+function closeTvidWindow(){
+stopTvidTimers();
+document.getElementById('tvid-floating-window').style.display='none';
+const arrow=document.getElementById('tvid-curtain-arrow');
+if(arrow)arrow.innerText='＋'
+}
 </script>
+
 </body>
 </html>
