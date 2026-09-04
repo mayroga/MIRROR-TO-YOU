@@ -458,13 +458,8 @@ document.getElementById('whatsapp-link').href='https://wa.me/17866471371?text=Ho
 <button onclick="toggleTravelAdvisorModal()" style="background:var(--accent-color,#d4af37);color:var(--bg-color,#0a0a0c);border:none;padding:12px 20px;border-radius:30px;font-weight:600;font-size:.9rem;cursor:pointer;box-shadow:0 4px 12px rgba(0,0,0,.5);display:flex;align-items:center;gap:8px">✈️ <span id="float-btn-text">Asesoría de Viaje Privada</span></button>
 </div>
 
-<div style="position:fixed;bottom:20px;right:280px;z-index:1500;display:flex;align-items:center;gap:6px;background:rgba(15,23,42,.85);backdrop-filter:blur(8px);padding:6px 12px;border-radius:30px;border:1px solid var(--border-color,rgba(255,255,255,.2));box-shadow:0 4px 12px rgba(0,0,0,.5)">
-<button onclick="toggleTvidLang()" id="tvid-lang-btn" style="background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:var(--text-main,#fff);width:28px;height:28px;border-radius:50%;font-weight:600;font-size:.75rem;cursor:pointer;display:flex;align-items:center;justify-content:center">ES</button>
-<button onclick="toggleTvidWindow()" style="background:none;border:none;color:var(--text-main,#fff);padding:4px 8px;font-weight:600;font-size:.85rem;cursor:pointer;display:flex;align-items:center;gap:6px">⚡ <span id="tvid-float-label">Carga Rápida (TVid)</span></button>
-</div>
-
 <div id="travel-advisor-modal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(11,15,25,.85);z-index:2500;justify-content:center;align-items:center;padding:20px">
-<div class="legal-box" style="position:relative;max-width:450px;background:var(--card-bg,#141416);padding:24px;border-radius:16px;border:1px solid var(--border-color,rgba(255,255,255,.1));color:var(--text-main,#f1f1f3)">
+<div class="legal-box travel-advisor-box" style="position:relative;max-width:450px;background:var(--card-bg,#141416);padding:24px;border-radius:16px;border:1px solid var(--border-color,rgba(255,255,255,.1));color:var(--text-main,#f1f1f3)">
 <button onclick="toggleTravelAdvisorModal()" style="position:absolute;top:15px;right:15px;background:none;border:none;color:var(--text-muted,#888);font-size:1.2rem;cursor:pointer">✕</button>
 <h2 id="modal-advisor-title" style="color:var(--accent-color,#d4af37);margin-bottom:10px;font-size:1.2rem">May Roga LLC - Viajes de Lujo</h2>
 <p id="modal-advisor-desc" style="color:var(--text-muted,#ccc);font-size:.9rem;margin-bottom:20px;text-align:left">Conecta directamente con tu asesor privado certificado para diseñar itinerarios a la medida y gestionar tus reservas exclusivas.</p>
@@ -472,9 +467,14 @@ document.getElementById('whatsapp-link').href='https://wa.me/17866471371?text=Ho
 <a id="whatsapp-link" href="https://wa.me/17866471371?text=Hola%20Maykel%2C%20vengo%20de%20la%20aplicación%20y%20deseo%20cotizar%20un%20viaje%20o%20itinerario%20privado" target="_blank" style="background:#25d366;color:#fff;padding:12px;border-radius:6px;text-decoration:none;font-weight:600;font-size:.95rem;display:flex;align-items:center;justify-content:center;gap:8px">💬 <span id="wa-btn-label">Chat Directo por WhatsApp</span></a>
 <a id="email-link" href="mailto:maykel75122805321@gmail.com?subject=Solicitud%20de%20Asesoría%20de%20Viaje%20Privada" style="background:var(--card-bg,#1e1e22);border:1px solid var(--border-color,rgba(255,255,255,.2));color:var(--text-main,#fff);padding:12px;border-radius:6px;text-decoration:none;font-weight:600;font-size:.95rem;display:flex;align-items:center;justify-content:center;gap:8px">✉️ <span id="email-btn-label">Enviar Correo Electrónico</span></a>
 </div>
-</div>
-</div>
-
+<div class="tvid-curtain">
+<button class="tvid-curtain-toggle" onclick="toggleTvidWindow()" type="button">
+<span>⚡ <span id="tvid-float-label">Carga Rápida (TVid)</span></span>
+<span class="tvid-curtain-controls">
+<span id="tvid-curtain-arrow">＋</span>
+<span onclick="event.stopPropagation();toggleTvidLang()" id="tvid-lang-btn" class="tvid-lang-btn">ES</span>
+</span>
+</button>
 <div id="tvid-floating-window" class="tvid-modal-overlay" style="display:none">
 <div class="tvid-modal-container">
 
@@ -529,9 +529,17 @@ document.getElementById('whatsapp-link').href='https://wa.me/17866471371?text=Ho
 </div>
 </div>
 
+</div>
+</div>
+</div>
+
 <style>
-.tvid-modal-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(10,10,12,.85);backdrop-filter:blur(12px);display:flex;justify-content:center;align-items:center;z-index:9999;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
-.tvid-modal-container{background:var(--card-bg,#141416);border:1px solid var(--border-color,rgba(255,255,255,.1));width:90%;max-width:460px;border-radius:16px;padding:20px;color:var(--text-main,#f1f1f3);box-shadow:0 20px 40px rgba(0,0,0,.6)}
+.tvid-curtain{width:100%;margin-top:14px}
+.tvid-curtain-toggle{width:100%;background:rgba(15,23,42,.85);border:1px solid var(--border-color,rgba(255,255,255,.2));color:var(--text-main,#fff);padding:10px 12px;border-radius:10px;font-weight:600;font-size:.85rem;display:flex;align-items:center;justify-content:space-between;gap:8px;cursor:pointer}
+.tvid-curtain-controls{display:flex;align-items:center;gap:8px}
+.tvid-lang-btn{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:var(--text-main,#fff);width:28px;height:28px;border-radius:50%;font-weight:600;font-size:.75rem;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.tvid-modal-overlay{position:relative;top:auto;left:auto;width:100%;height:auto;background:none;backdrop-filter:none;display:flex;justify-content:center;align-items:stretch;z-index:auto;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;margin-top:10px}
+.tvid-modal-container{background:var(--card-bg,#141416);border:1px solid var(--border-color,rgba(255,255,255,.1));width:100%;max-width:100%;border-radius:12px;padding:14px;color:var(--text-main,#f1f1f3);box-shadow:0 10px 25px rgba(0,0,0,.35)}
 .tvid-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:15px;border-bottom:1px solid var(--border-color,rgba(255,255,255,.08));padding-bottom:10px}
 .tvid-badge{background:rgba(212,175,55,.15);color:var(--accent-color,#d4af37);font-size:10px;font-weight:600;padding:3px 6px;border-radius:4px;text-transform:uppercase}
 .tvid-header h2{font-size:15px;margin:0;font-weight:500}
@@ -551,6 +559,18 @@ document.getElementById('whatsapp-link').href='https://wa.me/17866471371?text=Ho
 .tvid-steps-container{font-size:13px;line-height:1.5;color:var(--text-muted,#ccc);min-height:70px;margin-bottom:12px;background:rgba(0,0,0,.2);padding:12px;border-radius:8px}
 .tvid-sec-action{background:rgba(255,255,255,.08);color:var(--text-main,#fff);border:1px solid var(--border-color,rgba(255,255,255,.2));padding:10px;border-radius:8px;font-weight:600;font-size:13px;cursor:pointer}
 .tvid-main-action{flex:1;background:var(--accent-color,#d4af37);color:var(--bg-color,#0a0a0c);border:none;padding:10px;border-radius:8px;font-weight:600;font-size:13px;cursor:pointer}
+.travel-advisor-box{max-height:calc(100dvh - 40px);overflow-y:auto;text-align:center}
+.travel-advisor-box #modal-advisor-desc{text-align:center!important}
+.tvid-content-view{width:100%}
+@media(max-width:480px){
+.travel-advisor-box{width:100%;padding:18px!important;border-radius:14px}
+.tvid-grid{grid-template-columns:1fr 1fr}
+.tvid-card-btn{padding:9px 7px;font-size:11px;text-align:center}
+.tvid-header h2{font-size:13px}
+.tvid-modal-container{padding:12px}
+.tvid-objective-box,.tvid-steps-container{font-size:12px}
+.tvid-sec-action,.tvid-main-action{font-size:12px;padding:9px 7px}
+}
 </style>
 
 <script>
@@ -725,16 +745,19 @@ localStorage.setItem(TVID_PROGRESS_KEY,JSON.stringify(progress))
 
 function toggleTvidWindow(){
 const modal=document.getElementById('tvid-floating-window');
+const arrow=document.getElementById('tvid-curtain-arrow');
 const isVisible=modal.style.display==='flex';
 
 if(isVisible){
 stopTvidTimers();
-modal.style.display='none'
+modal.style.display='none';
+if(arrow)arrow.innerText='＋'
 }else{
 modal.style.display='flex';
 document.getElementById('tvid-selection-screen').style.display='block';
 document.getElementById('tvid-exercise-screen').style.display='none';
-stopTvidTimers()
+stopTvidTimers();
+if(arrow)arrow.innerText='−'
 }
 }
 
@@ -819,7 +842,9 @@ setTvidNextIndex(currentTechKey,nextIndex);
 stopTvidTimers();
 document.getElementById('tvid-exercise-screen').style.display='none';
 document.getElementById('tvid-selection-screen').style.display='block';
-document.getElementById('tvid-floating-window').style.display='flex'
+document.getElementById('tvid-floating-window').style.display='flex';
+const arrow=document.getElementById('tvid-curtain-arrow');
+if(arrow)arrow.innerText='−'
 }
 
 function backTvidSelection(){
@@ -907,7 +932,9 @@ if('speechSynthesis'in window)window.speechSynthesis.cancel()
 
 function closeTvidWindow(){
 stopTvidTimers();
-document.getElementById('tvid-floating-window').style.display='none'
+document.getElementById('tvid-floating-window').style.display='none';
+const arrow=document.getElementById('tvid-curtain-arrow');
+if(arrow)arrow.innerText='＋'
 }
 </script>
 
