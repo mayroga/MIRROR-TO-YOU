@@ -733,23 +733,32 @@ function toggleMortalsDrawer() {
         }
     </script>
 
-    <!-- Botón Flotante y Modal de Asesoría de Viaje con Selector de Idioma Transparente -->
+<!-- Botón Flotante de Viajes y Selector de Idioma (Ventana 2) -->
     <div id="travel-advisor-float" style="position: fixed; bottom: 20px; right: 20px; z-index: 1500; display: flex; align-items: center; gap: 8px;">
         <button onclick="toggleAdvisorLang()" id="advisor-lang-btn" style="background: rgba(255, 255, 255, 0.15); backdrop-filter: blur(5px); border: 1px solid rgba(255, 255, 255, 0.3); color: var(--text-main, #ffffff); padding: 10px 12px; border-radius: 50%; font-weight: 600; font-size: 0.8rem; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.3); transition: background 0.2s ease;" title="Cambiar Idioma / Switch Language">
             ES
         </button>
 
-        <button onclick="toggleTravelAdvisorModal()" style="background-color: var(--accent-color); color: var(--bg-color); border: none; padding: 12px 20px; border-radius: 30px; font-weight: 600; font-size: 0.9rem; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.5); display: flex; align-items: center; gap: 8px; transition: transform 0.2s ease;">
+        <button onclick="toggleTravelAdvisorModal()" style="background-color: var(--accent-color, #d4af37); color: var(--bg-color, #0a0a0c); border: none; padding: 12px 20px; border-radius: 30px; font-weight: 600; font-size: 0.9rem; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.5); display: flex; align-items: center; gap: 8px; transition: transform 0.2s ease;">
             ✈️ <span id="float-btn-text">Asesoría de Viaje Privada</span>
         </button>
     </div>
 
-<div id="travel-advisor-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(11, 15, 25, 0.85); z-index: 2500; justify-content: center; align-items: center; padding: 20px;">
-        <div class="legal-box" style="position: relative; max-width: 450px;">
-            <button onclick="toggleTravelAdvisorModal()" style="position: absolute; top: 15px; right: 15px; background: none; border: none; color: var(--text-muted); font-size: 1.2rem; cursor: pointer;">✕</button>
+    <!-- Botón Flotante de Carga Rápida (TVid) con su propio selector de idioma independiente -->
+    <div style="position: fixed; bottom: 20px; right: 280px; z-index: 1500; display: flex; align-items: center; gap: 6px; background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(8px); padding: 6px 12px; border-radius: 30px; border: 1px solid var(--border-color, rgba(255,255,255,0.2)); box-shadow: 0 4px 12px rgba(0,0,0,0.5);">
+        <button onclick="toggleTvidLang()" id="tvid-lang-btn" style="background: rgba(255, 255, 255, 0.15); border: 1px solid rgba(255, 255, 255, 0.3); color: var(--text-main, #ffffff); width: 28px; height: 28px; border-radius: 50%; font-weight: 600; font-size: 0.75rem; cursor: pointer; display: flex; align-items: center; justify-content: center;">ES</button>
+        <button onclick="toggleTvidWindow()" style="background: none; border: none; color: var(--text-main, #ffffff); padding: 4px 8px; font-weight: 600; font-size: 0.85rem; cursor: pointer; display: flex; align-items: center; gap: 6px;">
+            ⚡ <span id="tvid-float-label">Carga Rápida (TVid)</span>
+        </button>
+    </div>
+
+    <!-- Modal de Asesoría de Viaje -->
+    <div id="travel-advisor-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(11, 15, 25, 0.85); z-index: 2500; justify-content: center; align-items: center; padding: 20px;">
+        <div class="legal-box" style="position: relative; max-width: 450px; background: var(--card-bg, #141416); padding: 24px; border-radius: 16px; border: 1px solid var(--border-color, rgba(255,255,255,0.1)); color: var(--text-main, #f1f1f3);">
+            <button onclick="toggleTravelAdvisorModal()" style="position: absolute; top: 15px; right: 15px; background: none; border: none; color: var(--text-muted, #888); font-size: 1.2rem; cursor: pointer;">✕</button>
             
-            <h2 id="modal-advisor-title" style="color: var(--accent-color); margin-bottom: 10px;">May Roga LLC - Viajes de Lujo</h2>
-            <p id="modal-advisor-desc" style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 20px; text-align: left;">
+            <h2 id="modal-advisor-title" style="color: var(--accent-color, #d4af37); margin-bottom: 10px; font-size: 1.2rem;">May Roga LLC - Viajes de Lujo</h2>
+            <p id="modal-advisor-desc" style="color: var(--text-muted, #ccc); font-size: 0.9rem; margin-bottom: 20px; text-align: left;">
                 Conecta directamente con tu asesor privado certificado para diseñar itinerarios a la medida y gestionar tus reservas exclusivas.
             </p>
 
@@ -757,22 +766,19 @@ function toggleMortalsDrawer() {
                 <a id="whatsapp-link" href="https://wa.me/17866471371?text=Hola%20Maykel,%20vengo%20de%20la%20aplicación%20y%20deseo%20cotizar%20un%20viaje%20o%20itinerario%20privado." target="_blank" style="background: #25d366; color: #ffffff; padding: 12px; border-radius: 6px; text-decoration: none; font-weight: 600; font-size: 0.95rem; display: flex; align-items: center; justify-content: center; gap: 8px;">
                     💬 <span id="wa-btn-label">Chat Directo por WhatsApp</span>
                 </a>
-                <a id="email-link" href="mailto:maykel75122805321@gmail.com?subject=Solicitud%20de%20Asesoría%20de%20Viaje%20Privada" style="background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-main); padding: 12px; border-radius: 6px; text-decoration: none; font-weight: 600; font-size: 0.95rem; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                <a id="email-link" href="mailto:maykel75122805321@gmail.com?subject=Solicitud%20de%20Asesoría%20de%20Viaje%20Privada" style="background: var(--card-bg, #1e1e22); border: 1px solid var(--border-color, rgba(255,255,255,0.2)); color: var(--text-main, #fff); padding: 12px; border-radius: 6px; text-decoration: none; font-weight: 600; font-size: 0.95rem; display: flex; align-items: center; justify-content: center; gap: 8px;">
                     ✉️ <span id="email-btn-label">Enviar Correo Electrónico</span>
                 </a>
             </div>
         </div>
     </div>
 
-<!-- ==========================================================
-         VENTANA 1: PUERTO DE CARGA RÁPIDA (TVid) - Con Círculo y Voz
-         ========================================================== -->
+    <!-- VENTANA 1: PUERTO DE CARGA RÁPIDA (TVid) - Con Temporizador Exacto de 5 Min y Voz Automática -->
     <div id="tvid-floating-window" class="tvid-modal-overlay" style="display: none;">
       <div class="tvid-modal-container">
         
         <div class="tvid-header">
           <div style="display: flex; align-items: center; gap: 8px;">
-            <button onclick="toggleTvidLang()" id="tvid-lang-btn" style="background: rgba(255, 255, 255, 0.15); border: 1px solid rgba(255, 255, 255, 0.3); color: var(--text-main, #ffffff); padding: 4px 8px; border-radius: 4px; font-weight: 600; font-size: 0.75rem; cursor: pointer;">ES</button>
             <span class="tvid-badge" id="tvid-badge-text">5-Min Recharge</span>
           </div>
           <h2 id="tvid-main-title">Puerto de Carga Rápida</h2>
@@ -794,7 +800,7 @@ function toggleMortalsDrawer() {
 
         <div id="tvid-exercise-screen" class="tvid-content-view" style="display: none;">
           <div class="tvid-exercise-top">
-            <button class="tvid-back-btn" onclick="backToTvidSelection()" id="tvid-back-text">← Volver</button>
+            <button class="tvid-back-btn" onclick="backTvidSelection()" id="tvid-back-text">← Volver</button>
             <div class="tvid-timer" id="tvid-timer-display">05:00</div>
           </div>
           
@@ -808,7 +814,7 @@ function toggleMortalsDrawer() {
           </div>
 
           <div id="tvid-objective-box" class="tvid-objective-box">
-            <strong>🎯 Motivo y Objetivo:</strong> <span id="tvid-objective-text">Mantener estabilidad táctica y mental.</span>
+            <strong>🎯 Objetivo:</strong> <span id="tvid-objective-text">Mantener estabilidad táctica y mental.</span>
           </div>
 
           <div id="tvid-exercise-steps" class="tvid-steps-container"></div>
@@ -822,21 +828,7 @@ function toggleMortalsDrawer() {
       </div>
     </div>
 
-    <!-- Botones flotantes (Carga Rápida y Asesoría con Idioma) -->
-    <div style="position: fixed; bottom: 20px; right: 20px; z-index: 1500; display: flex; align-items: center; gap: 10px;">
-        <div style="display: flex; align-items: center; gap: 4px; background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(8px); padding: 6px 12px; border-radius: 30px; border: 1px solid var(--border-color, rgba(255,255,255,0.2)); box-shadow: 0 4px 12px rgba(0,0,0,0.5);">
-            <button onclick="toggleAdvisorLang()" id="advisor-lang-btn" style="background: rgba(255, 255, 255, 0.15); border: 1px solid rgba(255, 255, 255, 0.3); color: var(--text-main, #ffffff); width: 28px; height: 28px; border-radius: 50%; font-weight: 600; font-size: 0.75rem; cursor: pointer;">ES</button>
-            <button onclick="toggleTravelAdvisorModal()" style="background: none; border: none; color: var(--text-main, #fff); font-weight: 600; font-size: 0.85rem; cursor: pointer; display: flex; align-items: center; gap: 6px;">
-                ✈️ <span id="float-btn-text">Asesoría de Viaje Privada</span>
-            </button>
-        </div>
-
-        <button onclick="toggleTvidWindow()" style="background: rgba(212, 175, 55, 0.25); border: 1px solid var(--accent-color, #d4af37); color: var(--text-main, #ffffff); padding: 10px 16px; border-radius: 30px; font-weight: 600; font-size: 0.85rem; cursor: pointer; backdrop-filter: blur(5px); box-shadow: 0 4px 12px rgba(0,0,0,0.5);">
-            ⚡ Carga Rápida (TVid)
-        </button>
-    </div>
-
-    <!-- Estilos CSS Actualizados -->
+    <!-- Estilos CSS -->
     <style>
       .tvid-modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(10, 10, 12, 0.85); backdrop-filter: blur(12px); display: flex; justify-content: center; align-items: center; z-index: 9999; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
       .tvid-modal-container { background: var(--card-bg, #141416); border: 1px solid var(--border-color, rgba(255, 255, 255, 0.1)); width: 90%; max-width: 460px; border-radius: 16px; padding: 20px; color: var(--text-main, #f1f1f3); box-shadow: 0 20px 40px rgba(0,0,0,0.6); }
@@ -853,7 +845,6 @@ function toggleMortalsDrawer() {
       .tvid-back-btn { background: none; border: none; color: var(--accent-color, #d4af37); cursor: pointer; font-size: 12px; }
       .tvid-timer { font-family: monospace; font-size: 14px; color: var(--accent-color, #d4af37); background: rgba(212, 175, 55, 0.1); padding: 3px 6px; border-radius: 4px; }
       
-      /* Círculo Respiratorio */
       .tvid-breath-container { display: flex; justify-content: center; align-items: center; margin: 15px 0; }
       .tvid-breath-circle { width: 90px; height: 90px; border-radius: 50%; background: rgba(212, 175, 55, 0.15); border: 2px solid var(--accent-color, #d4af37); display: flex; justify-content: center; align-items: center; font-size: 13px; font-weight: 600; color: var(--accent-color, #d4af37); transition: transform 4s ease-in-out; box-shadow: 0 0 20px rgba(212, 175, 55, 0.2); }
       .tvid-breath-circle.inhale { transform: scale(1.35); }
@@ -866,164 +857,39 @@ function toggleMortalsDrawer() {
       .tvid-main-action { flex: 1; background: var(--accent-color, #d4af37); color: var(--bg-color, #0a0a0c); border: none; padding: 10px; border-radius: 8px; font-weight: 600; font-size: 13px; cursor: pointer; }
     </style>
 
-    <!-- Lógica JavaScript Integrada -->
+    <!-- Lógica JavaScript Funcional e Independiente -->
     <script>
       let tvidLang = 'es';
+      let advisorLang = 'es';
 
       const tvidData = {
         'Madre': {
-          es: {
-            title: "❤️ Técnica de la Madre",
-            objective: "Desarrollar contención emocional y paciencia protectora ante cargas complejas.",
-            steps: [
-              "Siéntate cómodamente. Inhala lentamente por la nariz en 4 segundos, expandiendo el pecho.",
-              "Mantén el aire 2 segundos visualizando el propósito de cuidar tu estabilidad actual.",
-              "Exhala suavemente en 6 segundos liberando la presión acumulada.",
-              "Coloca una mano en tu pecho y decide con firmeza: 'Me trataré con paciencia hoy.'"
-            ]
-          },
-          en: {
-            title: "❤️ Mother Technique",
-            objective: "Develop emotional containment and protective patience under complex pressure.",
-            steps: [
-              "Sit comfortably. Inhale slowly through your nose for 4 seconds, expanding your chest.",
-              "Hold the air for 2 seconds while visualizing the purpose of protecting your stability.",
-              "Exhale smoothly in 6 seconds releasing accumulated pressure.",
-              "Place a hand on your chest and decide firmly: 'I will treat myself with patience today.'"
-            ]
-          }
+          es: { title: "❤️ Técnica de la Madre", objective: "Desarrollar contención emocional y paciencia protectora.", steps: ["Inhala lentamente por la nariz en 4 segundos, expandiendo el pecho.", "Mantén el aire 2 segundos visualizando estabilidad.", "Exhala suavemente en 6 segundos liberando la presión.", "Decide con firmeza: 'Me trataré con paciencia hoy.'"] },
+          en: { title: "❤️ Mother Technique", objective: "Develop emotional containment and protective patience.", steps: ["Inhale slowly through your nose for 4 seconds.", "Hold the air for 2 seconds visualizing stability.", "Exhale smoothly in 6 seconds releasing pressure.", "Decide firmly: 'I will treat myself with patience today.'"] }
         },
         'Padre': {
-          es: {
-            title: "💪 Técnica del Padre",
-            objective: "Establecer autoridad interna, estructura y dirección firme de decisiones.",
-            steps: [
-              "Ponte de pie con los pies firmes al ancho de los hombros. Postura recta y erguida.",
-              "Inhala profundo fortaleciendo el tronco en 4 segundos.",
-              "Retén 2 segundos afirmando: 'Tengo el control de mi siguiente decisión.'",
-              "Exhala en 6 segundos asumiendo la responsabilidad con total seguridad."
-            ]
-          },
-          en: {
-            title: "💪 Father Technique",
-            objective: "Establish internal authority, structure, and firm decision direction.",
-            steps: [
-              "Stand with your feet firm at shoulder width. Straight and upright posture.",
-              "Inhale deeply strengthening your core in 4 seconds.",
-              "Hold for 2 seconds affirming: 'I am in control of my next decision.'",
-              "Exhale in 6 seconds taking responsibility with total confidence."
-            ]
-          }
+          es: { title: "💪 Técnica del Padre", objective: "Establecer autoridad interna y dirección de decisiones.", steps: ["Ponte de pie con postura recta y firme.", "Inhala profundo fortaleciendo el tronco en 4 segundos.", "Retén 2 segundos afirmando tu control.", "Exhala en 6 segundos asumiendo la responsabilidad."] },
+          en: { title: "💪 Father Technique", objective: "Establish internal authority and decision direction.", steps: ["Stand straight and firm.", "Inhale deeply strengthening your core in 4 seconds.", "Hold for 2 seconds affirming your control.", "Exhale in 6 seconds taking responsibility."] }
         },
         'Niño': {
-          es: {
-            title: "🧒 Técnica del Niño",
-            objective: "Romper la monotonía mediante curiosidad, flexibilidad y frescura mental.",
-            steps: [
-              "Observa a tu alrededor un objeto cotidiano ignorado descubriéndolo por primera vez.",
-              "Inhala en 4 segundos con asombro e inocencia.",
-              "Retén 2 segundos dibujando una sonrisa ligera.",
-              "Exhala en 6 segundos liberando rigidez mental y tensión."
-            ]
-          },
-          en: {
-            title: "🧒 Child Technique",
-            objective: "Break monotony through curiosity, flexibility, and mental freshness.",
-            steps: [
-              "Look around at an ignored everyday object discovering it for the first time.",
-              "Inhale in 4 seconds with wonder and innocence.",
-              "Hold for 2 seconds drawing a light smile.",
-              "Exhale in 6 seconds releasing mental rigidity and tension."
-            ]
-          }
+          es: { title: "🧒 Técnica del Niño", objective: "Romper la monotonía con curiosidad y frescura mental.", steps: ["Observa un objeto cotidiano descubriéndolo de nuevo.", "Inhala en 4 segundos con asombro e inocencia.", "Retén 2 segundos dibujando una sonrisa.", "Exhala en 6 segundos liberando la rigidez."] },
+          en: { title: "🧒 Child Technique", objective: "Break monotony with curiosity and mental freshness.", steps: ["Look around at an everyday object anew.", "Inhale in 4 seconds with wonder.", "Hold for 2 seconds with a light smile.", "Exhale in 6 seconds releasing rigidity."] }
         },
         'Beso': {
-          es: {
-            title: "💋 Técnica del Beso",
-            objective: "Generar empatía, afecto y reconciliación pacífica con el entorno.",
-            steps: [
-              "Cruza los brazos sobre el pecho simulando un abrazo protector y cálido.",
-              "Inhala en 4 segundos pensando: 'Acepto mis procesos con afecto.'",
-              "Retén 2 segundos conectando con la paz interior.",
-              "Exhala en 6 segundos proyectando consideración hacia ti y los demás."
-            ]
-          },
-          en: {
-            title: "💋 Kiss Technique",
-            objective: "Generate empathy, affection, and peaceful reconciliation with surroundings.",
-            steps: [
-              "Cross your arms over your chest simulating a protective and warm hug.",
-              "Inhale in 4 seconds thinking: 'I accept my processes with affection.'",
-              "Hold for 2 seconds connecting with inner peace.",
-              "Exhale in 6 seconds projecting consideration toward yourself and others."
-            ]
-          }
+          es: { title: "💋 Técnica del Beso", objective: "Generar empatía y reconciliación pacífica.", steps: ["Cruza los brazos simulando un abrazo cálido.", "Inhala en 4 segundos aceptando tus procesos.", "Retén 2 segundos conectando con la paz.", "Exhala en 6 segundos proyectando consideración."] },
+          en: { title: "💋 Kiss Technique", objective: "Generate empathy and peaceful reconciliation.", steps: ["Cross your arms simulating a warm hug.", "Inhale in 4 seconds accepting your processes.", "Hold for 2 seconds connecting with peace.", "Exhale in 6 seconds projecting consideration."] }
         },
         'Mal': {
-          es: {
-            title: "⚫ Técnica del Mal",
-            objective: "Transformar adversidades pasadas en aprendizajes y cicatrices útiles.",
-            steps: [
-              "Lleva una mano al abdomen y respira ante cualquier dificultad reciente.",
-              "Inhala en 4 segundos analizando: ¿Qué enseñanza me dejó este obstáculo?",
-              "Retén 2 segundos separando el problema de tu valor personal.",
-              "Exhala en 6 segundos decidiendo aplicar un cambio positivo inmediato."
-            ]
-          },
-          en: {
-            title: "⚫ Adversity Technique",
-            objective: "Transform past adversities into useful lessons and scars.",
-            steps: [
-              "Place one hand on your abdomen and breathe facing any recent difficulty.",
-              "Inhale in 4 seconds analyzing: What lesson did this obstacle leave me?",
-              "Hold for 2 seconds separating the problem from your self-worth.",
-              "Exhale in 6 seconds deciding to apply an immediate positive change."
-            ]
-          }
+          es: { title: "⚫ Técnica del Mal", objective: "Transformar adversidades en aprendizajes útiles.", steps: ["Lleva una mano al abdomen y respira ante la dificultad.", "Inhala en 4 segundos analizando el aprendizaje.", "Retén 2 segundos separando el problema de tu valor.", "Exhala en 6 segundos aplicando un cambio positivo."] },
+          en: { title: "⚫ Adversity Technique", objective: "Transform adversities into useful lessons.", steps: ["Place one hand on your abdomen and breathe.", "Inhale in 4 seconds analyzing the lesson.", "Hold for 2 seconds separating the problem from self-worth.", "Exhale in 6 seconds applying positive change."] }
         },
         'Bien': {
-          es: {
-            title: "☀️ Técnica del Bien",
-            objective: "Valorar logros diarios, estabilidad y optimizar el enfoque constructivo.",
-            steps: [
-              "Identifica un beneficio, un logro y un disfrute obtenido en tu jornada.",
-              "Inhala profundamente en 4 segundos absorbiendo energía positiva.",
-              "Retén 2 segundos sintiendo gratitud por la estabilidad alcanzada.",
-              "Exhala en 6 segundos dejando ir lo innecesario y preparando tu siguiente paso."
-            ]
-          },
-          en: {
-            title: "☀️ Wellbeing Technique",
-            objective: "Appreciate daily achievements, stability, and optimize constructive focus.",
-            steps: [
-              "Identify a benefit, an achievement, and an enjoyment obtained today.",
-              "Inhale deeply in 4 seconds absorbing positive energy.",
-              "Hold for 2 seconds feeling gratitude for the stability achieved.",
-              "Exhale in 6 seconds letting go of the unnecessary and preparing your next step."
-            ]
-          }
+          es: { title: "☀️ Técnica del Bien", objective: "Valorar logros diarios y optimizar enfoque.", steps: ["Identifica un logro y un disfrute de tu jornada.", "Inhala profundamente absorbiendo energía positiva.", "Retén 2 segundos sintiendo gratitud.", "Exhala dejando ir lo innecesario."] },
+          en: { title: "☀️ Wellbeing Technique", objective: "Appreciate daily achievements and constructive focus.", steps: ["Identify an achievement from today.", "Inhale deeply absorbing positive energy.", "Hold for 2 seconds feeling gratitude.", "Exhale letting go of the unnecessary."] }
         },
         'Guerra': {
-          es: {
-            title: "⚔️ Técnica de Guerra",
-            objective: "Estrategia de adaptación táctica, resistencia y serenidad ante retos críticos.",
-            steps: [
-              "Adopta una postura firme, equilibrada y centrada en el momento presente.",
-              "Inhala profundamente en 4 segundos evaluando con frialdad la realidad.",
-              "Retén 2 segundos decidiendo con sensatez: ¿Actuar, esperar o adaptar?",
-              "Exhala en 6 segundos afirmando: 'Tengo la capacidad táctica para resolver esto.'"
-            ]
-          },
-          en: {
-            title: "⚔️ Strategy Technique",
-            objective: "Tactical adaptation strategy, endurance, and serenity under critical challenges.",
-            steps: [
-              "Adopt a firm, balanced posture centered on the present moment.",
-              "Inhale deeply in 4 seconds evaluating reality with cold clarity.",
-              "Hold for 2 seconds deciding sensibly: Act, wait, or adapt?",
-              "Exhale in 6 seconds affirming: 'I have the tactical capacity to resolve this.'"
-            ]
-          }
+          es: { title: "⚔️ Técnica de Guerra", objective: "Adaptación táctica y serenidad ante retos críticos.", steps: ["Adopta una postura firme y centrada.", "Inhala evaluando con frialdad la realidad.", "Retén decidiendo con sensatez tu próximo paso.", "Exhala afirmando tu capacidad de resolución."] },
+          en: { title: "⚔️ Strategy Technique", objective: "Tactical adaptation and serenity under challenges.", steps: ["Adopt a firm, centered posture.", "Inhale evaluating reality with clarity.", "Hold deciding sensibly your next move.", "Exhale affirming your resolution capacity."] }
         }
       };
 
@@ -1032,6 +898,32 @@ function toggleMortalsDrawer() {
       let countdownInterval = null;
       let breathAnimationInterval = null;
 
+      // Idioma y control de Viajes
+      function toggleAdvisorLang() {
+        advisorLang = advisorLang === 'es' ? 'en' : 'es';
+        document.getElementById('advisor-lang-btn').innerText = advisorLang.toUpperCase();
+        
+        if (advisorLang === 'en') {
+          document.getElementById('float-btn-text').innerText = "Private Travel Advisory";
+          document.getElementById('modal-advisor-title').innerText = "May Roga LLC - Luxury Travel";
+          document.getElementById('modal-advisor-desc').innerText = "Connect directly with your certified private advisor to design custom itineraries and manage exclusive bookings.";
+          document.getElementById('wa-btn-label').innerText = "Direct WhatsApp Chat";
+          document.getElementById('email-btn-label').innerText = "Send Email";
+        } else {
+          document.getElementById('float-btn-text').innerText = "Asesoría de Viaje Privada";
+          document.getElementById('modal-advisor-title').innerText = "May Roga LLC - Viajes de Lujo";
+          document.getElementById('modal-advisor-desc').innerText = "Conecta directamente con tu asesor privado certificado para diseñar itinerarios a la medida y gestionar tus reservas exclusivas.";
+          document.getElementById('wa-btn-label').innerText = "Chat Directo por WhatsApp";
+          document.getElementById('email-btn-label').innerText = "Enviar Correo Electrónico";
+        }
+      }
+
+      function toggleTravelAdvisorModal() {
+        const modal = document.getElementById('travel-advisor-modal');
+        modal.style.display = modal.style.display === 'flex' ? 'none' : 'flex';
+      }
+
+      // Idioma y control de Carga Rápida (TVid) con voz automática en todo momento
       function toggleTvidWindow() {
         const modal = document.getElementById('tvid-floating-window');
         const isVisible = modal.style.display === 'flex';
@@ -1050,9 +942,10 @@ function toggleMortalsDrawer() {
         document.getElementById('tvid-lang-btn').innerText = tvidLang.toUpperCase();
         
         document.getElementById('tvid-main-title').innerText = tvidLang === 'es' ? 'Puerto de Carga Rápida' : 'Quick Recharge Port';
-        document.getElementById('tvid-subtitle-text').innerText = tvidLang === 'es' ? 'Selecciona tu protocolo de adaptación y bienestar:' : 'Select your adaptation and wellness protocol:';
+        document.getElementById('tvid-subtitle-text').innerText = tvidLang === 'es' ? 'Selecciona tu protocolo de adaptación y bienestar:' : 'Select your protocol:';
         document.getElementById('tvid-back-text').innerText = tvidLang === 'es' ? '← Volver' : '← Back';
         document.getElementById('tvid-speak-btn').innerText = tvidLang === 'es' ? '🔊 Escuchar' : '🔊 Listen';
+        document.getElementById('tvid-float-label').innerText = tvidLang === 'es' ? 'Carga Rápida (TVid)' : 'Quick Recharge (TVid)';
         
         if (currentTechKey) {
           updateTvidViewLang();
@@ -1065,8 +958,9 @@ function toggleMortalsDrawer() {
         document.getElementById('tvid-selection-screen').style.display = 'none';
         document.getElementById('tvid-exercise-screen').style.display = 'block';
         updateTvidViewLang();
-        startTvidTimer(300);
+        startTvidTimer(300); // Exactos 300 segundos (5 minutos)
         startBreathCycle();
+        speakCurrentStep(); // La voz habla automáticamente al iniciar el ejercicio
       }
 
       function updateTvidViewLang() {
@@ -1089,7 +983,7 @@ function toggleMortalsDrawer() {
         currentStepIndex++;
         if (currentStepIndex < langData.steps.length) {
           updateTvidViewLang();
-          speakCurrentStep();
+          speakCurrentStep(); // Habla automáticamente al cambiar de paso
         } else {
           closeTvidWindow();
         }
@@ -1105,9 +999,7 @@ function toggleMortalsDrawer() {
         if (!currentTechKey) return;
         const langData = tvidData[currentTechKey][tvidLang];
         const textToSpeak = langData.steps[currentStepIndex];
-        if (typeof speak === 'function') {
-          speak(textToSpeak);
-        } else if ('speechSynthesis' in window) {
+        if ('speechSynthesis' in window) {
           window.speechSynthesis.cancel();
           const utterance = new SpeechSynthesisUtterance(textToSpeak);
           utterance.lang = tvidLang === 'es' ? 'es-ES' : 'en-US';
@@ -1118,7 +1010,7 @@ function toggleMortalsDrawer() {
       function startBreathCycle() {
         const circle = document.getElementById('tvid-breath-circle');
         const label = document.getElementById('tvid-breath-label');
-        let state = 0; // 0: Inhala, 1: Retén, 2: Exhala
+        let state = 0;
 
         if (breathAnimationInterval) clearInterval(breathAnimationInterval);
 
@@ -1128,7 +1020,7 @@ function toggleMortalsDrawer() {
             label.innerText = tvidLang === 'es' ? 'Inhala' : 'Inhale';
             state = 1;
           } else if (state === 1) {
-            circle.className = 'tvid-breath-circle inhale'; // Mantener expandido
+            circle.className = 'tvid-breath-circle inhale';
             label.innerText = tvidLang === 'es' ? 'Mantén' : 'Hold';
             state = 2;
           } else {
@@ -1158,6 +1050,7 @@ function toggleMortalsDrawer() {
       function stopTvidTimers() {
         if (countdownInterval) clearInterval(countdownInterval);
         if (breathAnimationInterval) clearInterval(breathAnimationInterval);
+        if ('speechSynthesis' in window) window.speechSynthesis.cancel();
       }
 
       function closeTvidWindow() {
