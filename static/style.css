@@ -808,3 +808,140 @@ button,
 -webkit-user-select:none;
 user-select:none
 }
+/* =========================================================
+   ESTILOS DE STRIPE Y LOGIN (PAYWALL)
+   ========================================================= */
+
+#paywallModal {
+    position: fixed;
+    inset: 0;
+    width: 100vw;
+    height: 100vh;
+    height: 100dvh;
+    background: rgba(0, 0, 0, 0.88);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 99999;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+.paywall-card {
+    background-color: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius);
+    padding: 32px 24px;
+    width: min(420px, 100%);
+    text-align: center;
+    box-shadow: var(--shadow);
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.paywall-card .brand-title {
+    font-size: 1.4rem;
+    font-weight: 600;
+    letter-spacing: 2px;
+    color: var(--accent-color);
+}
+
+.paywall-card .brand-subtitle {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+}
+
+.pricing-options {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.price-btn {
+    background: linear-gradient(135deg, #635bff 0%, #4f46e5 100%);
+    color: #fff;
+    border: none;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 18px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 0.95krem;
+    cursor: pointer;
+    transition: opacity 0.2s ease, transform 0.15s ease;
+}
+
+.price-btn:hover {
+    opacity: 0.92;
+    border-color: transparent;
+}
+
+.price-btn .price {
+    background: rgba(255, 255, 255, 0.2);
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 0.9rem;
+}
+
+.divider {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    margin: 8px 0;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    position: relative;
+}
+
+.login-form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.login-input {
+    width: 100%;
+    background-color: var(--bg-color);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    padding: 12px;
+    color: var(--text-main);
+    font-size: 0.95rem;
+}
+
+.login-input:focus {
+    outline: none;
+    border-color: var(--accent-color);
+}
+
+.login-btn {
+    background-color: #10b981;
+    color: #fff;
+    border: none;
+    padding: 12px;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.login-btn:hover {
+    background-color: #059669;
+    border-color: transparent;
+}
+
+.error-msg {
+    color: var(--danger-color);
+    font-size: 0.85rem;
+    display: none;
+    margin-top: 4px;
+}
+
+#appInterface {
+    display: none; /* Se mantiene oculto hasta validar acceso o pago */
+    flex-direction: column;
+    flex: 1;
+    width: 100%;
+}
