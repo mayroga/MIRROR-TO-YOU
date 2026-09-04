@@ -1,25 +1,17 @@
 import os
 import httpx
-import stripe
-from fastapi import FastAPI, HTTPException, Request, Header
+from fastapi import FastAPI, HTTPException
 from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from pydantic import BaseModel
 from typing import List
 
 app = FastAPI(title="MIRROR TO YOU", version="1.0.0")
 
-# Inicializar Stripe con la llave secreta y el webhook secret desde Render
-stripe.api_key = os.getenv("STRIPE_SECRET_KEY")
-STRIPE_WEBHOOK_SECRET = os.getenv("STRIPE_WEBHOOK_SECRET")
-
 VOLATILE_KERNEL = {}
 
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
-
-# Credenciales de administración/acceso libre obtenidas de Render
-ADMIN_USER = os.getenv("ADMIN_USERNAME")
-ADMIN_PASS = os.getenv("ADMIN_PASSWORD")
 
 class Message(BaseModel):
     role: str
@@ -32,70 +24,6 @@ class ChatRequest(BaseModel):
 class WellnessRequest(BaseModel):
     objective: str
     duration_seconds: int = 60
-
-class CheckoutRequest(BaseModel):
-    price_type: str  # "1" para $200 (diario) o "2" para $499 (mensual)
-
-class LoginRequest(BaseModel):
-    username: str
-    password: str
-
-@app.post("/api/create-checkout-session")
-async def create_checkout_session(req: CheckoutRequest):
-    try:
-        # Seleccionar el Price ID correspondiente basado en las variables de Render
-        price_id = os.getenv("STRIPE_PRICE_ID1") if req.price_type == "1" else os.getenv("STRIPE_PRICE_ID2")
-        
-        if not price_id:
-            raise HTTPException(status_code=400, detail="Price ID de Stripe no configurado en el servidor.")
-
-        # Obtener el dominio actual o usar la URL de tu app en Render
-        domain_url = os.getenv("RENDER_EXTERNAL_URL", "https://mirror-to-you.onrender.com")
-
-        checkout_session = stripe.checkout.Session.create(
-            payment_method_types=['card'],
-            line_items=[{
-                'price': price_id,
-                'quantity': 1,
-            }],
-            mode='payment' if req.price_type == "1" else 'subscription',
-            success_url=domain_url + "/?success=true",
-            cancel_url=domain_url + "/?canceled=true",
-        )
-        return {"url": checkout_session.url}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
-@app.post("/api/webhook")
-async def stripe_webhook(request: Request, stripe_signature: str = Header(None)):
-    payload = await request.body()
-
-    if not STRIPE_WEBHOOK_SECRET:
-        raise HTTPException(status_code=400, detail="Webhook secret not configured.")
-
-    try:
-        event = stripe.Webhook.construct_event(
-            payload, stripe_signature, STRIPE_WEBHOOK_SECRET
-        )
-    except ValueError:
-        raise HTTPException(status_code=400, detail="Invalid payload")
-    except stripe.error.SignatureVerificationError:
-        raise HTTPException(status_code=400, detail="Invalid signature")
-
-    # Respaldo automático: captura cuando un pago o suscripción se completa exitosamente
-    if event['type'] == 'checkout.session.completed':
-        session = event['data']['object']
-        # Aquí puedes registrar la transacción o activar accesos de respaldo en el servidor
-        print(f"Pago confirmado mediante Webhook para la sesión: {session.get('id')}")
-
-    return {"status": "success"}
-
-@app.post("/api/login")
-async def login_access(req: LoginRequest):
-    # Validar contra las variables ADMIN_USERNAME y ADMIN_PASSWORD de Render
-    if ADMIN_USER and ADMIN_PASS and req.username == ADMIN_USER and req.password == ADMIN_PASS:
-        return {"status": "success", "message": "Acceso autorizado"}
-    raise HTTPException(status_code=401, detail="Usuario o contraseña incorrectos")
 
 @app.post("/api/chat")
 async def process_chat_directive(req: ChatRequest):
