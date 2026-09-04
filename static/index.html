@@ -41,13 +41,7 @@ footer{text-align:center;font-size:.8rem;color:var(--text-muted);padding-top:20p
 #shutdown-overlay{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:#0b0f19;z-index:3000;justify-content:center;align-items:center;text-align:center;padding:20px}
 </style>
 </head>
-```[cite: 3]
 
----
-
-**Respuesta 2: Puertas de acceso, cabecera y paneles principales**
-
-```html
 <body>
 
 <div id="legal-gate">
@@ -145,13 +139,7 @@ footer{text-align:center;font-size:.8rem;color:var(--text-muted);padding-top:20p
 <span id="footer-text">Sesión Volátil Encriptada. Cero Datos Retenidos.</span>
 <span id="timer-display" style="font-family:monospace;color:var(--accent-color)">10:00</span>
 </footer>
-```[cite: 3]
 
----
-
-**Respuesta 3: Funciones principales y lógica de sesión (JavaScript part 1)**
-
-```javascript
 <script>
 let currentLang='es',voiceEnabled=false,currentModeInterval=null,phraseInterval=null,sessionTimer=null,timeLeft=600;
 let conversationMemory=[],MAX_MEMORY_TURNS=15;
@@ -265,13 +253,6 @@ document.getElementById('btn-no').innerText=currentLang==='es'?'❓ No sé':'❓
 document.getElementById('btn-help').innerText=currentLang==='es'?'🤝 Ayúdame':'🤝 Help Me';
 document.getElementById('btn-send').innerText=currentLang==='es'?'Enviar Conversación':'Send Conversation'
 }
-```[cite: 3]
-
----
-
-**Respuesta 4: Control de voz, retos vitales y API de chat (JavaScript part 2)**
-
-```javascript
 function toggleVoiceGuide(){
 voiceEnabled=!voiceEnabled;
 document.getElementById('audio-btn').innerText=voiceEnabled?(currentLang==='es'?'🔊 Voz: ON':'🔊 Voice: ON'):(currentLang==='es'?'🔊 Voz: OFF':'🔊 Voice: OFF');
@@ -436,13 +417,6 @@ clearTimeout(timeoutId);
 output.innerText=currentLang==='es'?'Error de conexión o tiempo de espera agotado. Intente nuevamente.':'Connection error or timeout. Please try again.'
 }
 }
-```[cite: 3]
-
----
-
-**Respuesta 5: Módulo de Asesoría Privada y Estilos CSS Integrados**
-
-```javascript
 function toggleMortalsDrawer(){
 const drawer=document.getElementById('mortals-drawer');
 drawer.style.display=drawer.style.display==='block'?'none':'block';
@@ -597,13 +571,7 @@ document.getElementById('whatsapp-link').href='https://wa.me/17866471371?text=Ho
 .tvid-sec-action,.tvid-main-action{font-size:12px;padding:9px 7px}
 }
 </style>
-```[cite: 3]
 
----
-
-**Respuesta 6: Diccionario de Técnicas TVid y Lógica de Progreso**
-
-```javascript
 <script>
 let tvidLang='es';
 const TVID_PROGRESS_KEY='mirror_to_you_tvid_technique_progress_v3';
