@@ -41,7 +41,6 @@ footer{text-align:center;font-size:.8rem;color:var(--text-muted);padding-top:20p
 #shutdown-overlay{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:#0b0f19;z-index:3000;justify-content:center;align-items:center;text-align:center;padding:20px}
 </style>
 </head>
-
 <body>
 
 <div id="legal-gate">
@@ -235,7 +234,7 @@ document.getElementById('gate-title').innerText=currentLang==='es'?'AVISO LEGAL 
 document.getElementById('gate-text').innerText=currentLang==='es'?'El acceso a esta plataforma implica la aceptación absoluta de nuestros términos de exención de responsabilidad. Este sistema opera exclusivamente como un facilitador de bienestar privado y orientación general de estilo de vida. No proporciona asesoría médica, legal ni financiera. Al presionar el botón de inicio, usted reconoce que utiliza este servicio bajo su propia discreción y soberanía.':'Access to this platform implies absolute acceptance of our liability waiver terms. This system operates exclusively as a private wellness facilitator and general lifestyle orientation. It does not provide medical, legal, or financial advice. By pressing start, you acknowledge you use this service under your own discretion.';
 document.getElementById('gate-start-btn').innerText=currentLang==='es'?'Empezar':'Start';
 document.getElementById('wellness-title').innerText=currentLang==='es'?'Bienestar y Antifatiga':'Precision Wellness';
-document.getElementById('travel-title').innerText=currentLang==='es'?'Asesor Conversacional':'Conversational Advisor';
+document.getElementById('travel-title').innerText=currentLang==='es'?'Asesor Conversacional Mirror To You':'Mirror To You Conversational Advisor';
 document.getElementById('footer-text').innerText=currentLang==='es'?'Sesión Volátil Encriptada. Cero Datos Retenidos.':'Encrypted Volatile Session. Zero Data Retained.';
 document.getElementById('close-btn').innerText=currentLang==='es'?'Cerrar':'Close';
 document.getElementById('travel-input').placeholder=currentLang==='es'?'Escriba su consulta o use los botones de asistencia...':'Type your query or use assistance buttons...';
@@ -253,6 +252,7 @@ document.getElementById('btn-no').innerText=currentLang==='es'?'❓ No sé':'❓
 document.getElementById('btn-help').innerText=currentLang==='es'?'🤝 Ayúdame':'🤝 Help Me';
 document.getElementById('btn-send').innerText=currentLang==='es'?'Enviar Conversación':'Send Conversation'
 }
+
 function toggleVoiceGuide(){
 voiceEnabled=!voiceEnabled;
 document.getElementById('audio-btn').innerText=voiceEnabled?(currentLang==='es'?'🔊 Voz: ON':'🔊 Voice: ON'):(currentLang==='es'?'🔊 Voz: OFF':'🔊 Voice: OFF');
@@ -363,7 +363,7 @@ resolveTravelDirective()
 
 function handleHelpMe(){
 const inputField=document.getElementById('travel-input');
-inputField.value=currentLang==='es'?"Ayúdame à encontrar la mejor opción de bienestar y estabilidad.":"Help me find the best wellness and stability option.";
+inputField.value=currentLang==='es'?"Ayúdame a encontrar la mejor opción de bienestar y estabilidad.":"Help me find the best wellness and stability option.";
 resolveTravelDirective()
 }
 
@@ -417,6 +417,7 @@ clearTimeout(timeoutId);
 output.innerText=currentLang==='es'?'Error de conexión o tiempo de espera agotado. Intente nuevamente.':'Connection error or timeout. Please try again.'
 }
 }
+
 function toggleMortalsDrawer(){
 const drawer=document.getElementById('mortals-drawer');
 drawer.style.display=drawer.style.display==='block'?'none':'block';
@@ -435,15 +436,15 @@ advisorLang=advisorLang==='es'?'en':'es';
 document.getElementById('advisor-lang-btn').innerText=advisorLang.toUpperCase();
 
 if(advisorLang==='en'){
-document.getElementById('float-btn-text').innerText='Private Travel Advisory';
-document.getElementById('modal-advisor-title').innerText='May Roga LLC - Luxury Travel';
+document.getElementById('float-btn-text').innerText='Private Mirror To You Advisory';
+document.getElementById('modal-advisor-title').innerText='Mirror To You - Private Advisory';
 document.getElementById('modal-advisor-desc').innerText='Connect directly with your certified private advisor to design custom itineraries and manage exclusive bookings.';
 document.getElementById('wa-btn-label').innerText='Direct WhatsApp Chat';
 document.getElementById('email-btn-label').innerText='Send Email';
 document.getElementById('whatsapp-link').href='https://wa.me/17866471371?text=Hello%20Maykel%2C%20I%20came%20from%20the%20app%20and%20want%20to%20quote%20a%20private%20trip%20or%20itinerary'
 }else{
-document.getElementById('float-btn-text').innerText='Asesoría de Viaje Privada';
-document.getElementById('modal-advisor-title').innerText='May Roga LLC - Viajes de Lujo';
+document.getElementById('float-btn-text').innerText='Asesoría Privada Mirror To You';
+document.getElementById('modal-advisor-title').innerText='Mirror To You - Asesoría Privada';
 document.getElementById('modal-advisor-desc').innerText='Conecta directamente con tu asesor privado certificado para diseñar itinerarios a la medida y gestionar tus reservas exclusivas.';
 document.getElementById('wa-btn-label').innerText='Chat Directo por WhatsApp';
 document.getElementById('email-btn-label').innerText='Enviar Correo Electrónico';
@@ -454,17 +455,17 @@ document.getElementById('whatsapp-link').href='https://wa.me/17866471371?text=Ho
 
 <div id="travel-advisor-float" style="position:fixed;bottom:20px;right:20px;z-index:1500;display:flex;align-items:center;gap:8px">
 <button onclick="toggleAdvisorLang()" id="advisor-lang-btn" style="background:rgba(255,255,255,.15);backdrop-filter:blur(5px);border:1px solid rgba(255,255,255,.3);color:var(--text-main,#fff);padding:10px 12px;border-radius:50%;font-weight:600;font-size:.8rem;cursor:pointer;box-shadow:0 4px 12px rgba(0,0,0,.3);transition:background .2s ease" title="Cambiar Idioma / Switch Language">ES</button>
-<button onclick="toggleTravelAdvisorModal()" style="background:var(--accent-color,#d4af37);color:var(--bg-color,#0a0a0c);border:none;padding:12px 20px;border-radius:30px;font-weight:600;font-size:.9rem;cursor:pointer;box-shadow:0 4px 12px rgba(0,0,0,.5);display:flex;align-items:center;gap:8px">✈️ <span id="float-btn-text">Asesoría de Viaje Privada</span></button>
+<button onclick="toggleTravelAdvisorModal()" style="background:var(--accent-color,#d4af37);color:var(--bg-color,#0a0a0c);border:none;padding:12px 20px;border-radius:30px;font-weight:600;font-size:.9rem;cursor:pointer;box-shadow:0 4px 12px rgba(0,0,0,.5);display:flex;align-items:center;gap:8px">✨ <span id="float-btn-text">Asesoría Privada Mirror To You</span></button>
 </div>
 
 <div id="travel-advisor-modal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(11,15,25,.85);z-index:2500;justify-content:center;align-items:center;padding:20px">
 <div class="legal-box travel-advisor-box" style="position:relative;max-width:450px;background:var(--card-bg,#141416);padding:24px;border-radius:16px;border:1px solid var(--border-color,rgba(255,255,255,.1));color:var(--text-main,#f1f1f3)">
 <button onclick="toggleTravelAdvisorModal()" style="position:absolute;top:15px;right:15px;background:none;border:none;color:var(--text-muted,#888);font-size:1.2rem;cursor:pointer">✕</button>
-<h2 id="modal-advisor-title" style="color:var(--accent-color,#d4af37);margin-bottom:10px;font-size:1.2rem">May Roga LLC - Viajes de Lujo</h2>
+<h2 id="modal-advisor-title" style="color:var(--accent-color,#d4af37);margin-bottom:10px;font-size:1.2rem">Mirror To You - Asesoría Privada</h2>
 <p id="modal-advisor-desc" style="color:var(--text-muted,#ccc);font-size:.9rem;margin-bottom:20px;text-align:left">Conecta directamente con tu asesor privado certificado para diseñar itinerarios a la medida y gestionar tus reservas exclusivas.</p>
 <div style="display:flex;flex-direction:column;gap:12px">
 <a id="whatsapp-link" href="https://wa.me/17866471371?text=Hola%20Maykel%2C%20vengo%20de%20la%20aplicación%20y%20deseo%20cotizar%20un%20viaje%20o%20itinerario%20privado" target="_blank" style="background:#25d366;color:#fff;padding:12px;border-radius:6px;text-decoration:none;font-weight:600;font-size:.95rem;display:flex;align-items:center;justify-content:center;gap:8px">💬 <span id="wa-btn-label">Chat Directo por WhatsApp</span></a>
-<a id="email-link" href="mailto:maykel75122805321@gmail.com?subject=Solicitud%20de%20Asesoría%20de%20Viaje%20Privada" style="background:var(--card-bg,#1e1e22);border:1px solid var(--border-color,rgba(255,255,255,.2));color:var(--text-main,#fff);padding:12px;border-radius:6px;text-decoration:none;font-weight:600;font-size:.95rem;display:flex;align-items:center;justify-content:center;gap:8px">✉️ <span id="email-btn-label">Enviar Correo Electrónico</span></a>
+<a id="email-link" href="mailto:maykel75122805321@gmail.com?subject=Solicitud%20de%20Asesoría%20Privada%20Mirror%20To%20You" style="background:var(--card-bg,#1e1e22);border:1px solid var(--border-color,rgba(255,255,255,.2));color:var(--text-main,#fff);padding:12px;border-radius:6px;text-decoration:none;font-weight:600;font-size:.95rem;display:flex;align-items:center;justify-content:center;gap:8px">✉️ <span id="email-btn-label">Enviar Correo Electrónico</span></a>
 </div>
 <div class="tvid-curtain">
 <button class="tvid-curtain-toggle" onclick="toggleTvidWindow()" type="button">
@@ -584,7 +585,7 @@ es:[
 {title:"❤️ Técnica de la Madre — Protege tu sueño",objective:"Cuidar un sueño o deseo y convertirlo en una posibilidad de crecimiento.",steps:["Piensa en un sueño que quieras conservar.","Inhala durante 4 segundos imaginándolo pequeño pero vivo.","Mantén 2 segundos como si protegieras una semilla.","Exhala durante 6 segundos y decide una acción sencilla que pueda ayudarlo a crecer."]},
 {title:"❤️ Técnica de la Madre — Alimenta lo bueno",objective:"Identificar algo positivo que necesita atención para desarrollarse.",steps:["Busca algo bueno que exista hoy en tu vida.","Inhala durante 4 segundos concentrándote en ello.","Mantén 2 segundos preguntándote qué podría hacerlo crecer.","Exhala durante 6 segundos y elige una forma concreta de alimentarlo con atención."]},
 {title:"❤️ Técnica de la Madre — Dale espacio para crecer",objective:"Aprender a cuidar sin controlar y permitir que las cosas evolucionen.",steps:["Piensa en algo que quieres mejorar sin forzarlo.","Inhala durante 4 segundos y relaja hombros y manos.","Mantén 2 segundos aceptando que crecer requiere tiempo.","Exhala durante 6 segundos y decide qué puedes hacer sin intentar controlar todo."]},
-{title:"❤️ Técnica de la Madre — Presencia protectora",objective:"Convertir la presencia y la atención en una práctica de cuidado.",steps:["Siéntate con comodidad y coloca ambos pies firmemente en el suelo.","Inhala durante 4 segundos prestando atención plena al momento.","Mantén 2 segundos preguntándote qué merece tu atención ahora.","Exhala durante 6 segundos y ofrece tu presencia completa a esa prioridad."]}
+{title:"❤️ Técnica de la Madre — Presencia protectora",objective:"Convertir la presencia y la atención en una forma práctica de cuidado.",steps:["Siéntate con comodidad y coloca ambos pies firmemente en el suelo.","Inhala durante 4 segundos prestando atención plena al momento.","Mantén 2 segundos preguntándote qué merece tu atención ahora.","Exhala durante 6 segundos y ofrece tu presencia completa a esa prioridad."]}
 ],
 en:[
 {title:"❤️ Mother Technique — Care for what matters",objective:"Care for what matters, protect it, and help it grow with patience.",steps:["Pause and adopt a comfortable, protective posture.","Inhale for 4 seconds while thinking of something that truly matters to you.","Hold for 2 seconds and ask what that important thing needs.","Exhale for 6 seconds and choose one small action to protect or help it grow."]},
@@ -640,7 +641,7 @@ es:[
 {title:"💋 Técnica del Beso — Tres palabras",objective:"Convertir el afecto en palabras sencillas que puedan mejorar un momento.",steps:["Piensa en alguien a quien quieras tratar con consideración.","Inhala durante 4 segundos y elige una palabra amable.","Mantén 2 segundos sintiendo la intención detrás de esa palabra.","Exhala durante 6 segundos y decide cuándo expresarla."]},
 {title:"💋 Técnica del Beso — El gesto invisible",objective:"Transformar la ternura en una intención positiva.",steps:["Piensa en una persona o en ti mismo como alguien que merece cuidado.","Inhala durante 4 segundos con una intención afectuosa.","Mantén 2 segundos y pregunta qué pequeño gesto sería útil.","Exhala durante 6 segundos y comprométete con ese gesto."]},
 {title:"💋 Técnica del Beso — Trato amable",objective:"Practicar consideración mediante la forma en que te hablas.",steps:["Observa cómo te estás hablando internamente.","Inhala durante 4 segundos y sustituye una frase dura por una amable.","Mantén 2 segundos aceptando que puedes corregirte sin maltratarte.","Exhala durante 6 segundos y conserva esa nueva forma de hablarte."]},
-{title:"💋 Técnica del Beso — Regala atención",objective:"Comprender que prestar atención también puede ser una expresión de afecto.",steps:["Piensa en alguien que merezca un poco más de tu atención.","Inhala durante 4 segundos imaginando que escuchas sin interrumpir.","Mantén 2 segundos con una actitud de consideración.","Exhala durante 6 segundos y decide ofrecer atención real cuando sea posible."]},
+{title:"💋 Técnica del Beso — Regala atención",objective:"Comprender que prestar atención también puede ser una expresión de afecto.",steps:["Piensa en alguien que merezca un poco más de tu atención.","Inhala durante 4 segundos imaginando que escuchas sin interrumpir.","Mantén 2 segundos con una actitud de consideración.","Exhala خلال 6 segundos y decide ofrecer atención real cuando sea posible."]},
 {title:"💋 Técnica del Beso — Amor en acción",objective:"Convertir una intención afectuosa en una acción concreta y sencilla.",steps:["Elige una persona, situación o aspecto de ti que quieras cuidar.","Inhala durante 4 segundos conectando con una intención de cariño.","Mantén 2 segundos preguntando qué necesita realmente.","Exhala durante 6 segundos y define un gesto concreto de cuidado."]}
 ],
 en:[
