@@ -25,6 +25,26 @@ class WellnessRequest(BaseModel):
     objective: str
     duration_seconds: int = 60
 
+class CheckoutRequest(BaseModel):
+    price_type: str
+
+class LoginRequest(BaseModel):
+    username: str
+    password: str
+
+@app.post("/api/create-checkout-session")
+async def create_checkout_session(req: CheckoutRequest):
+    # Endpoint simulado o integrado con Stripe para pases de acceso
+    # price_type '1' para acceso diario, '2' para mensual por ejemplo
+    return {"url": "/?success=true"}
+
+@app.post("/api/login")
+async def handle_admin_login(req: LoginRequest):
+    # Validación sencilla para el acceso por usuario y contraseña
+    if req.username and req.password:
+        return {"status": "success", "access": "granted"}
+    raise HTTPException(status_code=401, detail="Invalid credentials")
+
 @app.post("/api/chat")
 async def process_chat_directive(req: ChatRequest):
     global VOLATILE_KERNEL
