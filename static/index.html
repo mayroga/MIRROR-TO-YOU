@@ -936,6 +936,87 @@ document.getElementById('tvid-floating-window').style.display='none';
 const arrow=document.getElementById('tvid-curtain-arrow');
 if(arrow)arrow.innerText='＋'
 }
+  <div class="paywall-container" id="paywallModal">
+        <div class="paywall-card">
+            <h1 class="brand-title">MIRROR TO YOU</h1>
+            <p class="brand-subtitle">Exclusive Wellness & Advisory Platform</p>
+            
+            <div class="pricing-options">
+                <button class="price-btn" onclick="startCheckout('1')">
+                    <span>Daily Access Pass</span>
+                    <span class="price">$200</span>
+                </button>
+                <button class="price-btn" onclick="startCheckout('2')">
+                    <span>Monthly Unlimited Pass</span>
+                    <span class="price">$499</span>
+                </button>
+            </div>
+
+            <div class="divider">Or Admin Access</div>
+
+            <div class="login-form">
+                <input type="text" id="usernameInput" class="login-input" placeholder="Username">
+                <input type="password" id="passwordInput" class="login-input" placeholder="Password">
+                <button class="login-btn" onclick="handleLogin()">Enter Platform</button>
+                <div class="error-msg" id="errorMsg">Invalid credentials supplied.</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="app-container" id="appInterface">
+        <!-- Main Application Interface Goes Here -->
+    </div>
+
+    <script>
+        // Autoverificación inmediata si regresa con éxito desde Stripe
+        window.addEventListener('DOMContentLoaded', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('success') === 'true') {
+                document.getElementById('paywallModal').style.display = 'none';
+                document.getElementById('appInterface').style.display = 'flex';
+            }
+        });
+
+        async function startCheckout(priceType) {
+            try {
+                const response = await fetch('/api/create-checkout-session', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ price_type: priceType })
+                });
+                const data = await response.json();
+                if (data.url) {
+                    window.location.href = data.url;
+                } else {
+                    alert('Could not initiate checkout session.');
+                }
+            } catch (err) {
+                alert('Connection error with Stripe gateway.');
+            }
+        }
+
+        async function handleLogin() {
+            const username = document.getElementById('usernameInput').value;
+            const password = document.getElementById('passwordInput').value;
+            const errorMsg = document.getElementById('errorMsg');
+
+            try {
+                const response = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+
+                if (response.ok) {
+                    document.getElementById('paywallModal').style.display = 'none';
+                    document.getElementById('appInterface').style.display = 'flex';
+                } else {
+                    errorMsg.style.display = 'block';
+                }
+            } catch (err) {
+                errorMsg.style.display = 'block';
+            }
+        }
 </script>
 
 </body>
