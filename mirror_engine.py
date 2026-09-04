@@ -1,17 +1,26 @@
 import os
 import httpx
+import stripe
 from fastapi import FastAPI, HTTPException
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse
 from pydantic import BaseModel
 from typing import List
 
-app = FastAPI(title="MIRROR TO YOU", version="1.0.0")
+app = FastAPI(title="MIRROR TO YOU", version="2.0.0")
 
 VOLATILE_KERNEL = {}
 
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+
+# Configuración oficial de Stripe con las variables de Render
+stripe.api_key = os.getenv("STRIPE_SECRET_KEY")
+STRIPE_PRICE_ID1 = os.getenv("STRIPE_PRICE_ID1")
+STRIPE_PRICE_ID2 = os.getenv("STRIPE_PRICE_ID2")
+
+# Credenciales de administrador desde Render
+ADMIN_USERNAME = os.getenv("ADMIN_USERNAME", "admin")
+ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "password")
 
 class Message(BaseModel):
     role: str
@@ -34,14 +43,28 @@ class LoginRequest(BaseModel):
 
 @app.post("/api/create-checkout-session")
 async def create_checkout_session(req: CheckoutRequest):
-    # Endpoint simulado o integrado con Stripe para pases de acceso
-    # price_type '1' para acceso diario, '2' para mensual por ejemplo
-    return {"url": "/?success=true"}
+    try:
+        price_id = STRIPE_PRICE_ID1 if req.price_type == "1" else STRIPE_PRICE_ID2
+        if not price_id:
+            raise HTTPException(status_code=400, detail="Price ID not configured.")
+        
+        session = stripe.checkout.Session.create(
+            payment_method_types=["card"],
+            line_items=[{
+                "price": price_id,
+                "quantity": 1,
+            }],
+            mode="payment",
+            success_url="https://mirror-to-you.onrender.com/?success=true",
+            cancel_url="https://mirror-to-you.onrender.com/?canceled=true",
+        )
+        return {"url": session.url}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
 @app.post("/api/login")
 async def handle_admin_login(req: LoginRequest):
-    # Validación sencilla para el acceso por usuario y contraseña
-    if req.username and req.password:
+    if req.username == ADMIN_USERNAME and req.password == ADMIN_PASSWORD:
         return {"status": "success", "access": "granted"}
     raise HTTPException(status_code=401, detail="Invalid credentials")
 
