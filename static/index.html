@@ -468,12 +468,14 @@ document.getElementById('whatsapp-link').href='https://wa.me/17866471371?text=Ho
 <a id="email-link" href="mailto:maykel75122805321@gmail.com?subject=Solicitud%20de%20Asesoría%20de%20Viaje%20Privada" style="background:var(--card-bg,#1e1e22);border:1px solid var(--border-color,rgba(255,255,255,.2));color:var(--text-main,#fff);padding:12px;border-radius:6px;text-decoration:none;font-weight:600;font-size:.95rem;display:flex;align-items:center;justify-content:center;gap:8px">✉️ <span id="email-btn-label">Enviar Correo Electrónico</span></a>
 </div>
 <div class="tvid-curtain">
-<button class="tvid-curtain-toggle" onclick="toggleTvidWindow()" type="button">
-<span>⚡ <span id="tvid-float-label">Carga Rápida (TVid)</span></span>
-<span class="tvid-curtain-controls">
-<span id="tvid-curtain-arrow">＋</span>
-<span onclick="event.stopPropagation();toggleTvidLang()" id="tvid-lang-btn" class="tvid-lang-btn">ES</span>
-</span>
+    <div class="tvid-curtain-toggle" onclick="toggleTvidWindow()" role="button" tabindex="0">
+        <span>⚡ <span id="tvid-float-label">Carga Rápida (TVid)</span></span>
+    </div>
+    <div class="tvid-curtain-controls">
+        <span id="tvid-curtain-arrow">＋</span>
+        <span onclick="toggleTvidLang()" id="tvid-lang-btn" class="tvid-lang-btn">ES</span>
+    </div>
+</div>
 </button>
 <div id="tvid-floating-window" class="tvid-modal-overlay" style="display:none">
 <div class="tvid-modal-container">
