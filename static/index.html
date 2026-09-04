@@ -1,14 +1,13 @@
-```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>MIRROR TO YOU</title>
 <style>
 :root{--bg-color:#0b0f19;--card-bg:#111827;--accent-color:#38bdf8;--text-main:#f3f4f6;--text-muted:#9ca3af;--border-color:#1f2937;--danger-color:#ef4444}
 *{box-sizing:border-box;margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
-body{background-color:var(--bg-color);color:var(--text-main);min-height:100vh;display:flex;flex-direction:column;justify-content:space-between;padding:20px}
+body{background:var(--bg-color);color:var(--text-main);min-height:100vh;display:flex;flex-direction:column;justify-content:space-between;padding:20px}
 #legal-gate{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(11,15,25,.98);display:flex;justify-content:center;align-items:center;z-index:2000;padding:20px}
 .legal-box{background:var(--card-bg);border:1px solid var(--border-color);border-radius:12px;padding:30px;max-width:600px;width:100%;display:flex;flex-direction:column;gap:16px;text-align:center}
 .legal-box h2{color:var(--accent-color);font-size:1.2rem;letter-spacing:1px}
@@ -16,22 +15,22 @@ body{background-color:var(--bg-color);color:var(--text-main);min-height:100vh;di
 header{display:flex;justify-content:space-between;align-items:center;max-width:1000px;width:100%;margin:0 auto;padding-bottom:20px;border-bottom:1px solid var(--border-color)}
 .logo{font-size:1.25rem;font-weight:600;letter-spacing:2px;color:var(--accent-color)}
 .controls{display:flex;gap:10px}
-button{background-color:var(--card-bg);color:var(--text-main);border:1px solid var(--border-color);padding:8px 16px;border-radius:6px;cursor:pointer;font-size:.9rem;transition:all .2s ease}
+button{background:var(--card-bg);color:var(--text-main);border:1px solid var(--border-color);padding:8px 16px;border-radius:6px;cursor:pointer;font-size:.9rem;transition:all .2s ease}
 button:hover{border-color:var(--accent-color)}
 .btn-danger{color:var(--danger-color);border-color:rgba(239,68,68,.3)}
 .btn-danger:hover{border-color:var(--danger-color)}
 main{max-width:1000px;width:100%;margin:20px auto;display:grid;grid-template-columns:1fr 1fr;gap:20px}
 @media(max-width:768px){main{grid-template-columns:1fr}}
-.panel{background-color:var(--card-bg);border:1px solid var(--border-color);border-radius:12px;padding:24px;display:flex;flex-direction:column;gap:16px;position:relative}
+.panel{background:var(--card-bg);border:1px solid var(--border-color);border-radius:12px;padding:24px;display:flex;flex-direction:column;gap:16px;position:relative}
 .panel h2{font-size:1.1rem;font-weight:500;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px}
 .breathing-container{display:flex;flex-direction:column;align-items:center;gap:12px}
 .breathing-circle{width:140px;height:140px;border:2px solid var(--accent-color);border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:transform 3s ease-in-out;font-size:.9rem;color:var(--accent-color);text-align:center;padding:10px}
-.dynamic-speech-box{background-color:var(--bg-color);border:1px solid var(--border-color);border-radius:6px;padding:10px;font-size:.9rem;color:var(--accent-color);text-align:center;min-height:55px;display:flex;align-items:center;justify-content:center;font-style:italic}
-.objective-info{background-color:var(--bg-color);border:1px solid var(--border-color);border-radius:6px;padding:10px;font-size:.85rem;color:var(--text-muted);width:100%;min-height:70px}
+.dynamic-speech-box{background:var(--bg-color);border:1px solid var(--border-color);border-radius:6px;padding:10px;font-size:.9rem;color:var(--accent-color);text-align:center;min-height:55px;display:flex;align-items:center;justify-content:center;font-style:italic}
+.objective-info{background:var(--bg-color);border:1px solid var(--border-color);border-radius:6px;padding:10px;font-size:.85rem;color:var(--text-muted);width:100%;min-height:70px}
 .input-group{display:flex;flex-direction:column;gap:8px}
-textarea{width:100%;background-color:var(--bg-color);border:1px solid var(--border-color);border-radius:6px;padding:10px;color:var(--text-main);font-size:.95rem;resize:none}
+textarea{width:100%;background:var(--bg-color);border:1px solid var(--border-color);border-radius:6px;padding:10px;color:var(--text-main);font-size:.95rem;resize:none}
 textarea:focus{outline:none;border-color:var(--accent-color)}
-.output-box{background-color:var(--bg-color);border:1px solid var(--border-color);border-radius:6px;padding:12px;min-height:140px;font-size:.9rem;color:var(--text-main);white-space:pre-line;overflow-y:auto;max-height:220px}
+.output-box{background:var(--bg-color);border:1px solid var(--border-color);border-radius:6px;padding:12px;min-height:140px;font-size:.9rem;color:var(--text-main);white-space:pre-line;overflow-y:auto;max-height:220px}
 .mortals-corner{position:absolute;top:15px;right:15px}
 .mortals-btn{background:var(--bg-color);border:1px solid var(--border-color);font-size:.75rem;padding:4px 8px;color:var(--text-muted)}
 .mortals-modal{display:none;position:absolute;top:35px;right:0;background:var(--bg-color);border:1px solid var(--border-color);border-radius:8px;padding:12px;width:260px;z-index:100;box-shadow:0 4px 12px rgba(0,0,0,.5)}
@@ -43,11 +42,15 @@ footer{text-align:center;font-size:.8rem;color:var(--text-muted);padding-top:20p
 </style>
 </head>
 <body>
+
 <div id="legal-gate">
 <div class="legal-box">
 <h2 id="gate-title">AVISO LEGAL Y PROTECCIÓN</h2>
 <div class="legal-text" id="gate-text">El acceso a esta plataforma implica la aceptación absoluta de nuestros términos de exención de responsabilidad. Este sistema opera exclusivamente como un facilitador de bienestar privado y orientación general de estilo de vida. No proporciona asesoría médica, legal ni financiera. Al presionar el botón de inicio, usted reconoce que utiliza este servicio bajo su propia discreción y soberanía.</div>
-<div style="display:flex;gap:10px;justify-content:center;margin-top:10px"><button onclick="switchGateLang()" id="gate-lang-btn" style="background:var(--bg-color)">EN / ES</button><button onclick="startSession()" id="gate-start-btn" style="background-color:var(--accent-color);color:var(--bg-color);font-weight:600;flex:1">Empezar / Start</button></div>
+<div style="display:flex;gap:10px;justify-content:center;margin-top:10px">
+<button onclick="switchGateLang()" id="gate-lang-btn" style="background:var(--bg-color)">EN / ES</button>
+<button onclick="startSession()" id="gate-start-btn" style="background:var(--accent-color);color:var(--bg-color);font-weight:600;flex:1">Empezar / Start</button>
+</div>
 </div>
 </div>
 
@@ -55,7 +58,7 @@ footer{text-align:center;font-size:.8rem;color:var(--text-muted);padding-top:20p
 <div class="legal-box">
 <h2 id="shut-title">Sesión Finalizada</h2>
 <p id="shut-text" style="color:var(--text-muted);font-size:.9rem">El tiempo límite de 10 minutos ha concluido. La sesión se ha cerrado por seguridad.</p>
-<button onclick="location.reload()" id="shut-btn" style="background-color:var(--accent-color);color:var(--bg-color);font-weight:600;margin-top:10px">Reiniciar Sesión</button>
+<button onclick="location.reload()" id="shut-btn" style="background:var(--accent-color);color:var(--bg-color);font-weight:600;margin-top:10px">Reiniciar Sesión</button>
 </div>
 </div>
 
@@ -72,21 +75,29 @@ footer{text-align:center;font-size:.8rem;color:var(--text-muted);padding-top:20p
 <div class="panel">
 <h2 id="wellness-title">Bienestar General</h2>
 <div class="breathing-container">
-<div class="breathing-circle" id="b-circle"><span id="b-phase" style="font-weight:600">Listo</span><span id="b-counter" style="font-size:.8rem">0s</span></div>
+<div class="breathing-circle" id="b-circle">
+<span id="b-phase" style="font-weight:600">Listo</span>
+<span id="b-counter" style="font-size:.8rem">0s</span>
+</div>
 <div class="dynamic-speech-box" id="dynamic-speech">Seleccione un objetivo de bienestar para iniciar la alineación...</div>
 <div class="objective-info" id="objective-desc">Opciones cognitivas.</div>
 </div>
+
 <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
 <button onclick="setBreathingMode('antipanic')" id="btn-p1">Protocolo Antipánico</button>
 <button onclick="setBreathingMode('focus')" id="btn-p2">Enfoque Ejecutivo</button>
 <button onclick="setBreathingMode('sleep')" id="btn-p3">Restauración Profunda</button>
 <button onclick="setBreathingMode('energy')" id="btn-p4">Impulso Antifatiga</button>
 </div>
+
 <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
 <button onclick="startChallenge60()" id="btn-p5" style="background-color:rgba(56,189,248,.2);border-color:var(--accent-color)">⚡ Reto Vital 60s</button>
 <button onclick="toggleMusicModal()" id="btn-p6">🎵 Frecuencias Antiestrés</button>
 </div>
-<div id="yt-container" style="display:none;margin-top:5px"><iframe id="yt-player" width="100%" height="60" src="" frameborder="0" allow="autoplay"></iframe></div>
+
+<div id="yt-container" style="display:none;margin-top:5px">
+<iframe id="yt-player" width="100%" height="60" src="" frameborder="0" allow="autoplay"></iframe>
+</div>
 </div>
 
 <div class="panel">
@@ -117,7 +128,7 @@ footer{text-align:center;font-size:.8rem;color:var(--text-muted);padding-top:20p
 <button onclick="handleNoIdea()" id="btn-no" style="background-color:rgba(239,68,68,.15);border-color:rgba(239,68,68,.4)">❓ No sé</button>
 <button onclick="handleHelpMe()" id="btn-help" style="background-color:rgba(56,189,248,.15);border-color:var(--accent-color)">🤝 Ayúdame</button>
 </div>
-<button onclick="resolveTravelDirective()" id="btn-send" style="background-color:var(--accent-color);color:var(--bg-color);font-weight:600;margin-top:4px">Enviar Conversación</button>
+<button onclick="resolveTravelDirective()" id="btn-send" style="background:var(--accent-color);color:var(--bg-color);font-weight:600;margin-top:4px">Enviar Conversación</button>
 </div>
 <div class="output-box" id="travel-output">Inicie una conversación o pulse un botón de asistencia guiada para recibir orientación experta en tiempo real...</div>
 </div>
@@ -131,17 +142,91 @@ footer{text-align:center;font-size:.8rem;color:var(--text-muted);padding-top:20p
 <script>
 let currentLang='es',voiceEnabled=false,currentModeInterval=null,phraseInterval=null,sessionTimer=null,timeLeft=600;
 let conversationMemory=[],MAX_MEMORY_TURNS=15;
-const randomMapsLinks=["https://maps.google.com/?q=Central+Park+New+York","https://maps.google.com/?q=Aspen+Mountain+Ski+Resort","https://maps.google.com/?q=Grace+Bay+Turks+and+Caicos","https://maps.google.com/?q=Key+West+Florida","https://maps.google.com/?q=Yellowstone+National+Park"];
-function updateMapsLink(){document.getElementById('m-maps').href=randomMapsLinks[Math.floor(Math.random()*randomMapsLinks.length)]}
-function switchGateLang(){currentLang=currentLang==='es'?'en':'es';updateTexts()}
-function startSession(){document.getElementById('legal-gate').style.display='none';updateMapsLink();startSessionTimer();if(voiceEnabled)speak(currentLang==='es'?'Sesión iniciada. Bienvenido.':'Session started. Welcome.')}
-function startSessionTimer(){if(sessionTimer)clearInterval(sessionTimer);sessionTimer=setInterval(()=>{timeLeft--;let m=Math.floor(timeLeft/60),s=timeLeft%60;document.getElementById('timer-display').innerText=`${m}:${s<10?'0':''}${s}`;if(timeLeft<=0){clearInterval(sessionTimer);stopTvidTimers();document.getElementById('shutdown-overlay').style.display='flex'}},1000)}
-function closeSession(){if(sessionTimer)clearInterval(sessionTimer);stopTvidTimers();document.getElementById('shutdown-overlay').style.display='flex';document.getElementById('shut-title').innerText=currentLang==='es'?'Sesión Cerrada':'Session Closed';document.getElementById('shut-text').innerText=currentLang==='es'?'La sesión ha sido cerrada manualmente por el usuario.':'Session manually closed by user.'}
-const masterPhrases={en:["Release every ounce of shoulder tension right now.","Your mind is clear, powerful, and entirely unburdened.","Banish fatigue; focus only on absolute control and stability.","Let go of urgency. Time bends to your strategic rhythm.","Silence the noise. Your inner sanctuary requires zero friction."],es:["Libera cada gramo de tensión en tus hombros ahora mismo.","Tu mente es clara, poderosa y totalmente libre de cargas.","Desvanece el cansancio; concéntrate solo en el control absoluto.","Suelta la urgencia. El tiempo se adapta a tu ritmo estratégico.","Silencia el ruido externo. Tu santuario interior no tiene fricción."]};
-const verifiedStreams=["https://www.youtube.com/embed/1ZYbU82GVz4?autoplay=1","https://www.youtube.com/embed/WPni755-Krg?autoplay=1"];
+
+const randomMapsLinks=[
+"https://maps.google.com/?q=Central+Park+New+York",
+"https://maps.google.com/?q=Aspen+Mountain+Ski+Resort",
+"https://maps.google.com/?q=Grace+Bay+Turks+and+Caicos",
+"https://maps.google.com/?q=Key+West+Florida",
+"https://maps.google.com/?q=Yellowstone+National+Park"
+];
+
+function updateMapsLink(){
+document.getElementById('m-maps').href=randomMapsLinks[Math.floor(Math.random()*randomMapsLinks.length)]
+}
+
+function switchGateLang(){
+currentLang=currentLang==='es'?'en':'es';
+updateTexts()
+}
+
+function startSession(){
+document.getElementById('legal-gate').style.display='none';
+updateMapsLink();
+startSessionTimer();
+if(voiceEnabled)speak(currentLang==='es'?'Sesión iniciada. Bienvenido.':'Session started. Welcome.')
+}
+
+function startSessionTimer(){
+if(sessionTimer)clearInterval(sessionTimer);
+sessionTimer=setInterval(()=>{
+timeLeft--;
+let m=Math.floor(timeLeft/60),s=timeLeft%60;
+document.getElementById('timer-display').innerText=`${m}:${s<10?'0':''}${s}`;
+if(timeLeft<=0){
+clearInterval(sessionTimer);
+stopTvidTimers();
+document.getElementById('shutdown-overlay').style.display='flex'
+}
+},1000)
+}
+
+function closeSession(){
+if(sessionTimer)clearInterval(sessionTimer);
+stopTvidTimers();
+document.getElementById('shutdown-overlay').style.display='flex';
+document.getElementById('shut-title').innerText=currentLang==='es'?'Sesión Cerrada':'Session Closed';
+document.getElementById('shut-text').innerText=currentLang==='es'?'La sesión ha sido cerrada manualmente por el usuario.':'Session manually closed by user.'
+}
+
+const masterPhrases={
+en:[
+"Release every ounce of shoulder tension right now.",
+"Your mind is clear, powerful, and entirely unburdened.",
+"Banish fatigue; focus only on absolute control and stability.",
+"Let go of urgency. Time bends to your strategic rhythm.",
+"Silence the noise. Your inner sanctuary requires zero friction."
+],
+es:[
+"Libera cada gramo de tensión en tus hombros ahora mismo.",
+"Tu mente es clara, poderosa y totalmente libre de cargas.",
+"Desvanece el cansancio; concéntrate solo en el control absoluto.",
+"Suelta la urgencia. El tiempo se adapta a tu ritmo estratégico.",
+"Silencia el ruido externo. Tu santuario interior no tiene fricción."
+]
+};
+
+const verifiedStreams=[
+"https://www.youtube.com/embed/1ZYbU82GVz4?autoplay=1",
+"https://www.youtube.com/embed/WPni755-Krg?autoplay=1"
+];
+
 let usedIndices=[],streamIndex=0;
-function getSmartPhrase(){const list=masterPhrases[currentLang];if(usedIndices.length>=list.length)usedIndices=[];let idx;do{idx=Math.floor(Math.random()*list.length)}while(usedIndices.includes(idx));usedIndices.push(idx);return list[idx]}
-function toggleLanguage(){currentLang=currentLang==='en'?'es':'en';updateTexts()}
+
+function getSmartPhrase(){
+const list=masterPhrases[currentLang];
+if(usedIndices.length>=list.length)usedIndices=[];
+let idx;
+do{idx=Math.floor(Math.random()*list.length)}while(usedIndices.includes(idx));
+usedIndices.push(idx);
+return list[idx]
+}
+
+function toggleLanguage(){
+currentLang=currentLang==='en'?'es':'en';
+updateTexts()
+}
+
 function updateTexts(){
 document.getElementById('lang-btn').innerText=currentLang==='es'?'ES':'EN';
 document.getElementById('gate-lang-btn').innerText=currentLang==='es'?'EN / ES':'ES / EN';
@@ -167,23 +252,210 @@ document.getElementById('btn-no').innerText=currentLang==='es'?'❓ No sé':'❓
 document.getElementById('btn-help').innerText=currentLang==='es'?'🤝 Ayúdame':'🤝 Help Me';
 document.getElementById('btn-send').innerText=currentLang==='es'?'Enviar Conversación':'Send Conversation'
 }
-function toggleVoiceGuide(){voiceEnabled=!voiceEnabled;document.getElementById('audio-btn').innerText=voiceEnabled?(currentLang==='es'?'🔊 Voz: ON':'🔊 Voice: ON'):(currentLang==='es'?'🔊 Voz: OFF':'🔊 Voice: OFF');if(voiceEnabled)speak(currentLang==='es'?'Guía por voz activada.':'Voice guide activated.')}
-function speak(text){if(!voiceEnabled||!('speechSynthesis'in window))return;window.speechSynthesis.cancel();const utterance=new SpeechSynthesisUtterance(text);utterance.lang=currentLang==='es'?'es-ES':'en-US';utterance.rate=.95;window.speechSynthesis.speak(utterance)}
-function setBreathingMode(mode){if(currentModeInterval)clearInterval(currentModeInterval);if(phraseInterval)clearInterval(phraseInterval);const speechBox=document.getElementById('dynamic-speech'),initialPhrase=getSmartPhrase();speechBox.innerText=initialPhrase;speak(initialPhrase);phraseInterval=setInterval(()=>{const nextPhrase=getSmartPhrase();speechBox.innerText=nextPhrase;speak(nextPhrase)},15000);const circle=document.getElementById('b-circle'),phase=document.getElementById('b-phase'),counter=document.getElementById('b-counter');let step=0;const sequence=[{text:currentLang==='es'?'Inhalar':'Inhale',scale:'scale(1.3)',time:4},{text:currentLang==='es'?'Retener':'Hold',scale:'scale(1.3)',time:4},{text:currentLang==='es'?'Exhalar':'Exhale',scale:'scale(1)',time:4}];function runStep(){const current=sequence[step%sequence.length];phase.innerText=current.text;circle.style.transform=current.scale;let t=current.time;counter.innerText=`${t}s`;currentModeInterval=setInterval(()=>{t--;counter.innerText=`${t}s`;if(t<=0){clearInterval(currentModeInterval);step++;runStep()}},1000)}runStep()}
-function startChallenge60(){if(currentModeInterval)clearInterval(currentModeInterval);if(phraseInterval)clearInterval(phraseInterval);const speechBox=document.getElementById('dynamic-speech'),counter=document.getElementById('b-counter'),phase=document.getElementById('b-phase');phase.innerText=currentLang==='es'?'RETO VITAL':'VITALITY';let totalTime=60;const challengeTexts=currentLang==='es'?["Silencio absoluto: Desconecta el ruido externo por 60 segundos.","Enfoque: Define con claridad tu próximo destino de paz.","Reinicio físico: Libera tensión acumulada en hombros y cuello."]:["Absolute silence: Disconnect from external noise for 60s.","Focus: Clearly define your next peaceful destination.","Physical reset: Release tension accumulated in shoulders."];let textIdx=0;speechBox.innerText=challengeTexts[textIdx];speak(challengeTexts[textIdx]);currentModeInterval=setInterval(()=>{totalTime--;counter.innerText=`${totalTime}s`;if(totalTime%20===0&&textIdx<challengeTexts.length-1){textIdx++;speechBox.innerText=challengeTexts[textIdx];speak(challengeTexts[textIdx])}if(totalTime<=0){clearInterval(currentModeInterval);speechBox.innerText=currentLang==='es'?'¡Reto de 60 segundos superado con éxito!':'60-second challenge successfully completed!';speak(speechBox.innerText)}},1000)}
-function toggleMusicModal(){const container=document.getElementById('yt-container'),player=document.getElementById('yt-player');if(container.style.display==='none'){player.src=verifiedStreams[streamIndex%verifiedStreams.length];streamIndex++;container.style.display='block';speak(currentLang==='es'?'Frecuencia antiestrés activada.':'Anti-stress frequency activated.')}else{player.src='';container.style.display='none'}}
-function handleNoIdea(){const inputField=document.getElementById('travel-input');inputField.value=currentLang==='es'?"No tengo un rumbo fijo, necesito orientación general.":"I don't have a fixed direction, I need general guidance.";resolveTravelDirective()}
-function handleHelpMe(){const inputField=document.getElementById('travel-input');inputField.value=currentLang==='es'?"Ayúdame a encontrar la mejor opción de bienestar y estabilidad.":"Help me find the best wellness and stability option.";resolveTravelDirective()}
-async function resolveTravelDirective(){const inputField=document.getElementById('travel-input'),userInput=inputField.value.trim(),output=document.getElementById('travel-output');if(!userInput){output.innerText=currentLang==='es'?'Por favor, escribe tu mensaje o usa los botones de asistencia.':'Please type your message or use assistance buttons.';return}conversationMemory.push({role:'user',content:userInput});if(conversationMemory.length>MAX_MEMORY_TURNS*2)conversationMemory=conversationMemory.slice(-MAX_MEMORY_TURNS*2);inputField.value='';output.innerText=currentLang==='es'?'Analizando solicitud, por favor espere un momento...':'Analyzing request, please hold a moment...';const controller=new AbortController(),timeoutId=setTimeout(()=>controller.abort(),30000);try{const response=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({messages:conversationMemory,lang:currentLang}),signal:controller.signal});clearTimeout(timeoutId);if(!response.ok)throw new Error('Conexión en curso');const data=await response.json();let aiResponseText=data.reply;if(aiResponseText.includes('?')&&conversationMemory.length>=4)aiResponseText=currentLang==='es'?'Basado en tu perfil, la solución inmediata recomendada es estructurar pausas activas y aplicar técnicas de estabilidad para restablecer el equilibrio físico y mental de inmediato.':'Based on your profile, the immediate recommended solution is to establish active breaks and apply stability techniques to restore physical and mental balance immediately.';conversationMemory.push({role:'assistant',content:aiResponseText});output.innerText=aiResponseText;speak(aiResponseText)}catch(error){clearTimeout(timeoutId);output.innerText=currentLang==='es'?'Error de conexión o tiempo de espera agotado. Intente nuevamente.':'Connection error or timeout. Please try again.'}}
-function toggleMortalsDrawer(){const drawer=document.getElementById('mortals-drawer');drawer.style.display=drawer.style.display==='block'?'none':'block';updateMapsLink()}
-let localAdvisorLang='es';
-function toggleTravelAdvisorModal(){const modal=document.getElementById('travel-advisor-modal');modal.style.display=modal.style.display==='flex'?'none':'flex'}
-function toggleAdvisorLang(){localAdvisorLang=localAdvisorLang==='es'?'en':'es';const langBtn=document.getElementById('advisor-lang-btn');langBtn.innerText=localAdvisorLang.toUpperCase();const floatText=document.getElementById('float-btn-text'),advisorTitle=document.getElementById('modal-advisor-title'),advisorDesc=document.getElementById('modal-advisor-desc'),waLabel=document.getElementById('wa-btn-label'),emailLabel=document.getElementById('email-btn-label'),waLink=document.getElementById('whatsapp-link');if(localAdvisorLang==='en'){floatText.innerText='Private Travel Consulting';advisorTitle.innerText='May Roga LLC - Luxury Travel';advisorDesc.innerText='Connect directly with your certified private advisor to design tailor-made itineraries and manage your exclusive reservations.';waLabel.innerText='Direct WhatsApp Chat';emailLabel.innerText='Send Email';waLink.href='https://wa.me/17866471371?text=Hello%20Maykel,%20I%20came%20from%20the%20app%20and%20want%20to%20quote%20a%20private%20trip%20or%20itinerary.'}else{floatText.innerText='Asesoría de Viaje Privada';advisorTitle.innerText='May Roga LLC - Viajes de Lujo';advisorDesc.innerText='Conecta directamente con tu asesor privado certificado para diseñar itinerarios a la medida y gestionar tus reservas exclusivas.';waLabel.innerText='Chat Directo por WhatsApp';emailLabel.innerText='Enviar Correo Electrónico';waLink.href='https://wa.me/17866471371?text=Hola%20Maykel,%20vengo%20de%20la%20aplicación%20y%20deseo%20cotizar%20un%20viaje%20o%20itinerario%20privado.'}}
+
+function toggleVoiceGuide(){
+voiceEnabled=!voiceEnabled;
+document.getElementById('audio-btn').innerText=voiceEnabled?(currentLang==='es'?'🔊 Voz: ON':'🔊 Voice: ON'):(currentLang==='es'?'🔊 Voz: OFF':'🔊 Voice: OFF');
+if(voiceEnabled)speak(currentLang==='es'?'Guía por voz activada.':'Voice guide activated.')
+}
+
+function speak(text){
+if(!voiceEnabled||!('speechSynthesis'in window))return;
+window.speechSynthesis.cancel();
+const utterance=new SpeechSynthesisUtterance(text);
+utterance.lang=currentLang==='es'?'es-ES':'en-US';
+utterance.rate=.95;
+window.speechSynthesis.speak(utterance)
+}
+
+function setBreathingMode(mode){
+if(currentModeInterval)clearInterval(currentModeInterval);
+if(phraseInterval)clearInterval(phraseInterval);
+const speechBox=document.getElementById('dynamic-speech'),initialPhrase=getSmartPhrase();
+speechBox.innerText=initialPhrase;
+speak(initialPhrase);
+phraseInterval=setInterval(()=>{
+const nextPhrase=getSmartPhrase();
+speechBox.innerText=nextPhrase;
+speak(nextPhrase)
+},15000);
+
+const circle=document.getElementById('b-circle'),phase=document.getElementById('b-phase'),counter=document.getElementById('b-counter');
+let step=0;
+const sequence=[
+{text:currentLang==='es'?'Inhalar':'Inhale',scale:'scale(1.3)',time:4},
+{text:currentLang==='es'?'Retener':'Hold',scale:'scale(1.3)',time:4},
+{text:currentLang==='es'?'Exhalar':'Exhale',scale:'scale(1)',time:4}
+];
+
+function runStep(){
+const current=sequence[step%sequence.length];
+phase.innerText=current.text;
+circle.style.transform=current.scale;
+let t=current.time;
+counter.innerText=`${t}s`;
+currentModeInterval=setInterval(()=>{
+t--;
+counter.innerText=`${t}s`;
+if(t<=0){
+clearInterval(currentModeInterval);
+step++;
+runStep()
+}
+},1000)
+}
+runStep()
+}
+
+function startChallenge60(){
+if(currentModeInterval)clearInterval(currentModeInterval);
+if(phraseInterval)clearInterval(phraseInterval);
+const speechBox=document.getElementById('dynamic-speech'),counter=document.getElementById('b-counter'),phase=document.getElementById('b-phase');
+phase.innerText=currentLang==='es'?'RETO VITAL':'VITALITY';
+let totalTime=60;
+const challengeTexts=currentLang==='es'?[
+"Silencio absoluto: Desconecta el ruido externo por 60 segundos.",
+"Enfoque: Define con claridad tu próximo destino de paz.",
+"Reinicio físico: Libera tensión acumulada en hombros y cuello."
+]:[
+"Absolute silence: Disconnect from external noise for 60s.",
+"Focus: Clearly define your next peaceful destination.",
+"Physical reset: Release tension accumulated in shoulders."
+];
+let textIdx=0;
+speechBox.innerText=challengeTexts[textIdx];
+speak(challengeTexts[textIdx]);
+
+currentModeInterval=setInterval(()=>{
+totalTime--;
+counter.innerText=`${totalTime}s`;
+if(totalTime%20===0&&textIdx<challengeTexts.length-1){
+textIdx++;
+speechBox.innerText=challengeTexts[textIdx];
+speak(challengeTexts[textIdx])
+}
+if(totalTime<=0){
+clearInterval(currentModeInterval);
+speechBox.innerText=currentLang==='es'?'¡Reto de 60 segundos superado con éxito!':'60-second challenge successfully completed!';
+speak(speechBox.innerText)
+}
+},1000)
+}
+
+function toggleMusicModal(){
+const container=document.getElementById('yt-container'),player=document.getElementById('yt-player');
+if(container.style.display==='none'){
+player.src=verifiedStreams[streamIndex%verifiedStreams.length];
+streamIndex++;
+container.style.display='block';
+speak(currentLang==='es'?'Frecuencia antiestrés activada.':'Anti-stress frequency activated.')
+}else{
+player.src='';
+container.style.display='none'
+}
+}
+
+function handleNoIdea(){
+const inputField=document.getElementById('travel-input');
+inputField.value=currentLang==='es'?"No tengo un rumbo fijo, necesito orientación general.":"I don't have a fixed direction, I need general guidance.";
+resolveTravelDirective()
+}
+
+function handleHelpMe(){
+const inputField=document.getElementById('travel-input');
+inputField.value=currentLang==='es'?"Ayúdame a encontrar la mejor opción de bienestar y estabilidad.":"Help me find the best wellness and stability option.";
+resolveTravelDirective()
+}
+
+async function resolveTravelDirective(){
+const inputField=document.getElementById('travel-input');
+const userInput=inputField.value.trim();
+const output=document.getElementById('travel-output');
+
+if(!userInput){
+output.innerText=currentLang==='es'?'Por favor, escribe tu mensaje o usa los botones de asistencia.':'Please type your message or use assistance buttons.';
+return
+}
+
+conversationMemory.push({role:'user',content:userInput});
+if(conversationMemory.length>MAX_MEMORY_TURNS*2)conversationMemory=conversationMemory.slice(-MAX_MEMORY_TURNS*2);
+
+inputField.value='';
+output.innerText=currentLang==='es'?'Analizando solicitud, por favor espere un momento...':'Analyzing request, please hold a moment...';
+
+const controller=new AbortController();
+const timeoutId=setTimeout(()=>controller.abort(),30000);
+
+try{
+const response=await fetch('/api/chat',{
+method:'POST',
+headers:{'Content-Type':'application/json'},
+body:JSON.stringify({
+messages:conversationMemory,
+lang:currentLang
+}),
+signal:controller.signal
+});
+
+clearTimeout(timeoutId);
+
+if(!response.ok)throw new Error('Conexión en curso');
+
+const data=await response.json();
+let aiResponseText=(data.reply||data.response||data.message||'').trim();
+
+if(!aiResponseText){
+throw new Error('Respuesta vacía')
+}
+
+conversationMemory.push({role:'assistant',content:aiResponseText});
+output.innerText=aiResponseText;
+speak(aiResponseText)
+
+}catch(error){
+clearTimeout(timeoutId);
+output.innerText=currentLang==='es'?'Error de conexión o tiempo de espera agotado. Intente nuevamente.':'Connection error or timeout. Please try again.'
+}
+}
+
+function toggleMortalsDrawer(){
+const drawer=document.getElementById('mortals-drawer');
+drawer.style.display=drawer.style.display==='block'?'none':'block';
+updateMapsLink()
+}
+
+let advisorLang='es';
+
+function toggleTravelAdvisorModal(){
+const modal=document.getElementById('travel-advisor-modal');
+modal.style.display=modal.style.display==='flex'?'none':'flex'
+}
+
+function toggleAdvisorLang(){
+advisorLang=advisorLang==='es'?'en':'es';
+document.getElementById('advisor-lang-btn').innerText=advisorLang.toUpperCase();
+
+if(advisorLang==='en'){
+document.getElementById('float-btn-text').innerText='Private Travel Advisory';
+document.getElementById('modal-advisor-title').innerText='May Roga LLC - Luxury Travel';
+document.getElementById('modal-advisor-desc').innerText='Connect directly with your certified private advisor to design custom itineraries and manage exclusive bookings.';
+document.getElementById('wa-btn-label').innerText='Direct WhatsApp Chat';
+document.getElementById('email-btn-label').innerText='Send Email';
+document.getElementById('whatsapp-link').href='https://wa.me/17866471371?text=Hello%20Maykel%2C%20I%20came%20from%20the%20app%20and%20want%20to%20quote%20a%20private%20trip%20or%20itinerary'
+}else{
+document.getElementById('float-btn-text').innerText='Asesoría de Viaje Privada';
+document.getElementById('modal-advisor-title').innerText='May Roga LLC - Viajes de Lujo';
+document.getElementById('modal-advisor-desc').innerText='Conecta directamente con tu asesor privado certificado para diseñar itinerarios a la medida y gestionar tus reservas exclusivas.';
+document.getElementById('wa-btn-label').innerText='Chat Directo por WhatsApp';
+document.getElementById('email-btn-label').innerText='Enviar Correo Electrónico';
+document.getElementById('whatsapp-link').href='https://wa.me/17866471371?text=Hola%20Maykel%2C%20vengo%20de%20la%20aplicación%20y%20deseo%20cotizar%20un%20viaje%20o%20itinerario%20privado'
+}
+}
 </script>
 
 <div id="travel-advisor-float" style="position:fixed;bottom:20px;right:20px;z-index:1500;display:flex;align-items:center;gap:8px">
 <button onclick="toggleAdvisorLang()" id="advisor-lang-btn" style="background:rgba(255,255,255,.15);backdrop-filter:blur(5px);border:1px solid rgba(255,255,255,.3);color:var(--text-main,#fff);padding:10px 12px;border-radius:50%;font-weight:600;font-size:.8rem;cursor:pointer;box-shadow:0 4px 12px rgba(0,0,0,.3);transition:background .2s ease" title="Cambiar Idioma / Switch Language">ES</button>
-<button onclick="toggleTravelAdvisorModal()" style="background-color:var(--accent-color,#d4af37);color:var(--bg-color,#0a0a0c);border:none;padding:12px 20px;border-radius:30px;font-weight:600;font-size:.9rem;cursor:pointer;box-shadow:0 4px 12px rgba(0,0,0,.5);display:flex;align-items:center;gap:8px;transition:transform .2s ease">✈️ <span id="float-btn-text">Asesoría de Viaje Privada</span></button>
+<button onclick="toggleTravelAdvisorModal()" style="background:var(--accent-color,#d4af37);color:var(--bg-color,#0a0a0c);border:none;padding:12px 20px;border-radius:30px;font-weight:600;font-size:.9rem;cursor:pointer;box-shadow:0 4px 12px rgba(0,0,0,.5);display:flex;align-items:center;gap:8px">✈️ <span id="float-btn-text">Asesoría de Viaje Privada</span></button>
 </div>
 
 <div style="position:fixed;bottom:20px;right:280px;z-index:1500;display:flex;align-items:center;gap:6px;background:rgba(15,23,42,.85);backdrop-filter:blur(8px);padding:6px 12px;border-radius:30px;border:1px solid var(--border-color,rgba(255,255,255,.2));box-shadow:0 4px 12px rgba(0,0,0,.5)">
@@ -197,7 +469,7 @@ function toggleAdvisorLang(){localAdvisorLang=localAdvisorLang==='es'?'en':'es';
 <h2 id="modal-advisor-title" style="color:var(--accent-color,#d4af37);margin-bottom:10px;font-size:1.2rem">May Roga LLC - Viajes de Lujo</h2>
 <p id="modal-advisor-desc" style="color:var(--text-muted,#ccc);font-size:.9rem;margin-bottom:20px;text-align:left">Conecta directamente con tu asesor privado certificado para diseñar itinerarios a la medida y gestionar tus reservas exclusivas.</p>
 <div style="display:flex;flex-direction:column;gap:12px">
-<a id="whatsapp-link" href="https://wa.me/17866471371?text=Hola%20Maykel,%20vengo%20de%20la%20aplicación%20y%20deseo%20cotizar%20un%20viaje%20o%20itinerario%20privado." target="_blank" style="background:#25d366;color:#fff;padding:12px;border-radius:6px;text-decoration:none;font-weight:600;font-size:.95rem;display:flex;align-items:center;justify-content:center;gap:8px">💬 <span id="wa-btn-label">Chat Directo por WhatsApp</span></a>
+<a id="whatsapp-link" href="https://wa.me/17866471371?text=Hola%20Maykel%2C%20vengo%20de%20la%20aplicación%20y%20deseo%20cotizar%20un%20viaje%20o%20itinerario%20privado" target="_blank" style="background:#25d366;color:#fff;padding:12px;border-radius:6px;text-decoration:none;font-weight:600;font-size:.95rem;display:flex;align-items:center;justify-content:center;gap:8px">💬 <span id="wa-btn-label">Chat Directo por WhatsApp</span></a>
 <a id="email-link" href="mailto:maykel75122805321@gmail.com?subject=Solicitud%20de%20Asesoría%20de%20Viaje%20Privada" style="background:var(--card-bg,#1e1e22);border:1px solid var(--border-color,rgba(255,255,255,.2));color:var(--text-main,#fff);padding:12px;border-radius:6px;text-decoration:none;font-weight:600;font-size:.95rem;display:flex;align-items:center;justify-content:center;gap:8px">✉️ <span id="email-btn-label">Enviar Correo Electrónico</span></a>
 </div>
 </div>
@@ -205,14 +477,18 @@ function toggleAdvisorLang(){localAdvisorLang=localAdvisorLang==='es'?'en':'es';
 
 <div id="tvid-floating-window" class="tvid-modal-overlay" style="display:none">
 <div class="tvid-modal-container">
+
 <div class="tvid-header">
-<div style="display:flex;align-items:center;gap:8px"><span class="tvid-badge" id="tvid-badge-text">5-Min Recharge</span></div>
+<div style="display:flex;align-items:center;gap:8px">
+<span class="tvid-badge" id="tvid-badge-text">5-Min Recharge</span>
+</div>
 <h2 id="tvid-main-title">Puerto de Carga Rápida</h2>
 <button class="tvid-close-btn" onclick="closeTvidWindow()">&times;</button>
 </div>
 
 <div id="tvid-selection-screen" class="tvid-content-view">
 <p class="tvid-subtitle" id="tvid-subtitle-text">Selecciona tu protocolo de adaptación y bienestar:</p>
+
 <div class="tvid-grid">
 <button class="tvid-card-btn" onclick="loadTvidExercise('Madre')">❤️ <span data-es="Técnica de la Madre" data-en="Mother Technique">Técnica de la Madre</span></button>
 <button class="tvid-card-btn" onclick="loadTvidExercise('Padre')">💪 <span data-es="Técnica del Padre" data-en="Father Technique">Técnica del Padre</span></button>
@@ -228,15 +504,28 @@ function toggleAdvisorLang(){localAdvisorLang=localAdvisorLang==='es'?'en':'es';
 <div class="tvid-exercise-top">
 <button class="tvid-back-btn" onclick="backTvidSelection()" id="tvid-back-text">← Volver</button>
 </div>
+
 <h3 id="tvid-exercise-title">Título del Ejercicio</h3>
-<div class="tvid-breath-container"><div id="tvid-breath-circle" class="tvid-breath-circle"><span id="tvid-breath-label">Inhala</span></div></div>
-<div id="tvid-objective-box" class="tvid-objective-box"><strong>🎯 Objetivo:</strong> <span id="tvid-objective-text">Mantener estabilidad y presencia.</span></div>
+
+<div class="tvid-breath-container">
+<div id="tvid-breath-circle" class="tvid-breath-circle">
+<span id="tvid-breath-label">Inhala</span>
+</div>
+</div>
+
+<div id="tvid-objective-box" class="tvid-objective-box">
+<strong>🎯 Objetivo:</strong>
+<span id="tvid-objective-text">Mantener estabilidad y presencia.</span>
+</div>
+
 <div id="tvid-exercise-steps" class="tvid-steps-container"></div>
+
 <div style="display:flex;gap:8px">
 <button id="tvid-speak-btn" class="tvid-sec-action" onclick="speakCurrentStep()">🔊 Escuchar</button>
 <button id="tvid-action-btn" class="tvid-main-action" onclick="nextTvidStep()">Siguiente paso</button>
 </div>
 </div>
+
 </div>
 </div>
 
@@ -265,7 +554,8 @@ function toggleAdvisorLang(){localAdvisorLang=localAdvisorLang==='es'?'en':'es';
 </style>
 
 <script>
-let tvidLang='es',advisorLang='es';
+let tvidLang='es';
+const TVID_PROGRESS_KEY='mirror_to_you_tvid_technique_progress_v3';
 
 const tvidData={
 'Madre':{
@@ -275,14 +565,16 @@ es:[
 {title:"❤️ Técnica de la Madre — Protege tu sueño",objective:"Cuidar un sueño o deseo y convertirlo en una posibilidad de crecimiento.",steps:["Piensa en un sueño que quieras conservar.","Inhala durante 4 segundos imaginándolo pequeño pero vivo.","Mantén 2 segundos como si protegieras una semilla.","Exhala durante 6 segundos y decide una acción sencilla que pueda ayudarlo a crecer."]},
 {title:"❤️ Técnica de la Madre — Alimenta lo bueno",objective:"Identificar algo positivo que necesita atención para desarrollarse.",steps:["Busca algo bueno que exista hoy en tu vida.","Inhala durante 4 segundos concentrándote en ello.","Mantén 2 segundos preguntándote qué podría hacerlo crecer.","Exhala durante 6 segundos y elige una forma concreta de alimentarlo con atención."]},
 {title:"❤️ Técnica de la Madre — Dale espacio para crecer",objective:"Aprender a cuidar sin controlar y permitir que las cosas evolucionen.",steps:["Piensa en algo que quieres mejorar sin forzarlo.","Inhala durante 4 segundos y relaja hombros y manos.","Mantén 2 segundos aceptando que crecer requiere tiempo.","Exhala durante 6 segundos y decide qué puedes hacer sin intentar controlar todo."]},
-{title:"❤️ Técnica de la Madre — Presencia protectora",objective:"Convertir la presencia y la atención en una forma práctica de cuidado.",steps:["Siéntate con comodidad y coloca ambos pies firmemente en el suelo.","Inhala durante 4 segundos prestando atención plena al momento.","Mantén 2 segundos preguntándote qué merece tu atención ahora.","Exhala durante 6 segundos y ofrece tu presencia completa a esa prioridad."]}],
+{title:"❤️ Técnica de la Madre — Presencia protectora",objective:"Convertir la presencia y la atención en una forma práctica de cuidado.",steps:["Siéntate con comodidad y coloca ambos pies firmemente en el suelo.","Inhala durante 4 segundos prestando atención plena al momento.","Mantén 2 segundos preguntándote qué merece tu atención ahora.","Exhala durante 6 segundos y ofrece tu presencia completa a esa prioridad."]}
+],
 en:[
 {title:"❤️ Mother Technique — Care for what matters",objective:"Care for what matters, protect it, and help it grow with patience.",steps:["Pause and adopt a comfortable, protective posture.","Inhale for 4 seconds while thinking of something that truly matters to you.","Hold for 2 seconds and ask what that important thing needs.","Exhale for 6 seconds and choose one small action to protect or help it grow."]},
 {title:"❤️ Mother Technique — Care for yourself",objective:"Treat yourself with patience, protection, and care without demanding perfection.",steps:["Place one hand on your chest and the other on your abdomen.","Inhale for 4 seconds and recognize something that needs your care today.","Hold for 2 seconds while releasing unnecessary self-demand.","Exhale for 6 seconds and repeat: I also deserve patience and care today."]},
 {title:"❤️ Mother Technique — Protect your dream",objective:"Care for a dream or desire and turn it into a possibility for growth.",steps:["Think of a dream you want to preserve.","Inhale for 4 seconds while imagining it small but alive.","Hold for 2 seconds as if protecting a seed.","Exhale for 6 seconds and choose one simple action that can help it grow."]},
 {title:"❤️ Mother Technique — Feed what is good",objective:"Identify something positive that needs attention to develop.",steps:["Find something good that exists in your life today.","Inhale for 4 seconds focusing on it.","Hold for 2 seconds asking what could help it grow.","Exhale for 6 seconds and choose a concrete way to nourish it with attention."]},
 {title:"❤️ Mother Technique — Give it room to grow",objective:"Learn to care without controlling and allow things to evolve.",steps:["Think of something you want to improve without forcing it.","Inhale for 4 seconds and relax your shoulders and hands.","Hold for 2 seconds accepting that growth takes time.","Exhale for 6 seconds and decide what you can do without trying to control everything."]},
-{title:"❤️ Mother Technique — Protective presence",objective:"Turn presence and attention into a practical form of care.",steps:["Sit comfortably and place both feet firmly on the floor.","Inhale for 4 seconds giving full attention to the present moment.","Hold for 2 seconds asking what deserves your attention now.","Exhale for 6 seconds and offer your full presence to that priority."]}]
+{title:"❤️ Mother Technique — Protective presence",objective:"Turn presence and attention into a practical form of care.",steps:["Sit comfortably and place both feet firmly on the floor.","Inhale for 4 seconds giving full attention to the present moment.","Hold for 2 seconds asking what deserves your attention now.","Exhale for 6 seconds and offer your full presence to that priority."]}
+]
 },
 
 'Padre':{
@@ -292,14 +584,16 @@ es:[
 {title:"💪 Técnica del Padre — El protector",objective:"Usar la fuerza como responsabilidad y protección, no como agresividad.",steps:["Adopta una postura estable y relajada.","Inhala durante 4 segundos sintiendo tu capacidad de mantenerte firme.","Mantén 2 segundos recordando que proteger también significa evitar daños innecesarios.","Exhala durante 6 segundos y elige una respuesta firme pero sensata."]},
 {title:"💪 Técnica del Padre — Marca el rumbo",objective:"Convertir una situación confusa en una dirección concreta.",steps:["Piensa en algo que necesita orden o dirección.","Inhala durante 4 segundos observando la situación sin reaccionar.","Mantén 2 segundos y establece cuál es la prioridad principal.","Exhala durante 6 segundos y define el siguiente paso."]},
 {title:"💪 Técnica del Padre — Responsabilidad",objective:"Diferenciar lo que depende de ti de lo que no depende de ti.",steps:["Piensa en una situación que te ocupa la atención.","Inhala durante 4 segundos separando lo que puedes controlar de lo que no.","Mantén 2 segundos aceptando ese límite.","Exhala durante 6 segundos y enfócate únicamente en tu parte de responsabilidad."]},
-{title:"💪 Técnica del Padre — Fuerza serena",objective:"Mantener firmeza sin perder calma, respeto ni sentido.",steps:["Coloca los pies firmes y relaja la mandíbula.","Inhala durante 4 segundos sintiendo estabilidad.","Mantén 2 segundos sin apresurarte a responder.","Exhala durante 6 segundos y elige una respuesta fuerte, tranquila y respetuosa."]}],
+{title:"💪 Técnica del Padre — Fuerza serena",objective:"Mantener firmeza sin perder calma, respeto ni sentido.",steps:["Coloca los pies firmes y relaja la mandíbula.","Inhala durante 4 segundos sintiendo estabilidad.","Mantén 2 segundos sin apresurarte a responder.","Exhala durante 6 segundos y elige una respuesta fuerte, tranquila y respetuosa."]}
+],
 en:[
 {title:"💪 Father Technique — Firm ground",objective:"Find firmness, stability, and direction before acting.",steps:["Stand or sit with a firm back and grounded feet.","Inhale for 4 seconds and gently straighten your torso.","Hold for 2 seconds and ask what needs direction now.","Exhale for 6 seconds and define one concrete action."]},
 {title:"💪 Father Technique — The decision",objective:"Make a firm decision without acting impulsively.",steps:["Think of one pending decision without trying to solve everything.","Inhale for 4 seconds separating facts from momentary emotions.","Hold for 2 seconds and formulate the most responsible decision.","Exhale for 6 seconds and accept responsibility for choosing."]},
 {title:"💪 Father Technique — The protector",objective:"Use strength as responsibility and protection, not aggression.",steps:["Adopt a stable and relaxed posture.","Inhale for 4 seconds feeling your ability to remain firm.","Hold for 2 seconds remembering that protection also means avoiding unnecessary harm.","Exhale for 6 seconds and choose a firm but sensible response."]},
 {title:"💪 Father Technique — Set the direction",objective:"Turn a confusing situation into a concrete direction.",steps:["Think about something that needs order or direction.","Inhale for 4 seconds observing the situation without reacting.","Hold for 2 seconds and establish the main priority.","Exhale for 6 seconds and define the next step."]},
 {title:"💪 Father Technique — Responsibility",objective:"Separate what depends on you from what does not.",steps:["Think about a situation occupying your attention.","Inhale for 4 seconds separating what you can control from what you cannot.","Hold for 2 seconds accepting that limit.","Exhale for 6 seconds and focus only on your responsibility."]},
-{title:"💪 Father Technique — Calm strength",objective:"Remain firm without losing calm, respect, or good judgment.",steps:["Ground your feet and relax your jaw.","Inhale for 4 seconds feeling stability.","Hold for 2 seconds without rushing to respond.","Exhale for 6 seconds and choose a strong, calm, respectful response."]}]
+{title:"💪 Father Technique — Calm strength",objective:"Remain firm without losing calm, respect, or good judgment.",steps:["Ground your feet and relax your jaw.","Inhale for 4 seconds feeling stability.","Hold for 2 seconds without rushing to respond.","Exhale for 6 seconds and choose a strong, calm, respectful response."]}
+]
 },
 
 'Niño':{
@@ -309,14 +603,16 @@ es:[
 {title:"🧒 Técnica del Niño — Imagina que puedes",objective:"Usar la imaginación para abrir posibilidades nuevas.",steps:["Cierra los ojos o mira un punto tranquilo.","Inhala durante 4 segundos imaginando que una posibilidad difícil se vuelve posible.","Mantén 2 segundos observando esa escena mental.","Exhala durante 6 segundos y elige una pequeña acción inspirada en ella."]},
 {title:"🧒 Técnica del Niño — Pregunta diferente",objective:"Despertar creatividad mediante una pregunta sencilla y nueva.",steps:["Piensa en algo que normalmente das por conocido.","Inhala durante 4 segundos y pregúntate cómo podría verse de otra manera.","Mantén 2 segundos dejando aparecer ideas sin juzgarlas.","Exhala durante 6 segundos y conserva la idea que más curiosidad te produzca."]},
 {title:"🧒 Técnica del Niño — Juego interior",objective:"Introducir ligereza, creatividad y espontaneidad en el momento.",steps:["Relaja las manos, el rostro y los hombros.","Inhala durante 4 segundos recordando algo que disfrutabas hacer por diversión.","Mantén 2 segundos conectando con esa sensación sencilla.","Exhala durante 6 segundos y piensa en una pequeña forma de recuperar algo de ese juego."]},
-{title:"🧒 Técnica del Niño — Descubre algo nuevo",objective:"Entrenar la capacidad de encontrar novedad incluso en lo cotidiano.",steps:["Observa el lugar donde estás y elige tres detalles.","Inhala durante 4 segundos concentrándote en el primero.","Mantén 2 segundos observando el segundo y el tercero.","Exhala durante 6 segundos y elige el detalle que no habías notado antes."]}],
+{title:"🧒 Técnica del Niño — Descubre algo nuevo",objective:"Entrenar la capacidad de encontrar novedad incluso en lo cotidiano.",steps:["Observa el lugar donde estás y elige tres detalles.","Inhala durante 4 segundos concentrándote en el primero.","Mantén 2 segundos observando el segundo y el tercero.","Exhala durante 6 segundos y elige el detalle que no habías notado antes."]}
+],
 en:[
 {title:"🧒 Child Technique — The child's view",objective:"Recover curiosity, imagination, and the ability to discover everyday things.",steps:["Look around and choose an everyday object.","Inhale for 4 seconds while observing it as if seeing it for the first time.","Hold for 2 seconds and find something curious about it.","Exhale for 6 seconds making room for a new question or idea."]},
 {title:"🧒 Child Technique — The smile",objective:"Recover simple joy through a conscious smile.",steps:["Relax your face and allow a small smile.","Inhale for 4 seconds remembering something simple that felt good.","Hold for 2 seconds without searching for a complicated reason.","Exhale for 6 seconds and let that feeling remain."]},
 {title:"🧒 Child Technique — Imagine you can",objective:"Use imagination to open new possibilities.",steps:["Close your eyes or look at a calm point.","Inhale for 4 seconds imagining a difficult possibility becoming possible.","Hold for 2 seconds observing that mental scene.","Exhale for 6 seconds and choose one small action inspired by it."]},
 {title:"🧒 Child Technique — Ask differently",objective:"Awaken creativity through a simple new question.",steps:["Think about something you normally take for granted.","Inhale for 4 seconds and ask how it could be seen differently.","Hold for 2 seconds allowing ideas to appear without judgment.","Exhale for 6 seconds and keep the idea that creates the most curiosity."]},
 {title:"🧒 Child Technique — Inner play",objective:"Bring lightness, creativity, and spontaneity into the moment.",steps:["Relax your hands, face, and shoulders.","Inhale for 4 seconds remembering something you enjoyed simply for fun.","Hold for 2 seconds connecting with that simple feeling.","Exhale for 6 seconds and think of one small way to bring some of that play back."]},
-{title:"🧒 Child Technique — Discover something new",objective:"Train the ability to find novelty even in ordinary surroundings.",steps:["Look around and choose three details.","Inhale for 4 seconds focusing on the first.","Hold for 2 seconds observing the second and third.","Exhale for 6 seconds and choose the detail you had not noticed before."]}]
+{title:"🧒 Child Technique — Discover something new",objective:"Train the ability to find novelty even in ordinary surroundings.",steps:["Look around and choose three details.","Inhale for 4 seconds focusing on the first.","Hold for 2 seconds observing the second and third.","Exhale for 6 seconds and choose the detail you had not noticed before."]}
+]
 },
 
 'Beso':{
@@ -326,14 +622,16 @@ es:[
 {title:"💋 Técnica del Beso — El gesto invisible",objective:"Transformar la ternura en una intención positiva.",steps:["Piensa en una persona o en ti mismo como alguien que merece cuidado.","Inhala durante 4 segundos con una intención afectuosa.","Mantén 2 segundos y pregunta qué pequeño gesto sería útil.","Exhala durante 6 segundos y comprométete con ese gesto."]},
 {title:"💋 Técnica del Beso — Trato amable",objective:"Practicar consideración mediante la forma en que te hablas.",steps:["Observa cómo te estás hablando internamente.","Inhala durante 4 segundos y sustituye una frase dura por una amable.","Mantén 2 segundos aceptando que puedes corregirte sin maltratarte.","Exhala durante 6 segundos y conserva esa nueva forma de hablarte."]},
 {title:"💋 Técnica del Beso — Regala atención",objective:"Comprender que prestar atención también puede ser una expresión de afecto.",steps:["Piensa en alguien que merezca un poco más de tu atención.","Inhala durante 4 segundos imaginando que escuchas sin interrumpir.","Mantén 2 segundos con una actitud de consideración.","Exhala durante 6 segundos y decide ofrecer atención real cuando sea posible."]},
-{title:"💋 Técnica del Beso — Amor en acción",objective:"Convertir una intención afectuosa en una acción concreta y sencilla.",steps:["Elige una persona, situación o aspecto de ti que quieras cuidar.","Inhala durante 4 segundos conectando con una intención de cariño.","Mantén 2 segundos preguntando qué necesita realmente.","Exhala durante 6 segundos y define un gesto concreto de cuidado."]}],
+{title:"💋 Técnica del Beso — Amor en acción",objective:"Convertir una intención afectuosa en una acción concreta y sencilla.",steps:["Elige una persona, situación o aspecto de ti que quieras cuidar.","Inhala durante 4 segundos conectando con una intención de cariño.","Mantén 2 segundos preguntando qué necesita realmente.","Exhala durante 6 segundos y define un gesto concreto de cuidado."]}
+],
 en:[
 {title:"💋 Kiss Technique — The hug",objective:"Bring tenderness, consideration, and affection into your relationship with yourself.",steps:["Cross your arms gently as if giving yourself a hug.","Inhale for 4 seconds accepting your present moment.","Hold for 2 seconds and recognize that you deserve consideration.","Exhale for 6 seconds offering yourself a kind attitude."]},
 {title:"💋 Kiss Technique — Three words",objective:"Turn affection into simple words that can improve a moment.",steps:["Think of someone you want to treat with consideration.","Inhale for 4 seconds and choose one kind word.","Hold for 2 seconds feeling the intention behind it.","Exhale for 6 seconds and decide when to express it."]},
 {title:"💋 Kiss Technique — The invisible gesture",objective:"Turn tenderness into a positive intention.",steps:["Think of someone or yourself as someone deserving care.","Inhale for 4 seconds with an affectionate intention.","Hold for 2 seconds and ask what small gesture would help.","Exhale for 6 seconds and commit to that gesture."]},
 {title:"💋 Kiss Technique — Kind treatment",objective:"Practice consideration through the way you speak to yourself.",steps:["Notice how you are speaking to yourself internally.","Inhale for 4 seconds and replace one harsh phrase with a kind one.","Hold for 2 seconds accepting that you can correct yourself without mistreating yourself.","Exhale for 6 seconds and keep that new way of speaking."]},
 {title:"💋 Kiss Technique — Give attention",objective:"Understand that giving attention can also be an expression of affection.",steps:["Think of someone who deserves a little more of your attention.","Inhale for 4 seconds imagining listening without interrupting.","Hold for 2 seconds with an attitude of consideration.","Exhale for 6 seconds and decide to offer real attention when possible."]},
-{title:"💋 Kiss Technique — Love in action",objective:"Turn an affectionate intention into a simple concrete action.",steps:["Choose a person, situation, or part of yourself you want to care for.","Inhale for 4 seconds connecting with an intention of care.","Hold for 2 seconds asking what is actually needed.","Exhale for 6 seconds and define one concrete caring gesture."]}]
+{title:"💋 Kiss Technique — Love in action",objective:"Turn an affectionate intention into a simple concrete action.",steps:["Choose a person, situation, or part of yourself you want to care for.","Inhale for 4 seconds connecting with an intention of care.","Hold for 2 seconds asking what is actually needed.","Exhale for 6 seconds and define one concrete caring gesture."]}
+]
 },
 
 'Mal':{
@@ -343,14 +641,16 @@ es:[
 {title:"⚫ Técnica del Mal — La cicatriz",objective:"Reconocer la experiencia y fortaleza que puede quedar después de una dificultad.",steps:["Piensa en una dificultad que hayas atravesado.","Inhala durante 4 segundos recordando qué aprendiste.","Mantén 2 segundos reconociendo la experiencia que ahora posees.","Exhala durante 6 segundos y decide cómo utilizar ese aprendizaje positivamente."]},
 {title:"⚫ Técnica del Mal — Lo que no repetiré",objective:"Convertir una experiencia negativa en una referencia útil para el futuro.",steps:["Piensa en algo que no quieres volver a experimentar.","Inhala durante 4 segundos identificando qué señal ignoraste o qué aprendiste.","Mantén 2 segundos sin culparte por el pasado.","Exhala durante 6 segundos y establece una decisión que te ayude a actuar diferente."]},
 {title:"⚫ Técnica del Mal — Extrae la enseñanza",objective:"Separar el dolor de la información útil que dejó una experiencia.",steps:["Recuerda una experiencia difícil de forma breve y distante.","Inhala durante 4 segundos buscando el dato o aprendizaje que dejó.","Mantén 2 segundos reconociendo que aprender no significa justificar lo ocurrido.","Exhala durante 6 segundos y conserva solamente la enseñanza útil."]},
-{title:"⚫ Técnica del Mal — Transformar el golpe",objective:"Usar una experiencia negativa como materia prima para una respuesta más consciente.",steps:["Piensa en una situación que te haya enseñado algo difícil.","Inhala durante 4 segundos observando la experiencia con distancia.","Mantén 2 segundos preguntando qué capacidad desarrollaste gracias a ella.","Exhala durante 6 segundos y elige cómo aplicar esa capacidad ahora."]}],
+{title:"⚫ Técnica del Mal — Transformar el golpe",objective:"Usar una experiencia negativa como materia prima para una respuesta más consciente.",steps:["Piensa en una situación que te haya enseñado algo difícil.","Inhala durante 4 segundos observando la experiencia con distancia.","Mantén 2 segundos preguntando qué capacidad desarrollaste gracias a ella.","Exhala durante 6 segundos y elige cómo aplicar esa capacidad ahora."]}
+],
 en:[
 {title:"⚫ Adversity Technique — What difficulty teaches",objective:"Find useful learning and experience inside a negative experience.",steps:["Briefly think about something negative that happened without reliving it emotionally.","Inhale for 4 seconds and ask: What did this teach me?","Hold for 2 seconds separating the event from your personal worth.","Exhale for 6 seconds identifying one lesson you can keep."]},
 {title:"⚫ Adversity Technique — Turn it around",objective:"Give a new direction to a difficult experience without denying it happened.",steps:["Briefly recognize a situation that did not go as planned.","Inhale for 4 seconds identifying what you can learn.","Hold for 2 seconds accepting that the experience is part of your path.","Exhale for 6 seconds choosing a constructive way forward."]},
 {title:"⚫ Adversity Technique — The scar",objective:"Recognize the experience and strength that may remain after difficulty.",steps:["Think about a difficulty you have moved through.","Inhale for 4 seconds remembering what you learned.","Hold for 2 seconds recognizing the experience you now possess.","Exhale for 6 seconds and decide how to use that learning positively."]},
 {title:"⚫ Adversity Technique — What I will not repeat",objective:"Turn a negative experience into a useful reference for the future.",steps:["Think about something you do not want to experience again.","Inhale for 4 seconds identifying what signal you missed or what you learned.","Hold for 2 seconds without blaming yourself for the past.","Exhale for 6 seconds and establish one decision that helps you act differently."]},
 {title:"⚫ Adversity Technique — Extract the lesson",objective:"Separate pain from the useful information an experience left behind.",steps:["Briefly remember a difficult experience from a distance.","Inhale for 4 seconds looking for the information or lesson it left.","Hold for 2 seconds recognizing that learning does not justify what happened.","Exhale for 6 seconds and keep only the useful lesson."]},
-{title:"⚫ Adversity Technique — Transform the impact",objective:"Use a negative experience as material for a more conscious response.",steps:["Think about a situation that taught you something difficult.","Inhale for 4 seconds observing the experience with distance.","Hold for 2 seconds asking what ability you developed through it.","Exhale for 6 seconds and choose how to apply that ability now."]}]
+{title:"⚫ Adversity Technique — Transform the impact",objective:"Use a negative experience as material for a more conscious response.",steps:["Think about a situation that taught you something difficult.","Inhale for 4 seconds observing the experience with distance.","Hold for 2 seconds asking what ability you developed through it.","Exhale for 6 seconds and choose how to apply that ability now."]}
+]
 },
 
 'Bien':{
@@ -360,14 +660,16 @@ es:[
 {title:"☀️ Técnica del Bien — Respirar bienestar",objective:"Relacionar respiración, presencia y reconocimiento consciente del bienestar.",steps:["Adopta una postura cómoda y deja caer los hombros.","Inhala durante 4 segundos reconociendo algo que te haga sentir bien.","Mantén 2 segundos permaneciendo presente en esa sensación.","Exhala durante 6 segundos y permite que el bienestar ocupe tu atención."]},
 {title:"☀️ Técnica del Bien — Lo que sí funciona",objective:"Identificar recursos favorables que ya existen y pueden utilizarse.",steps:["Piensa en algo que hoy sí está funcionando.","Inhala durante 4 segundos observando por qué funciona.","Mantén 2 segundos reconociendo qué recurso tienes disponible.","Exhala durante 6 segundos y decide cómo utilizarlo conscientemente."]},
 {title:"☀️ Técnica del Bien — Agradece lo útil",objective:"Reconocer el valor práctico de algo favorable que normalmente pasa desapercibido.",steps:["Elige algo pequeño que haya contribuido positivamente a tu día.","Inhala durante 4 segundos prestándole atención.","Mantén 2 segundos reconociendo su utilidad.","Exhala durante 6 segundos y expresa mentalmente un agradecimiento sencillo."]},
-{title:"☀️ Técnica del Bien — Amplifica lo favorable",objective:"Dar más atención a los elementos positivos que pueden sostener el equilibrio.",steps:["Identifica una experiencia favorable reciente.","Inhala durante 4 segundos recordando un detalle positivo.","Mantén 2 segundos permitiendo que ese detalle se haga más presente.","Exhala durante 6 segundos y decide cómo repetir o ampliar aquello que funcionó."]}],
+{title:"☀️ Técnica del Bien — Amplifica lo favorable",objective:"Dar más atención a los elementos positivos que pueden sostener el equilibrio.",steps:["Identifica una experiencia favorable reciente.","Inhala durante 4 segundos recordando un detalle positivo.","Mantén 2 segundos permitiendo que ese detalle se haga más presente.","Exhala durante 6 segundos y decide cómo repetir o ampliar aquello que funcionó."]}
+],
 en:[
 {title:"☀️ Wellbeing Technique — Find the good",objective:"Recognize what is working and use it consciously.",steps:["Look at your current moment and find something that is working well.","Inhale for 4 seconds focusing on that favorable aspect.","Hold for 2 seconds recognizing its value.","Exhale for 6 seconds and think about how you can use it better."]},
 {title:"☀️ Wellbeing Technique — The positive window",objective:"Deliberately change the angle from which you observe a situation.",steps:["Choose an everyday situation you want to observe differently.","Inhale for 4 seconds looking for a favorable aspect.","Hold for 2 seconds without denying existing difficulties.","Exhale for 6 seconds focusing on what you can use in your favor."]},
 {title:"☀️ Wellbeing Technique — Breathe wellbeing",objective:"Connect breathing, presence, and conscious recognition of wellbeing.",steps:["Adopt a comfortable posture and let your shoulders drop.","Inhale for 4 seconds recognizing something that makes you feel well.","Hold for 2 seconds staying present with that feeling.","Exhale for 6 seconds and allow wellbeing to occupy your attention."]},
 {title:"☀️ Wellbeing Technique — What works",objective:"Identify favorable resources that already exist and can be used.",steps:["Think about something that is working today.","Inhale for 4 seconds observing why it works.","Hold for 2 seconds recognizing what resource is available.","Exhale for 6 seconds and decide how to use it consciously."]},
 {title:"☀️ Wellbeing Technique — Appreciate what helps",objective:"Recognize the practical value of something favorable that often goes unnoticed.",steps:["Choose something small that contributed positively to your day.","Inhale for 4 seconds giving it your attention.","Hold for 2 seconds recognizing its usefulness.","Exhale for 6 seconds and offer yourself a simple moment of appreciation."]},
-{title:"☀️ Wellbeing Technique — Amplify what is favorable",objective:"Give more attention to positive elements that can support balance.",steps:["Identify a recent favorable experience.","Inhale for 4 seconds remembering one positive detail.","Hold for 2 seconds allowing that detail to become more present.","Exhale for 6 seconds and decide how to repeat or expand what worked."]}]
+{title:"☀️ Wellbeing Technique — Amplify what is favorable",objective:"Give more attention to positive elements that can support balance.",steps:["Identify a recent favorable experience.","Inhale for 4 seconds remembering one positive detail.","Hold for 2 seconds allowing that detail to become more present.","Exhale for 6 seconds and decide how to repeat or expand what worked."]}
+]
 },
 
 'Guerra':{
@@ -377,46 +679,99 @@ es:[
 {title:"⚔️ Técnica de Guerra — El guerrero sensato",objective:"Combinar las técnicas disponibles y adaptarte con sensatez a la realidad.",steps:["Recuerda que no siempre gana quien es más fuerte, rápido o brillante, sino quien sabe adaptarse.","Inhala durante 4 segundos evaluando qué necesitas ahora.","Mantén 2 segundos imaginando la combinación adecuada de las Técnicas de Vida.","Exhala durante 6 segundos y elige la respuesta más sensata, adaptable y útil."]},
 {title:"⚔️ Técnica de Guerra — Cambia de estrategia",objective:"Reconocer cuándo una estrategia no funciona y cambiar sin apego.",steps:["Piensa en algo que has intentado resolver de una determinada manera.","Inhala durante 4 segundos observando los resultados sin juzgarte.","Mantén 2 segundos preguntando qué alternativa existe.","Exhala durante 6 segundos y elige una estrategia diferente si resulta más sensata."]},
 {title:"⚔️ Técnica de Guerra — Todas las herramientas",objective:"Utilizar conscientemente la técnica adecuada según la situación.",steps:["Imagina las siete Técnicas de Vida disponibles frente a ti.","Inhala durante 4 segundos observando la situación actual.","Mantén 2 segundos preguntando qué combinación sería más útil.","Exhala durante 6 segundos y selecciona la herramienta que mejor se adapte al momento."]},
-{title:"⚔️ Técnica de Guerra — Adaptación",objective:"Mantener el objetivo mientras modificas la manera de alcanzarlo.",steps:["Piensa en algo que quieres lograr o preservar.","Inhala durante 4 segundos manteniendo presente el objetivo.","Mantén 2 segundos observando qué puede cambiar en el camino.","Exhala durante 6 segundos y decide una adaptación concreta que mantenga el rumbo."]}],
+{title:"⚔️ Técnica de Guerra — Adaptación",objective:"Mantener el objetivo mientras modificas la manera de alcanzarlo.",steps:["Piensa en algo que quieres lograr o preservar.","Inhala durante 4 segundos manteniendo presente el objetivo.","Mantén 2 segundos observando qué puede cambiar en el camino.","Exhala durante 6 segundos y decide una adaptación concreta que mantenga el rumbo."]}
+],
 en:[
 {title:"⚔️ Strategy Technique — What technique do I need?",objective:"Consciously choose which Life Technique the moment requires.",steps:["Observe your situation without trying to solve it immediately.","Inhale for 4 seconds and ask: Do I need Mother, Father, Child, Kiss, Adversity, or Wellbeing?","Hold for 2 seconds evaluating which approach is most sensible.","Exhale for 6 seconds and select the technique that best fits the moment."]},
 {title:"⚔️ Strategy Technique — Wait or act",objective:"Distinguish when it is better to wait and when it is better to act.",steps:["Think about a situation requiring a response.","Inhale for 4 seconds and observe whether information is missing or a clear action exists.","Hold for 2 seconds avoiding unnecessary urgency.","Exhale for 6 seconds and decide: wait intentionally or act sensibly."]},
 {title:"⚔️ Strategy Technique — The sensible warrior",objective:"Combine available techniques and adapt sensibly to reality.",steps:["Remember that the winner is not always the strongest, fastest, or smartest, but the one who can adapt.","Inhale for 4 seconds evaluating what you need now.","Hold for 2 seconds imagining the right combination of Life Techniques.","Exhale for 6 seconds and choose the most sensible, adaptable, useful response."]},
 {title:"⚔️ Strategy Technique — Change strategy",objective:"Recognize when a strategy is not working and change without attachment.",steps:["Think about something you have tried to solve in one particular way.","Inhale for 4 seconds observing the results without judging yourself.","Hold for 2 seconds asking what alternative exists.","Exhale for 6 seconds and choose a different strategy if it is more sensible."]},
 {title:"⚔️ Strategy Technique — All the tools",objective:"Consciously use the appropriate technique according to the situation.",steps:["Imagine all seven Life Techniques available to you.","Inhale for 4 seconds observing the current situation.","Hold for 2 seconds asking which combination would be most useful.","Exhale for 6 seconds and select the tool that best fits the moment."]},
-{title:"⚔️ Strategy Technique — Adaptation",objective:"Keep the goal while changing the way you reach it.",steps:["Think about something you want to achieve or preserve.","Inhale for 4 seconds keeping the goal present.","Hold for 2 seconds observing what can change along the way.","Exhale for 6 seconds and choose one concrete adaptation that keeps you on course."]}]
+{title:"⚔️ Strategy Technique — Adaptation",objective:"Keep the goal while changing the way you reach it.",steps:["Think about something you want to achieve or preserve.","Inhale for 4 seconds keeping the goal present.","Hold for 2 seconds observing what can change along the way.","Exhale for 6 seconds and choose one concrete adaptation that keeps you on course."]}
+]
 }
 };
 
-const tvidSequence=[
-['Madre',0],['Madre',1],['Madre',2],['Madre',3],['Madre',4],['Madre',5],
-['Padre',0],['Padre',1],['Padre',2],['Padre',3],['Padre',4],['Padre',5],
-['Niño',0],['Niño',1],['Niño',2],['Niño',3],['Niño',4],['Niño',5],
-['Beso',0],['Beso',1],['Beso',2],['Beso',3],['Beso',4],['Beso',5],
-['Mal',0],['Mal',1],['Mal',2],['Mal',3],['Mal',4],['Mal',5],
-['Bien',0],['Bien',1],['Bien',2],['Bien',3],['Bien',4],['Bien',5],
-['Guerra',0],['Guerra',1],['Guerra',2],['Guerra',3],['Guerra',4],['Guerra',5]
-];
-
-const TVID_PROGRESS_KEY='mirror_to_you_tvid_next_exercise_v2';
 let currentTechKey=null,currentExerciseIndex=0,currentStepIndex=0,breathAnimationInterval=null,tvidLimitInterval=null,tvidExerciseStartedAt=0,tvidExerciseCompleted=false;
 
-function getTvidNextIndex(){let n=parseInt(localStorage.getItem(TVID_PROGRESS_KEY),10);return Number.isInteger(n)&&n>=0&&n<tvidSequence.length?n:0}
-function setTvidNextIndex(n){localStorage.setItem(TVID_PROGRESS_KEY,String(n%tvidSequence.length))}
-function toggleAdvisorLang(){advisorLang=advisorLang==='es'?'en':'es';document.getElementById('advisor-lang-btn').innerText=advisorLang.toUpperCase();if(advisorLang==='en'){document.getElementById('float-btn-text').innerText="Private Travel Advisory";document.getElementById('modal-advisor-title').innerText="May Roga LLC - Luxury Travel";document.getElementById('modal-advisor-desc').innerText="Connect directly with your certified private advisor to design custom itineraries and manage exclusive bookings.";document.getElementById('wa-btn-label').innerText="Direct WhatsApp Chat";document.getElementById('email-btn-label').innerText="Send Email"}else{document.getElementById('float-btn-text').innerText="Asesoría de Viaje Privada";document.getElementById('modal-advisor-title').innerText="May Roga LLC - Viajes de Lujo";document.getElementById('modal-advisor-desc').innerText="Conecta directamente con tu asesor privado certificado para diseñar itinerarios a la medida y gestionar tus reservas exclusivas.";document.getElementById('wa-btn-label').innerText="Chat Directo por WhatsApp";document.getElementById('email-btn-label').innerText="Enviar Correo Electrónico"}}
-function toggleTravelAdvisorModal(){const modal=document.getElementById('travel-advisor-modal');modal.style.display=modal.style.display==='flex'?'none':'flex'}
-function toggleTvidWindow(){const modal=document.getElementById('tvid-floating-window'),isVisible=modal.style.display==='flex';modal.style.display=isVisible?'none':'flex';if(!isVisible){document.getElementById('tvid-selection-screen').style.display='block';document.getElementById('tvid-exercise-screen').style.display='none';stopTvidTimers()}else stopTvidTimers()}
-function toggleTvidLang(){tvidLang=tvidLang==='es'?'en':'es';document.getElementById('tvid-lang-btn').innerText=tvidLang.toUpperCase();document.getElementById('tvid-main-title').innerText=tvidLang==='es'?'Puerto de Carga Rápida':'Quick Recharge Port';document.getElementById('tvid-subtitle-text').innerText=tvidLang==='es'?'Selecciona tu protocolo de adaptación y bienestar:':'Select your protocol:';document.getElementById('tvid-back-text').innerText=tvidLang==='es'?'← Volver':'← Back';document.getElementById('tvid-speak-btn').innerText=tvidLang==='es'?'🔊 Escuchar':'🔊 Listen';document.getElementById('tvid-float-label').innerText=tvidLang==='es'?'Carga Rápida (TVid)':'Quick Recharge (TVid)';if(currentTechKey)updateTvidViewLang()}
+function getTvidProgress(){
+try{
+const saved=JSON.parse(localStorage.getItem(TVID_PROGRESS_KEY)||'{}');
+const progress={};
+Object.keys(tvidData).forEach(k=>{
+const max=tvidData[k].es.length;
+const n=parseInt(saved[k],10);
+progress[k]=Number.isInteger(n)&&n>=0&&n<max?n:0
+});
+return progress
+}catch(e){
+const progress={};
+Object.keys(tvidData).forEach(k=>progress[k]=0);
+return progress
+}
+}
+
+function getTvidNextIndex(techKey){
+const progress=getTvidProgress();
+return progress[techKey]||0
+}
+
+function setTvidNextIndex(techKey,n){
+const progress=getTvidProgress();
+const total=tvidData[techKey].es.length;
+progress[techKey]=((n%total)+total)%total;
+localStorage.setItem(TVID_PROGRESS_KEY,JSON.stringify(progress))
+}
+
+function toggleTvidWindow(){
+const modal=document.getElementById('tvid-floating-window');
+const isVisible=modal.style.display==='flex';
+
+if(isVisible){
+stopTvidTimers();
+modal.style.display='none'
+}else{
+modal.style.display='flex';
+document.getElementById('tvid-selection-screen').style.display='block';
+document.getElementById('tvid-exercise-screen').style.display='none';
+stopTvidTimers()
+}
+}
+
+function toggleTvidLang(){
+tvidLang=tvidLang==='es'?'en':'es';
+document.getElementById('tvid-lang-btn').innerText=tvidLang.toUpperCase();
+document.getElementById('tvid-main-title').innerText=tvidLang==='es'?'Puerto de Carga Rápida':'Quick Recharge Port';
+document.getElementById('tvid-subtitle-text').innerText=tvidLang==='es'?'Selecciona tu protocolo de adaptación y bienestar:':'Select your protocol:';
+document.getElementById('tvid-back-text').innerText=tvidLang==='es'?'← Volver':'← Back';
+document.getElementById('tvid-speak-btn').innerText=tvidLang==='es'?'🔊 Escuchar':'🔊 Listen';
+document.getElementById('tvid-float-label').innerText=tvidLang==='es'?'Carga Rápida (TVid)':'Quick Recharge (TVid)';
+
+document.querySelectorAll('.tvid-card-btn span[data-es]').forEach(span=>{
+span.innerText=span.dataset[tvidLang]
+});
+
+if(currentTechKey)updateTvidViewLang()
+}
 
 function loadTvidExercise(techKey){
-if(timeLeft<=0){closeSession();return}
-const globalNext=getTvidNextIndex();
-currentExerciseIndex=globalNext;
-currentTechKey=tvidSequence[currentExerciseIndex][0];
+if(timeLeft<=0){
+closeSession();
+return
+}
+
+if(!tvidData[techKey])return;
+
+const localIndex=getTvidNextIndex(techKey);
+
+currentTechKey=techKey;
+currentExerciseIndex=localIndex;
 currentStepIndex=0;
 tvidExerciseCompleted=false;
+
 document.getElementById('tvid-selection-screen').style.display='none';
 document.getElementById('tvid-exercise-screen').style.display='block';
+
 updateTvidViewLang();
 startTvidLimit();
 startBreathCycle();
@@ -425,50 +780,136 @@ speakCurrentStep()
 
 function updateTvidViewLang(){
 if(!currentTechKey)return;
-const position=tvidSequence[currentExerciseIndex],exerciseData=tvidData[position[0]][tvidLang][position[1]];
+
+const exerciseData=tvidData[currentTechKey][tvidLang][currentExerciseIndex];
+
+if(!exerciseData)return;
+
 document.getElementById('tvid-exercise-title').innerText=exerciseData.title;
 document.getElementById('tvid-objective-text').innerText=exerciseData.objective;
 document.getElementById('tvid-exercise-steps').innerText=exerciseData.steps[currentStepIndex];
+
 const actionBtn=document.getElementById('tvid-action-btn');
-actionBtn.innerText=currentStepIndex===exerciseData.steps.length-1?(tvidLang==='es'?'Finalizar Carga':'Finish Recharge'):(tvidLang==='es'?'Siguiente paso':'Next step')
+
+actionBtn.innerText=currentStepIndex===exerciseData.steps.length-1
+?(tvidLang==='es'?'Finalizar Carga':'Finish Recharge')
+:(tvidLang==='es'?'Siguiente paso':'Next step');
+
+const label=document.getElementById('tvid-breath-label');
+if(label)label.innerText=tvidLang==='es'?'Inhala':'Inhale'
 }
 
 function nextTvidStep(){
 if(!currentTechKey||tvidExerciseCompleted)return;
-const position=tvidSequence[currentExerciseIndex],exerciseData=tvidData[position[0]][tvidLang][position[1]];
-if(currentStepIndex<exerciseData.steps.length-1){currentStepIndex++;updateTvidViewLang();speakCurrentStep();return}
-tvidExerciseCompleted=true;
-const nextIndex=(currentExerciseIndex+1)%tvidSequence.length;
-setTvidNextIndex(nextIndex);
-closeTvidWindow()
+
+const exerciseData=tvidData[currentTechKey][tvidLang][currentExerciseIndex];
+
+if(currentStepIndex<exerciseData.steps.length-1){
+currentStepIndex++;
+updateTvidViewLang();
+speakCurrentStep();
+return
 }
 
-function backTvidSelection(){stopTvidTimers();document.getElementById('tvid-exercise-screen').style.display='none';document.getElementById('tvid-selection-screen').style.display='block'}
-function speakCurrentStep(){if(!currentTechKey)return;const position=tvidSequence[currentExerciseIndex],data=tvidData[position[0]][tvidLang][position[1]],textToSpeak=data.steps[currentStepIndex];if('speechSynthesis'in window){window.speechSynthesis.cancel();const utterance=new SpeechSynthesisUtterance(textToSpeak);utterance.lang=tvidLang==='es'?'es-ES':'en-US';utterance.rate=.95;window.speechSynthesis.speak(utterance)}}
-function startBreathCycle(){
-const circle=document.getElementById('tvid-breath-circle'),label=document.getElementById('tvid-breath-label');let state=0;
-if(breathAnimationInterval)clearInterval(breathAnimationInterval);
-function applyBreath(){if(state===0){circle.className='tvid-breath-circle inhale';label.innerText=tvidLang==='es'?'Inhala':'Inhale';state=1}else if(state===1){circle.className='tvid-breath-circle inhale';label.innerText=tvidLang==='es'?'Mantén':'Hold';state=2}else{circle.className='tvid-breath-circle exhale';label.innerText=tvidLang==='es'?'Exhala':'Exhale';state=0}}
-applyBreath();breathAnimationInterval=setInterval(applyBreath,4000)
+tvidExerciseCompleted=true;
+
+const nextIndex=(currentExerciseIndex+1)%tvidData[currentTechKey].es.length;
+setTvidNextIndex(currentTechKey,nextIndex);
+
+stopTvidTimers();
+document.getElementById('tvid-exercise-screen').style.display='none';
+document.getElementById('tvid-selection-screen').style.display='block';
+document.getElementById('tvid-floating-window').style.display='flex'
 }
+
+function backTvidSelection(){
+stopTvidTimers();
+tvidExerciseCompleted=false;
+document.getElementById('tvid-exercise-screen').style.display='none';
+document.getElementById('tvid-selection-screen').style.display='block'
+}
+
+function speakCurrentStep(){
+if(!currentTechKey)return;
+
+const exerciseData=tvidData[currentTechKey][tvidLang][currentExerciseIndex];
+if(!exerciseData)return;
+
+const textToSpeak=exerciseData.steps[currentStepIndex];
+
+if('speechSynthesis'in window){
+window.speechSynthesis.cancel();
+const utterance=new SpeechSynthesisUtterance(textToSpeak);
+utterance.lang=tvidLang==='es'?'es-ES':'en-US';
+utterance.rate=.95;
+window.speechSynthesis.speak(utterance)
+}
+}
+
+function startBreathCycle(){
+const circle=document.getElementById('tvid-breath-circle');
+const label=document.getElementById('tvid-breath-label');
+let state=0;
+
+if(breathAnimationInterval)clearInterval(breathAnimationInterval);
+
+function applyBreath(){
+if(state===0){
+circle.className='tvid-breath-circle inhale';
+label.innerText=tvidLang==='es'?'Inhala':'Inhale';
+state=1
+}else if(state===1){
+circle.className='tvid-breath-circle inhale';
+label.innerText=tvidLang==='es'?'Mantén':'Hold';
+state=2
+}else{
+circle.className='tvid-breath-circle exhale';
+label.innerText=tvidLang==='es'?'Exhala':'Exhale';
+state=0
+}
+}
+
+applyBreath();
+breathAnimationInterval=setInterval(applyBreath,4000)
+}
+
 function startTvidLimit(){
 stopTvidTimers();
+
 tvidExerciseStartedAt=Date.now();
+
 const allowed=Math.max(0,Math.min(300,timeLeft));
-if(allowed<=0){closeSession();return}
+
+if(allowed<=0){
+closeSession();
+return
+}
+
 tvidLimitInterval=setInterval(()=>{
 const elapsed=(Date.now()-tvidExerciseStartedAt)/1000;
-if(elapsed>=allowed||elapsed>=300||timeLeft<=0){stopTvidTimers();document.getElementById('tvid-floating-window').style.display='none'}
+
+if(elapsed>=allowed||elapsed>=300||timeLeft<=0){
+stopTvidTimers();
+document.getElementById('tvid-floating-window').style.display='none'
+}
 },500)
 }
+
 function stopTvidTimers(){
 if(tvidLimitInterval)clearInterval(tvidLimitInterval);
 if(breathAnimationInterval)clearInterval(breathAnimationInterval);
-tvidLimitInterval=null;breathAnimationInterval=null;
+
+tvidLimitInterval=null;
+breathAnimationInterval=null;
+
 if('speechSynthesis'in window)window.speechSynthesis.cancel()
 }
-function closeTvidWindow(){stopTvidTimers();document.getElementById('tvid-floating-window').style.display='none'}
+
+function closeTvidWindow(){
+stopTvidTimers();
+document.getElementById('tvid-floating-window').style.display='none'
+}
 </script>
+
 </body>
 </html>
-```
