@@ -733,35 +733,532 @@ function toggleMortalsDrawer() {
         }
     </script>
 
-    <!-- Botón Flotante y Modal de Asesoría de Viaje con Selector de Idioma Transparente -->
+<!-- ==========================================================
+     VENTANA 1: FAST CHARGE PORT (TVid) - Bilingual Integrated
+     ========================================================== -->
+    <div id="tvid-floating-window" class="tvid-modal-overlay" style="display: none;">
+      <div class="tvid-modal-container">
+        
+        <!-- Modal Header -->
+        <div class="tvid-header">
+          <span class="tvid-badge" data-i18n="badge">5-Min Recharge</span>
+          <h2 data-i18n="tvid_title">Fast Charge Port</h2>
+          <button class="tvid-close-btn" onclick="closeTvidWindow()">&times;</button>
+        </div>
+
+        <!-- Selection Screen -->
+        <div id="tvid-selection-screen" class="tvid-content-view">
+          <p class="tvid-subtitle" data-i18n="tvid_subtitle">Select your adaptation and biopsychosocial wellbeing protocol:</p>
+          <div class="tvid-grid">
+            <button class="tvid-card-btn" onclick="loadTvidExercise('Madre')">❤️ <span data-i18n="tech_mother">Mother Technique</span></button>
+            <button class="tvid-card-btn" onclick="loadTvidExercise('Padre')">💪 <span data-i18n="tech_father">Father Technique</span></button>
+            <button class="tvid-card-btn" onclick="loadTvidExercise('Niño')">🧒 <span data-i18n="tech_child">Child Technique</span></button>
+            <button class="tvid-card-btn" onclick="loadTvidExercise('Beso')">💋 <span data-i18n="tech_kiss">Kiss Technique</span></button>
+            <button class="tvid-card-btn" onclick="loadTvidExercise('Mal')">⚫ <span data-i18n="tech_bad">Bad Technique</span></button>
+            <button class="tvid-card-btn" onclick="loadTvidExercise('Bien')">☀️ <span data-i18n="tech_good">Good Technique</span></button>
+            <button class="tvid-card-btn tvid-full" onclick="loadTvidExercise('Guerra')">⚔️ <span data-i18n="tech_war">War Technique</span></button>
+          </div>
+        </div>
+
+        <!-- Active Exercise Screen -->
+        <div id="tvid-exercise-screen" class="tvid-content-view" style="display: none;">
+          <div class="tvid-exercise-top">
+            <button class="tvid-back-btn" onclick="backToTvidSelection()" data-i18n="back_btn">← Back</button>
+            <div class="tvid-timer" id="tvid-timer-display">05:00</div>
+          </div>
+          <h3 id="tvid-exercise-title">Exercise Title</h3>
+          <div id="tvid-exercise-steps" class="tvid-steps-container">
+            <!-- Dynamic steps injected via JS -->
+          </div>
+          <button id="tvid-action-btn" class="tvid-main-action" onclick="nextTvidStep()" data-i18n="next_btn">Next step</button>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ==========================================================
+         FLOATING BUTTONS & MODALS (Bilingual English / Spanish)
+         ========================================================== -->
     <div id="travel-advisor-float" style="position: fixed; bottom: 20px; right: 20px; z-index: 1500; display: flex; align-items: center; gap: 8px;">
-        <button onclick="toggleAdvisorLang()" id="advisor-lang-btn" style="background: rgba(255, 255, 255, 0.15); backdrop-filter: blur(5px); border: 1px solid rgba(255, 255, 255, 0.3); color: var(--text-main, #ffffff); padding: 10px 12px; border-radius: 50%; font-weight: 600; font-size: 0.8rem; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.3); transition: background 0.2s ease;" title="Cambiar Idioma / Switch Language">
-            ES
+        <!-- Fast Charge Button (Window 1) -->
+        <button onclick="toggleTvidWindow()" style="background: rgba(212, 175, 55, 0.2); backdrop-filter: blur(5px); border: 1px solid #d4af37; color: #d4af37; padding: 12px 18px; border-radius: 30px; font-weight: 600; font-size: 0.9rem; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.3); display: flex; align-items: center; gap: 6px; transition: transform 0.2s ease;" title="Fast Charge Port 5 min">
+            ⚡ <span id="float-tvid-text">Fast Charge</span>
         </button>
 
+        <!-- Language Toggle Button -->
+        <button onclick="toggleAdvisorLang()" id="advisor-lang-btn" style="background: rgba(255, 255, 255, 0.15); backdrop-filter: blur(5px); border: 1px solid rgba(255, 255, 255, 0.3); color: var(--text-main, #ffffff); padding: 10px 12px; border-radius: 50%; font-weight: 600; font-size: 0.8rem; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.3); transition: background 0.2s ease;" title="Cambiar Idioma / Switch Language">
+            EN
+        </button>
+
+        <!-- Travel Advisor Button (Window 3) -->
         <button onclick="toggleTravelAdvisorModal()" style="background-color: var(--accent-color); color: var(--bg-color); border: none; padding: 12px 20px; border-radius: 30px; font-weight: 600; font-size: 0.9rem; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.5); display: flex; align-items: center; gap: 8px; transition: transform 0.2s ease;">
-            ✈️ <span id="float-btn-text">Asesoría de Viaje Privada</span>
+            ✈️ <span id="float-btn-text">Private Travel Advisory</span>
         </button>
     </div>
 
+    <!-- Travel Advisor Modal (Window 3) -->
     <div id="travel-advisor-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(11, 15, 25, 0.85); z-index: 2500; justify-content: center; align-items: center; padding: 20px;">
         <div class="legal-box" style="position: relative; max-width: 450px;">
             <button onclick="toggleTravelAdvisorModal()" style="position: absolute; top: 15px; right: 15px; background: none; border: none; color: var(--text-muted); font-size: 1.2rem; cursor: pointer;">✕</button>
             
-            <h2 id="modal-advisor-title" style="color: var(--accent-color); margin-bottom: 10px;">May Roga LLC - Viajes de Lujo</h2>
-            <p id="modal-advisor-desc" style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 20px; text-align: left;">
-                Conecta directamente con tu asesor privado certificado para diseñar itinerarios a la medida y gestionar tus reservas exclusivas.
+            <h2 id="modal-advisor-title" style="color: var(--accent-color); margin-bottom: 10px;" data-i18n="modal_title">May Roga LLC - Luxury Travel</h2>
+            <p id="modal-advisor-desc" style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 20px; text-align: left;" data-i18n="modal_desc">
+                Connect directly with your certified private advisor to custom-design itineraries and manage your exclusive bookings.
             </p>
 
             <div style="display: flex; flex-direction: column; gap: 12px;">
-                <a id="whatsapp-link" href="https://wa.me/17866471371?text=Hola%20Maykel,%20vengo%2520de%20la%20aplicación%20y%20deseo%20cotizar%20un%20viaje%20o%20itinerario%20privado." target="_blank" style="background: #25d366; color: #ffffff; padding: 12px; border-radius: 6px; text-decoration: none; font-weight: 600; font-size: 0.95rem; display: flex; align-items: center; justify-content: center; gap: 8px;">
-                    💬 <span id="wa-btn-label">Chat Directo por WhatsApp</span>
+                <a id="whatsapp-link" href="https://wa.me/17866471371?text=Hello%20Maykel,%20I%20am%20coming%20from%20the%20app%20and%20wish%20to%20quote%20a%20private%20trip%20or%20itinerary." target="_blank" style="background: #25d366; color: #ffffff; padding: 12px; border-radius: 6px; text-decoration: none; font-weight: 600; font-size: 0.95rem; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                    💬 <span id="wa-btn-label" data-i18n="wa_label">Direct WhatsApp Chat</span>
                 </a>
-                <a id="email-link" href="mailto:maykel75122805321@gmail.com?subject=Solicitud%20de%20Asesoría%20de%20Viaje%20Privada" style="background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-main); padding: 12px; border-radius: 6px; text-decoration: none; font-weight: 600; font-size: 0.95rem; display: flex; align-items: center; justify-content: center; gap: 8px;">
-                    ✉️ <span id="email-btn-label">Enviar Correo Electrónico</span>
+                <a id="email-link" href="mailto:maykel75122805321@gmail.com?subject=Private%20Travel%20Advisory%20Request" style="background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-main); padding: 12px; border-radius: 6px; text-decoration: none; font-weight: 600; font-size: 0.95rem; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                    ✉️ <span id="email-btn-label" data-i18n="email_label">Send Email</span>
                 </a>
             </div>
         </div>
     </div>
+
+    <!-- Styles -->
+    <style>
+      .tvid-modal-overlay {
+        position: fixed;
+        top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(10, 10, 12, 0.85);
+        backdrop-filter: blur(12px);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 2500;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      }
+      .tvid-modal-container {
+        background: #141416;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        width: 90%;
+        max-width: 480px;
+        border-radius: 16px;
+        padding: 24px;
+        color: #f1f1f3;
+        box-shadow: 0 20px 40px rgba(0,0,0,0.6);
+      }
+      .tvid-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        padding-bottom: 12px;
+      }
+      .tvid-badge {
+        background: rgba(212, 175, 55, 0.15);
+        color: #d4af37;
+        font-size: 11px;
+        font-weight: 600;
+        padding: 4px 8px;
+        border-radius: 6px;
+        text-transform: uppercase;
+      }
+      .tvid-header h2 {
+        font-size: 16px;
+        margin: 0;
+        font-weight: 500;
+        letter-spacing: 0.5px;
+      }
+      .tvid-close-btn {
+        background: none;
+        border: none;
+        color: #888;
+        font-size: 24px;
+        cursor: pointer;
+      }
+      .tvid-subtitle {
+        font-size: 13px;
+        color: #999;
+        margin-bottom: 16px;
+      }
+      .tvid-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+      }
+      .tvid-card-btn {
+        background: #1e1e22;
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        color: #f1f1f3;
+        padding: 12px;
+        border-radius: 10px;
+        font-size: 13px;
+        text-align: left;
+        cursor: pointer;
+        transition: all 0.2s ease;
+      }
+      .tvid-card-btn:hover {
+        background: #28282d;
+        border-color: #d4af37;
+      }
+      .tvid-card-btn.tvid-full {
+        grid-column: span 2;
+      }
+      .tvid-exercise-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
+      }
+      .tvid-back-btn {
+        background: none;
+        border: none;
+        color: #d4af37;
+        cursor: pointer;
+        font-size: 13px;
+      }
+      .tvid-timer {
+        font-family: monospace;
+        font-size: 15px;
+        color: #d4af37;
+        background: rgba(212, 175, 55, 0.1);
+        padding: 4px 8px;
+        border-radius: 6px;
+      }
+      .tvid-steps-container {
+        font-size: 14px;
+        line-height: 1.6;
+        color: #ccc;
+        min-height: 120px;
+        margin-bottom: 20px;
+        background: #1a1a1e;
+        padding: 16px;
+        border-radius: 10px;
+      }
+      .tvid-main-action {
+        width: 100%;
+        background: #d4af37;
+        color: #0a0a0c;
+        border: none;
+        padding: 12px;
+        border-radius: 10px;
+        font-weight: 600;
+        font-size: 14px;
+        cursor: pointer;
+      }
+      .tvid-main-action:hover {
+        background: #e6c547;
+      }
+    </style>
+
+    <!-- Bilingual Scripts & Infinite Device Memory Loop -->
+    <script>
+      let currentLang = 'en'; // Default language English
+
+      const translations = {
+        en: {
+          float_tvid: "Fast Charge",
+          float_advisor: "Private Travel Advisory",
+          badge: "5-Min Recharge",
+          tvid_title: "Fast Charge Port",
+          tvid_subtitle: "Select your adaptation and biopsychosocial wellbeing protocol:",
+          tech_mother: "Mother Technique",
+          tech_father: "Father Technique",
+          tech_child: "Child Technique",
+          tech_kiss: "Kiss Technique",
+          tech_bad: "Bad Technique",
+          tech_good: "Good Technique",
+          tech_war: "War Technique",
+          back_btn: "← Back",
+          next_btn: "Next step",
+          finish_btn: "Finish Fast Charge",
+          modal_title: "May Roga LLC - Luxury Travel",
+          modal_desc: "Connect directly with your certified private advisor to custom-design itineraries and manage your exclusive bookings.",
+          wa_label: "Direct WhatsApp Chat",
+          email_label: "Send Email"
+        },
+        es: {
+          float_tvid: "Carga Rápida",
+          float_advisor: "Asesoría de Viaje Privada",
+          badge: "5-Min Recharge",
+          tvid_title: "Puerto de Carga Rápida",
+          tvid_subtitle: "Selecciona tu protocolo de adaptación y bienestar biopsicosocial:",
+          tech_mother: "Técnica de la Madre",
+          tech_father: "Técnica del Padre",
+          tech_child: "Técnica del Niño",
+          tech_kiss: "Técnica del Beso",
+          tech_bad: "Técnica del Mal",
+          tech_good: "Técnica del Bien",
+          tech_war: "Técnica de Guerra",
+          back_btn: "← Volver",
+          next_btn: "Siguiente paso",
+          finish_btn: "Finalizar Carga Rápida",
+          modal_title: "May Roga LLC - Viajes de Lujo",
+          modal_desc: "Conecta directamente con tu asesor privado certificado para diseñar itinerarios a la medida y gestionar tus reservas exclusivas.",
+          wa_label: "Chat Directo por WhatsApp",
+          email_label: "Enviar Correo Electrónico"
+        }
+      };
+
+      const tvidData = {
+        'Madre': {
+          en: {
+            title: "❤️ Mother Technique",
+            steps: [
+              "Sit comfortably. Breathe slowly through your nose for 4 seconds. Hold for 2 seconds. Exhale slowly for 6 seconds.",
+              "Think of something in your life that needs care and ask yourself: 'If this were my child, how would I care for it?'",
+              "Place one hand on your chest and one on your abdomen. Tell yourself: 'I will treat myself with patience and care.'",
+              "Visualize a dream you want to protect for one minute. Take a small, concrete mental action to care for it today."
+            ]
+          },
+          es: {
+            title: "❤️ Técnica de la Madre",
+            steps: [
+              "Siéntate cómodamente. Respira lentamente por la nariz durante 4 segundos. Mantén 2 segundos. Expulsa lentamente durante 6 segundos.",
+              "Piensa en algo de tu vida que necesita cuidado y pregúntate: 'Si esto fuera mi hijo, ¿cómo lo cuidaría?'",
+              "Coloca una mano sobre el pecho y otra sobre el abdomen. Dite: 'Voy a tratarme con paciencia y a cuidarme.'",
+              "Visualiza un sueño que quieras proteger durante un minuto. Haz una acción mental concreta para cuidarlo hoy."
+            ]
+          }
+        },
+        'Padre': {
+          en: {
+            title: "💪 Father Technique",
+            steps: [
+              "Stand with your feet shoulder-width apart. Breathe deeply and maintain a firm posture.",
+              "Repeat mentally: 'I am here. I can face this. I will decide with clarity.'",
+              "Break down your current problem into three parts: Reality -> Decision -> Action.",
+              "Adopt a firm posture and take immediate control of your next decision."
+            ]
+          },
+          es: {
+            title: "💪 Técnica del Padre",
+            steps: [
+              "Ponte de pie con los pies separados al ancho de los hombros. Respira profundamente y mantén postura firme.",
+              "Repite mentalmente: 'Estoy aquí. Puedo enfrentar esto. Voy a decidir con claridad.'",
+              "Analiza el problema actual dividiéndolo en tres partes: Realidad -> Decisión -> Acción.",
+              "Adopta una postura firme y asume el control inmediato de tu próxima decisión."
+            ]
+          }
+        },
+        'Niño': {
+          en: {
+            title: "🧒 Child Technique",
+            steps: [
+              "Look around you for one minute and identify three overlooked everyday items as if seeing them for the first time.",
+              "Breathe deeply three times and recall a small, funny, or innocent detail.",
+              "Smile for a few seconds while breathing lightly and with curiosity.",
+              "Imagine your current situation solved without strict logic and find an immediately applicable part."
+            ]
+          },
+          es: {
+            title: "🧒 Técnica del Niño",
+            steps: [
+              "Mira a tu alrededor durante un minuto e identifica tres elementos cotidianos ignorados viéndolos por primera vez.",
+              "Respira profundamente tres veces y recuerda un pequeño detalle gracioso o inocente.",
+              "Sonríe durante unos segundos mientras respiras con ligereza y curiosidad.",
+              "Imagina tu situación actual solucionada sin lógica estricta y encuentra una parte aplicable de inmediato."
+            ]
+          }
+        },
+        'Beso': {
+          en: {
+            title: "💋 Kiss Technique",
+            steps: [
+              "Cross your arms over your chest simulating a protective embrace and breathe slowly.",
+              "When inhaling think: 'I accept myself.' When exhaling: 'I treat myself with affection.'",
+              "Think of three key people and define a kind word or consideration for them today.",
+              "Send a symbolic internal and external embrace to calibrate your emotional peace."
+            ]
+          },
+          es: {
+            title: "💋 Técnica del Beso",
+            steps: [
+              "Cruza los brazos sobre tu pecho simulando un abrazo protector y respira despacio.",
+              "Al inhalar piensa: 'Me acepto.' Al exhalar: 'Me trato con cariño.'",
+              "Piensa en tres personas clave y define una palabra amable o consideración para ellas hoy.",
+              "Envía un abrazo simbólico externo e interno para calibrar tu paz emocional."
+            ]
+          }
+        },
+        'Mal': {
+          en: {
+            title: "⚫ Bad Technique",
+            steps: [
+              "Place one hand on your chest and breathe slowly facing a past difficulty.",
+              "Mentally divide the experience analyzing: What happened? What did I learn? What will I do differently?",
+              "Identify a concrete lesson or useful scar from that situation for your immediate future.",
+              "Accept what happened without changing the past, consciously deciding what to do with the learning."
+            ]
+          },
+          es: {
+            title: "⚫ Técnica del Mal",
+            steps: [
+              "Coloca una mano sobre el pecho y respira lentamente ante una dificultad pasada.",
+              "Divide mentalmente la experiencia analizando: ¿Qué pasó? ¿Qué aprendí? ¿Qué haré diferente?",
+              "Identifica una enseñanza concreta o cicatriz útil de esa situación para tu futuro inmediato.",
+              "Acepta lo ocurrido sin cambiar el pasado, decidiendo conscientemente qué hacer con el aprendizaje."
+            ]
+          }
+        },
+        'Bien': {
+          en: {
+            title: "☀️ Good Technique",
+            steps: [
+              "Examine your day for three minutes identifying an achievement, a benefit, and a source of enjoyment.",
+              "Inhale slowly thinking: 'I receive the good.' Exhale: 'I let go of what is unnecessary.'",
+              "Identify a positive and exploitable aspect within your current challenge.",
+              "Set a micro-action to enhance your wellbeing on this very day."
+            ]
+          },
+          es: {
+            title: "☀️ Técnica del Bien",
+            steps: [
+              "Examina tu jornada durante tres minutos identificando un logro, un beneficio y un disfrute.",
+              "Inhala lentamente pensando: 'Recibo lo bueno.' Exhala: 'Dejo salir lo innecesario.'",
+              "Identifica un aspecto positivo aprovechable dentro de tu desafío actual.",
+              "Fija una microacción inmediata para potenciar tu bienestar este mismo día."
+            ]
+          }
+        },
+        'Guerra': {
+          en: {
+            title: "⚔️ War Technique",
+            steps: [
+              "Take three deep breaths adopting a balanced, firm yet relaxed posture.",
+              "Identify what technique you require right now: Mother, Father, Child, Kiss, Bad, or Good?",
+              "Evaluate with tactical sense: Should I wait or act? Fight or accept?",
+              "Affirm with conviction: 'I do not need to be the strongest, I need to be wise and adapt.'"
+            ]
+          },
+          es: {
+            title: "⚔️ Técnica de Guerra",
+            steps: [
+              "Realiza tres respiraciones profundas adoptando una postura equilibrada, firme pero relajada.",
+              "Identifica qué técnica requieres en este instante: ¿Madre, Padre, Niño, Beso, Mal o Bien?",
+              "Evalúa con sentido táctico: ¿Debo esperar o actuar? ¿Luchar o aceptar?",
+              "Afirma con convicción: 'No necesito ser el más fuerte, necesito ser sensato y adaptarme.'"
+            ]
+          }
+        }
+      };
+
+      const techKeysOrder = ['Madre', 'Padre', 'Niño', 'Beso', 'Mal', 'Bien', 'Guerra'];
+      let currentTechKey = null;
+      let currentStepIndex = 0;
+      let countdownInterval = null;
+
+      function toggleAdvisorLang() {
+        currentLang = currentLang === 'en' ? 'es' : 'en';
+        document.getElementById('advisor-lang-btn').innerText = currentLang === 'en' ? 'EN' : 'ES';
+        
+        // Update static UI elements
+        const t = translations[currentLang];
+        document.getElementById('float-tvid-text').innerText = t.float_tvid;
+        document.getElementById('float-btn-text').innerText = t.float_advisor;
+        document.querySelector('[data-i18n="badge"]').innerText = t.badge;
+        document.querySelector('[data-i18n="tvid_title"]').innerText = t.tvid_title;
+        document.querySelector('[data-i18n="tvid_subtitle"]').innerText = t.tvid_subtitle;
+        document.querySelector('[data-i18n="tech_mother"]').innerText = t.tech_mother;
+        document.querySelector('[data-i18n="tech_father"]').innerText = t.tech_father;
+        document.querySelector('[data-i18n="tech_child"]').innerText = t.tech_child;
+        document.querySelector('[data-i18n="tech_kiss"]').innerText = t.tech_kiss;
+        document.querySelector('[data-i18n="tech_bad"]').innerText = t.tech_bad;
+        document.querySelector('[data-i18n="tech_good"]').innerText = t.tech_good;
+        document.querySelector('[data-i18n="tech_war"]').innerText = t.tech_war;
+        document.querySelector('[data-i18n="back_btn"]').innerText = t.back_btn;
+        document.querySelector('[data-i18n="modal_title"]').innerText = t.modal_title;
+        document.querySelector('[data-i18n="modal_desc"]').innerText = t.modal_desc;
+        document.querySelector('[data-i18n="wa_label"]').innerText = t.wa_label;
+        document.querySelector('[data-i18n="email_label"]').innerText = t.email_label;
+
+        // If exercise screen is active, refresh active text
+        if (currentTechKey) {
+          const tech = tvidData[currentTechKey][currentLang];
+          document.getElementById('tvid-exercise-title').innerText = tech.title;
+          updateStepView();
+        }
+      }
+
+      function toggleTvidWindow() {
+        const modal = document.getElementById('tvid-floating-window');
+        if (modal.style.display === 'flex') {
+          modal.style.display = 'none';
+          clearInterval(countdownInterval);
+        } else {
+          modal.style.display = 'flex';
+          if (document.getElementById('tvid-exercise-screen').style.display !== 'block') {
+            loadNextSmartExercise();
+          }
+        }
+      }
+
+      function closeTvidWindow() {
+        clearInterval(countdownInterval);
+        document.getElementById('tvid-floating-window').style.display = 'none';
+        document.getElementById('tvid-exercise-screen').style.display = 'none';
+        document.getElementById('tvid-selection-screen').style.display = 'block';
+      }
+
+      // Infinite local device memory loop (localStorage) from minor to major
+      function loadNextSmartExercise() {
+        let lastIndex = parseInt(localStorage.getItem('mayroga_tvid_index') || "-1", 10);
+        let nextIndex = (lastIndex + 1) % techKeysOrder.length;
+        localStorage.setItem('mayroga_tvid_index', nextIndex);
+        
+        loadTvidExercise(techKeysOrder[nextIndex]);
+      }
+
+      function loadTvidExercise(techKey) {
+        currentTechKey = techKey;
+        currentStepIndex = 0;
+        document.getElementById('tvid-selection-screen').style.display = 'none';
+        document.getElementById('tvid-exercise-screen').style.display = 'block';
+        
+        const tech = tvidData[currentTechKey][currentLang];
+        document.getElementById('tvid-exercise-title').innerText = tech.title;
+        updateStepView();
+        startTvidTimer(300); // Exactly 5 minutes (300 seconds)
+      }
+
+      function updateStepView() {
+        const tech = tvidData[currentTechKey][currentLang];
+        const stepText = tech.steps[currentStepIndex];
+        document.getElementById('tvid-exercise-steps').innerText = stepText;
+        
+        const t = translations[currentLang];
+        if (currentStepIndex === tech.steps.length - 1) {
+          document.getElementById('tvid-action-btn').innerText = t.finish_btn;
+        } else {
+          document.getElementById('tvid-action-btn').innerText = t.next_btn;
+        }
+      }
+
+      function nextTvidStep() {
+        const tech = tvidData[currentTechKey][currentLang];
+        currentStepIndex++;
+        if (currentStepIndex < tech.steps.length) {
+          updateStepView();
+        } else {
+          closeTvidWindow();
+        }
+      }
+
+      function backToTvidSelection() {
+        clearInterval(countdownInterval);
+        document.getElementById('tvid-exercise-screen').style.display = 'none';
+        document.getElementById('tvid-selection-screen').style.display = 'block';
+      }
+
+      function startTvidTimer(duration) {
+        clearInterval(countdownInterval);
+        let timer = duration, minutes, seconds;
+        countdownInterval = setInterval(function () {
+          minutes = parseInt(timer / 60, 10);
+          seconds = parseInt(timer % 60, 10);
+          minutes = minutes < 10 ? "0" + minutes : minutes;
+          seconds = seconds < 10 ? "0" + seconds : seconds;
+          document.getElementById('tvid-timer-display').textContent = minutes + ":" + seconds;
+          if (--timer < 0) {
+            clearInterval(countdownInterval);
+            closeTvidWindow();
+          }
+        }, 1000);
+      }
+    </script>
 </body>
 </html>
