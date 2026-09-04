@@ -748,6 +748,14 @@ en:[
     let tvidLang = 'es';
     let timeLeft = 300;
 
+    // Respaldo de seguridad por si tvidData no está definido externamente
+    const tvidData = window.tvidData || {
+        "bien": {
+            es: [{ title: "Técnica del Bien", objective: "Adaptación", steps: ["Paso 1: Respira profundamente.", "Paso 2: Visualiza estabilidad."] }],
+            en: [{ title: "Good Technique", objective: "Adaptation", steps: ["Step 1: Breathe deeply.", "Step 2: Visualize stability."] }]
+        }
+    };
+
     window.addEventListener('DOMContentLoaded', () => {
         const urlParams = new URLSearchParams(window.location.search);
         if (urlParams.get('success') === 'true') {
@@ -831,6 +839,7 @@ en:[
     function toggleTvidWindow(){
         const modal = document.getElementById('tvid-floating-window');
         const arrow = document.getElementById('tvid-curtain-arrow');
+        if (!modal) return;
         const isVisible = modal.style.display === 'flex';
 
         if(isVisible){
@@ -839,8 +848,10 @@ en:[
             if(arrow) arrow.innerText = '＋';
         }else{
             modal.style.display = 'flex';
-            document.getElementById('tvid-selection-screen').style.display = 'block';
-            document.getElementById('tvid-exercise-screen').style.display = 'none';
+            const selScreen = document.getElementById('tvid-selection-screen');
+            const exScreen = document.getElementById('tvid-exercise-screen');
+            if(selScreen) selScreen.style.display = 'block';
+            if(exScreen) exScreen.style.display = 'none';
             stopTvidTimers();
             if(arrow) arrow.innerText = '−';
         }
@@ -848,23 +859,30 @@ en:[
 
     function toggleTvidLang(){
         tvidLang = tvidLang === 'es' ? 'en' : 'es';
-        document.getElementById('tvid-lang-btn').innerText = tvidLang.toUpperCase();
-        document.getElementById('tvid-main-title').innerText = tvidLang === 'es' ? 'Puerto de Carga Rápida' : 'Quick Recharge Port';
-        document.getElementById('tvid-subtitle-text').innerText = tvidLang === 'es' ? 'Selecciona tu protocolo de adaptación y bienestar:' : 'Select your protocol:';
-        document.getElementById('tvid-back-text').innerText = tvidLang === 'es' ? '← Volver' : '← Back';
-        document.getElementById('tvid-speak-btn').innerText = tvidLang === 'es' ? '🔊 Escuchar' : '🔊 Listen';
-        document.getElementById('tvid-float-label').innerText = tvidLang === 'es' ? 'Carga Rápida (TVid)' : 'Quick Recharge (TVid)';
+        const langBtn = document.getElementById('tvid-lang-btn');
+        const mainTitle = document.getElementById('tvid-main-title');
+        const subText = document.getElementById('tvid-subtitle-text');
+        const backText = document.getElementById('tvid-back-text');
+        const speakBtn = document.getElementById('tvid-speak-btn');
+        const floatLabel = document.getElementById('tvid-float-label');
+
+        if(langBtn) langBtn.innerText = tvidLang.toUpperCase();
+        if(mainTitle) mainTitle.innerText = tvidLang === 'es' ? 'Puerto de Carga Rápida' : 'Quick Recharge Port';
+        if(subText) subText.innerText = tvidLang === 'es' ? 'Selecciona tu protocolo de adaptación y bienestar:' : 'Select your protocol:';
+        if(backText) backText.innerText = tvidLang === 'es' ? '← Volver' : '← Back';
+        if(speakBtn) speakBtn.innerText = tvidLang === 'es' ? '🔊 Escuchar' : '🔊 Listen';
+        if(floatLabel) floatLabel.innerText = tvidLang === 'es' ? 'Carga Rápida (TVid)' : 'Quick Recharge (TVid)';
 
         document.querySelectorAll('.tvid-card-btn span[data-es]').forEach(span => {
-            span.innerText = span.dataset[tvidLang];
+            if(span.dataset[tvidLang]) span.innerText = span.dataset[tvidLang];
         });
 
         if(currentTechKey) updateTvidViewLang();
     }
 
     function loadTvidExercise(techKey){
-        if(timeLeft <= 0){
-            closeSession();
+        if(typeof timeLeft !== 'undefined' && timeLeft <= 0){
+            if(typeof closeSession === 'function') closeSession();
             return;
         }
 
@@ -877,8 +895,10 @@ en:[
         currentStepIndex = 0;
         tvidExerciseCompleted = false;
 
-        document.getElementById('tvid-selection-screen').style.display = 'none';
-        document.getElementById('tvid-exercise-screen').style.display = 'block';
+        const selScreen = document.getElementById('tvid-selection-screen');
+        const exScreen = document.getElementById('tvid-exercise-screen');
+        if(selScreen) selScreen.style.display = 'none';
+        if(exScreen) exScreen.style.display = 'block';
 
         updateTvidViewLang();
         startTvidLimit();
@@ -887,28 +907,31 @@ en:[
     }
 
     function updateTvidViewLang(){
-        if(!currentTechKey) return;
+        if(!currentTechKey || !tvidData[currentTechKey]) return;
 
         const exerciseData = tvidData[currentTechKey][tvidLang][currentExerciseIndex];
-
         if(!exerciseData) return;
 
-        document.getElementById('tvid-exercise-title').innerText = exerciseData.title;
-        document.getElementById('tvid-objective-text').innerText = exerciseData.objective;
-        document.getElementById('tvid-exercise-steps').innerText = exerciseData.steps[currentStepIndex];
+        const exTitle = document.getElementById('tvid-exercise-title');
+        const objText = document.getElementById('tvid-objective-text');
+        const exSteps = document.getElementById('tvid-exercise-steps');
+        if(exTitle) exTitle.innerText = exerciseData.title;
+        if(objText) objText.innerText = exerciseData.objective;
+        if(exSteps) exSteps.innerText = exerciseData.steps[currentStepIndex];
 
         const actionBtn = document.getElementById('tvid-action-btn');
-
-        actionBtn.innerText = currentStepIndex === exerciseData.steps.length - 1
-            ? (tvidLang === 'es' ? 'Finalizar Carga' : 'Finish Recharge')
-            : (tvidLang === 'es' ? 'Siguiente paso' : 'Next step');
+        if(actionBtn){
+            actionBtn.innerText = currentStepIndex === exerciseData.steps.length - 1
+                ? (tvidLang === 'es' ? 'Finalizar Carga' : 'Finish Recharge')
+                : (tvidLang === 'es' ? 'Siguiente paso' : 'Next step');
+        }
 
         const label = document.getElementById('tvid-breath-label');
         if(label) label.innerText = tvidLang === 'es' ? 'Inhala' : 'Inhale';
     }
 
     function nextTvidStep(){
-        if(!currentTechKey || tvidExerciseCompleted) return;
+        if(!currentTechKey || tvidExerciseCompleted || !tvidData[currentTechKey]) return;
 
         const exerciseData = tvidData[currentTechKey][tvidLang][currentExerciseIndex];
 
@@ -925,9 +948,12 @@ en:[
         setTvidNextIndex(currentTechKey, nextIndex);
 
         stopTvidTimers();
-        document.getElementById('tvid-exercise-screen').style.display = 'none';
-        document.getElementById('tvid-selection-screen').style.display = 'block';
-        document.getElementById('tvid-floating-window').style.display = 'flex';
+        const exScreen = document.getElementById('tvid-exercise-screen');
+        const selScreen = document.getElementById('tvid-selection-screen');
+        const modal = document.getElementById('tvid-floating-window');
+        if(exScreen) exScreen.style.display = 'none';
+        if(selScreen) selScreen.style.display = 'block';
+        if(modal) modal.style.display = 'flex';
         const arrow = document.getElementById('tvid-curtain-arrow');
         if(arrow) arrow.innerText = '−';
     }
@@ -935,12 +961,14 @@ en:[
     function backTvidSelection(){
         stopTvidTimers();
         tvidExerciseCompleted = false;
-        document.getElementById('tvid-exercise-screen').style.display = 'none';
-        document.getElementById('tvid-selection-screen').style.display = 'block';
+        const exScreen = document.getElementById('tvid-exercise-screen');
+        const selScreen = document.getElementById('tvid-selection-screen');
+        if(exScreen) exScreen.style.display = 'none';
+        if(selScreen) selScreen.style.display = 'block';
     }
 
     function speakCurrentStep(){
-        if(!currentTechKey) return;
+        if(!currentTechKey || !tvidData[currentTechKey]) return;
 
         const exerciseData = tvidData[currentTechKey][tvidLang][currentExerciseIndex];
         if(!exerciseData) return;
@@ -964,6 +992,7 @@ en:[
         if(breathAnimationInterval) clearInterval(breathAnimationInterval);
 
         function applyBreath(){
+            if(!circle || !label) return;
             if(state === 0){
                 circle.className = 'tvid-breath-circle inhale';
                 label.innerText = tvidLang === 'es' ? 'Inhala' : 'Inhale';
@@ -985,22 +1014,20 @@ en:[
 
     function startTvidLimit(){
         stopTvidTimers();
-
         tvidExerciseStartedAt = Date.now();
-
         const allowed = Math.max(0, Math.min(300, timeLeft));
 
         if(allowed <= 0){
-            closeSession();
+            if(typeof closeSession === 'function') closeSession();
             return;
         }
 
         tvidLimitInterval = setInterval(() => {
             const elapsed = (Date.now() - tvidExerciseStartedAt) / 1000;
-
             if(elapsed >= allowed || elapsed >= 300 || timeLeft <= 0){
                 stopTvidTimers();
-                document.getElementById('tvid-floating-window').style.display = 'none';
+                const modal = document.getElementById('tvid-floating-window');
+                if(modal) modal.style.display = 'none';
             }
         }, 500);
     }
@@ -1008,20 +1035,16 @@ en:[
     function stopTvidTimers(){
         if(tvidLimitInterval) clearInterval(tvidLimitInterval);
         if(breathAnimationInterval) clearInterval(breathAnimationInterval);
-
         tvidLimitInterval = null;
         breathAnimationInterval = null;
-
         if('speechSynthesis' in window) window.speechSynthesis.cancel();
     }
 
     function closeTvidWindow(){
         stopTvidTimers();
-        document.getElementById('tvid-floating-window').style.display = 'none';
+        const modal = document.getElementById('tvid-floating-window');
+        if(modal) modal.style.display = 'none';
         const arrow = document.getElementById('tvid-curtain-arrow');
         if(arrow) arrow.innerText = '＋';
     }
 </script>
-
-</body>
-</html>
