@@ -6,8 +6,6 @@
 <title>MIRROR TO YOU</title>
 <style>
 :root{--bg-color:#0b0f19;--card-bg:#111827;--accent-color:#38bdf8;--text-main:#f3f4f6;--text-muted:#9ca3af;--border-color:#1f2937;--danger-color:#ef4444}
-:root{--radius:12px;--shadow:0 20px 60px rgba(0,0,0,.45)}
-#paywallModal{position:fixed;inset:0;width:100vw;height:100dvh;background:rgba(0,0,0,.94);display:flex;justify-content:center;align-items:center;z-index:99999;padding:20px;overflow:auto}.paywall-card{background:var(--card-bg);border:1px solid var(--border-color);border-radius:var(--radius);padding:28px 22px;width:min(430px,100%);text-align:center;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:14px}.paywall-card .brand-title{font-size:1.45rem;font-weight:700;letter-spacing:2px;color:var(--accent-color)}.paywall-card .brand-subtitle{font-size:.88rem;color:var(--text-muted);line-height:1.45}.pricing-options,.login-form{display:flex;flex-direction:column;gap:10px}.price-btn{background:linear-gradient(135deg,#635bff 0%,#4f46e5 100%);color:#fff;border:0;display:flex;justify-content:space-between;align-items:center;padding:14px 16px;border-radius:8px;font-weight:600;font-size:.95rem;cursor:pointer}.price-btn:disabled,.login-btn:disabled{opacity:.6;cursor:wait}.price-btn .price{background:rgba(255,255,255,.18);padding:4px 9px;border-radius:6px;font-size:.85rem}.divider{font-size:.78rem;color:var(--text-muted);margin:4px 0;text-transform:uppercase;letter-spacing:1px;position:relative}.login-input{width:100%;background:var(--bg-color);border:1px solid var(--border-color);border-radius:6px;padding:12px;color:var(--text-main);font-size:.95rem}.login-input:focus{outline:0;border-color:var(--accent-color)}.login-btn{background:#10b981;color:#fff;border:0;padding:12px;border-radius:6px;font-weight:600;cursor:pointer}.error-msg{color:var(--danger-color);font-size:.82rem;display:none;margin-top:2px}.paywall-note{font-size:.72rem;color:var(--text-muted);line-height:1.4}#appInterface{display:none;flex-direction:column;flex:1;width:100%}
 *{box-sizing:border-box;margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
 body{background:var(--bg-color);color:var(--text-main);min-height:100vh;display:flex;flex-direction:column;justify-content:space-between;padding:20px}
 #legal-gate{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(11,15,25,.98);display:flex;justify-content:center;align-items:center;z-index:2000;padding:20px}
@@ -45,25 +43,6 @@ footer{text-align:center;font-size:.8rem;color:var(--text-muted);padding-top:20p
 </head>
 <body>
 
-<div id="paywallModal">
-<div class="paywall-card">
-<div class="brand-title">MIRROR TO YOU</div>
-<div class="brand-subtitle" id="paywall-subtitle">Private Access to MIRROR TO YOU. Choose a payment option or log in as an administrator.</div>
-<div class="pricing-options">
-<button class="price-btn" id="price-btn-1" onclick="startCheckout('1')"><span id="price-label-1">Premium Access</span><span class="price" id="price-value-1">Stripe</span></button>
-<button class="price-btn" id="price-btn-2" onclick="startCheckout('2')"><span id="price-label-2">Premium Plus Access</span><span class="price" id="price-value-2">Stripe</span></button>
-</div>
-<div class="divider" id="login-divider">Es-Access </div>
-<form class="login-form" onsubmit="adminLogin(event)">
-<input class="login-input" id="admin-username" type="text" autocomplete="username" placeholder="Username" required>
-<input class="login-input" id="admin-password" type="password" autocomplete="current-password" placeholder="Password" required>
-<button class="login-btn" id="login-btn" type="submit">Entrar / Login</button>
-</form>
-<div class="error-msg" id="paywall-error"></div>
-<div class="paywall-note" id="paywall-note">Payment is securely processed via Stripe. Secret keys remain on the server.</div>
-</div>
-</div>
-
 <div id="legal-gate">
 <div class="legal-box">
 <h2 id="gate-title">AVISO LEGAL Y PROTECCIÓN</h2>
@@ -83,7 +62,6 @@ footer{text-align:center;font-size:.8rem;color:var(--text-muted);padding-top:20p
 </div>
 </div>
 
-<div id="appInterface">
 <header>
 <div class="logo" id="app-title">MIRROR TO YOU</div>
 <div class="controls">
@@ -160,179 +138,10 @@ footer{text-align:center;font-size:.8rem;color:var(--text-muted);padding-top:20p
 <span id="footer-text">Sesión Volátil Encriptada. Cero Datos Retenidos.</span>
 <span id="timer-display" style="font-family:monospace;color:var(--accent-color)">10:00</span>
 </footer>
-</div>
 
 <script>
 let currentLang='es',voiceEnabled=false,currentModeInterval=null,phraseInterval=null,sessionTimer=null,timeLeft=600;
 let conversationMemory=[],MAX_MEMORY_TURNS=15;
-let accessGranted=false;
-
-let paymentInProgress=false;
-
-function showPaywallError(message){
-    const error=document.getElementById('paywall-error');
-    if(!error)return;
-    error.innerText=message;
-    error.style.display='block';
-}
-
-function clearPaywallError(){
-    const error=document.getElementById('paywall-error');
-    if(!error)return;
-    error.innerText='';
-    error.style.display='none';
-}
-
-function unlockApp(){
-    accessGranted=true;
-    const paywall=document.getElementById('paywallModal');
-    const app=document.getElementById('appInterface');
-    if(paywall)paywall.style.display='none';
-    if(app)app.classList.add('active');
-    clearPaywallError();
-}
-
-async function startCheckout(priceType){
-    if(paymentInProgress)return;
-
-    clearPaywallError();
-
-    const button=document.getElementById(`price-btn-${priceType}`);
-    if(!button){
-        showPaywallError(currentLang==='es'?'Opción de pago no disponible.':'Payment option unavailable.');
-        return;
-    }
-
-    paymentInProgress=true;
-    button.disabled=true;
-
-    try{
-        const response=await fetch('/api/create-checkout-session',{
-            method:'POST',
-            headers:{'Content-Type':'application/json'},
-            body:JSON.stringify({price_type:String(priceType)})
-        });
-
-        let data={};
-        try{
-            data=await response.json();
-        }catch(e){}
-
-        if(!response.ok){
-            throw new Error(data.detail||'No se pudo crear la sesión de pago.');
-        }
-
-        if(!data.url){
-            throw new Error('Stripe no devolvió una URL de pago.');
-        }
-
-        window.location.href=data.url;
-    }catch(error){
-        showPaywallError(
-            currentLang==='es'
-            ?`No se pudo iniciar el pago: ${error.message||'Error de Stripe'}.`
-            :`Unable to start payment: ${error.message||'Stripe error'}.`
-        );
-        paymentInProgress=false;
-        button.disabled=false;
-    }
-}
-
-async function adminLogin(event){
-    event.preventDefault();
-    clearPaywallError();
-
-    const username=document.getElementById('admin-username').value.trim();
-    const password=document.getElementById('admin-password').value;
-
-    if(!username||!password){
-        showPaywallError(currentLang==='es'?'Introduzca usuario y contraseña.':'Enter username and password.');
-        return;
-    }
-
-    const button=document.getElementById('login-btn');
-    button.disabled=true;
-
-    try{
-        const response=await fetch('/api/login',{
-            method:'POST',
-            headers:{'Content-Type':'application/json'},
-            body:JSON.stringify({username,password})
-        });
-
-        let data={};
-        try{
-            data=await response.json();
-        }catch(e){}
-
-        if(!response.ok||data.status!=='success'){
-            throw new Error(data.detail||'Credenciales inválidas.');
-        }
-
-        unlockApp();
-    }catch(error){
-        showPaywallError(
-            currentLang==='es'
-            ?(error.message||'Usuario o contraseña incorrectos.')
-            :(error.message||'Invalid username or password.')
-        );
-    }finally{
-        button.disabled=false;
-    }
-}
-
-
-async function handlePaymentReturn() {
-    const params=new URLSearchParams(location.search);
-    const paymentStatus=params.get('payment');
-    const sessionId=params.get('session_id');
-
-    if(paymentStatus==='success'&&sessionId){
-        try{
-            const res=await fetch(`/api/verify-payment?session_id=${encodeURIComponent(sessionId)}`,{
-                method:'GET',
-                headers:{'Accept':'application/json'}
-            });
-
-            let data={};
-            try{
-                data=await res.json();
-            }catch(e){}
-
-            if(!res.ok){
-                throw new Error(data.detail||'Unable to verify payment.');
-            }
-
-            if(data.paid){
-                unlockApp();
-            }else{
-                showPaywallError(
-                    currentLang==='es'
-                    ?'El pago todavía no aparece como completado.'
-                    :'The payment is not marked as completed yet.'
-                );
-            }
-        }catch(err){
-            showPaywallError(
-                currentLang==='es'
-                ?'No se pudo verificar el pago con el servidor.'
-                :'The payment could not be verified with the server.'
-            );
-        }
-
-        history.replaceState({},document.title,location.pathname);
-    }else if(paymentStatus==='cancelled'){
-        showPaywallError(
-            currentLang==='es'
-            ?'El proceso de pago fue cancelado.'
-            :'The payment process was cancelled.'
-        );
-        history.replaceState({},document.title,location.pathname);
-    }
-}
-
-// Ejecutar al cargar la página
-window.addEventListener('DOMContentLoaded', handlePaymentReturn);
 
 const randomMapsLinks=[
 "https://maps.google.com/?q=Central+Park+New+York",
@@ -352,7 +161,6 @@ updateTexts()
 }
 
 function startSession(){
-if(!accessGranted)return;
 document.getElementById('legal-gate').style.display='none';
 updateMapsLink();
 startSessionTimer();
@@ -426,7 +234,7 @@ document.getElementById('gate-title').innerText=currentLang==='es'?'AVISO LEGAL 
 document.getElementById('gate-text').innerText=currentLang==='es'?'El acceso a esta plataforma implica la aceptación absoluta de nuestros términos de exención de responsabilidad. Este sistema opera exclusivamente como un facilitador de bienestar privado y orientación general de estilo de vida. No proporciona asesoría médica, legal ni financiera. Al presionar el botón de inicio, usted reconoce que utiliza este servicio bajo su propia discreción y soberanía.':'Access to this platform implies absolute acceptance of our liability waiver terms. This system operates exclusively as a private wellness facilitator and general lifestyle orientation. It does not provide medical, legal, or financial advice. By pressing start, you acknowledge you use this service under your own discretion.';
 document.getElementById('gate-start-btn').innerText=currentLang==='es'?'Empezar':'Start';
 document.getElementById('wellness-title').innerText=currentLang==='es'?'Bienestar y Antifatiga':'Precision Wellness';
-document.getElementById('travel-title').innerText=currentLang==='es'?'Asesor Conversacional Mirror To You':'Mirror To You Conversational Advisor';
+document.getElementById('travel-title').innerText=currentLang==='es'?'Asesor Conversacional':'Conversational Advisor';
 document.getElementById('footer-text').innerText=currentLang==='es'?'Sesión Volátil Encriptada. Cero Datos Retenidos.':'Encrypted Volatile Session. Zero Data Retained.';
 document.getElementById('close-btn').innerText=currentLang==='es'?'Cerrar':'Close';
 document.getElementById('travel-input').placeholder=currentLang==='es'?'Escriba su consulta o use los botones de asistencia...':'Type your query or use assistance buttons...';
@@ -442,7 +250,7 @@ document.getElementById('btn-p5').innerText=currentLang==='es'?'⚡ Reto Vital 6
 document.getElementById('btn-p6').innerText=currentLang==='es'?'🎵 Frecuencias Antiestrés':'🎵 Anti-Stress Frequencies';
 document.getElementById('btn-no').innerText=currentLang==='es'?'❓ No sé':'❓ No Idea';
 document.getElementById('btn-help').innerText=currentLang==='es'?'🤝 Ayúdame':'🤝 Help Me';
-document.getElementById('btn-send').innerText=currentLang==='es'?'Enviar Conversación':'Send Conversation';document.getElementById('paywall-subtitle').innerText=currentLang==='es'?'Acceso privado a MIRROR TO YOU. Elige una opción de pago o inicia sesión como administrador.':'Private access to MIRROR TO YOU. Choose a payment option or sign in as administrator.';document.getElementById('price-label-1').innerText=currentLang==='es'?'Acceso Premium':'Premium Access';document.getElementById('price-label-2').innerText=currentLang==='es'?'Acceso Premium Plus':'Premium Plus Access';document.getElementById('login-divider').innerText=currentLang==='es'?'o acceso administrativo':'or administrator access';document.getElementById('admin-username').placeholder=currentLang==='es'?'Usuario':'Username';document.getElementById('admin-password').placeholder=currentLang==='es'?'Contraseña':'Password';document.getElementById('login-btn').innerText=currentLang==='es'?'Entrar':'Login';document.getElementById('paywall-note').innerText=currentLang==='es'?'El pago se procesa de forma segura mediante Stripe. Las claves secretas permanecen en el servidor.':'Payment is processed securely by Stripe. Secret keys remain on the server.'
+document.getElementById('btn-send').innerText=currentLang==='es'?'Enviar Conversación':'Send Conversation'
 }
 
 function toggleVoiceGuide(){
@@ -628,37 +436,36 @@ advisorLang=advisorLang==='es'?'en':'es';
 document.getElementById('advisor-lang-btn').innerText=advisorLang.toUpperCase();
 
 if(advisorLang==='en'){
-document.getElementById('float-btn-text').innerText='Private Mirror To You Advisory';
-document.getElementById('modal-advisor-title').innerText='Mirror To You - Private Advisory';
+document.getElementById('float-btn-text').innerText='Private Travel Advisory';
+document.getElementById('modal-advisor-title').innerText='May Roga LLC - Luxury Travel';
 document.getElementById('modal-advisor-desc').innerText='Connect directly with your certified private advisor to design custom itineraries and manage exclusive bookings.';
 document.getElementById('wa-btn-label').innerText='Direct WhatsApp Chat';
 document.getElementById('email-btn-label').innerText='Send Email';
 document.getElementById('whatsapp-link').href='https://wa.me/17866471371?text=Hello%20Maykel%2C%20I%20came%20from%20the%20app%20and%20want%20to%20quote%20a%20private%20trip%20or%20itinerary'
 }else{
-document.getElementById('float-btn-text').innerText='Asesoría Privada Mirror To You';
-document.getElementById('modal-advisor-title').innerText='Mirror To You - Asesoría Privada';
+document.getElementById('float-btn-text').innerText='Asesoría de Viaje Privada';
+document.getElementById('modal-advisor-title').innerText='May Roga LLC - Viajes de Lujo';
 document.getElementById('modal-advisor-desc').innerText='Conecta directamente con tu asesor privado certificado para diseñar itinerarios a la medida y gestionar tus reservas exclusivas.';
 document.getElementById('wa-btn-label').innerText='Chat Directo por WhatsApp';
 document.getElementById('email-btn-label').innerText='Enviar Correo Electrónico';
 document.getElementById('whatsapp-link').href='https://wa.me/17866471371?text=Hola%20Maykel%2C%20vengo%20de%20la%20aplicación%20y%20deseo%20cotizar%20un%20viaje%20o%20itinerario%20privado'
 }
 }
-updateTexts();
 </script>
 
 <div id="travel-advisor-float" style="position:fixed;bottom:20px;right:20px;z-index:1500;display:flex;align-items:center;gap:8px">
 <button onclick="toggleAdvisorLang()" id="advisor-lang-btn" style="background:rgba(255,255,255,.15);backdrop-filter:blur(5px);border:1px solid rgba(255,255,255,.3);color:var(--text-main,#fff);padding:10px 12px;border-radius:50%;font-weight:600;font-size:.8rem;cursor:pointer;box-shadow:0 4px 12px rgba(0,0,0,.3);transition:background .2s ease" title="Cambiar Idioma / Switch Language">ES</button>
-<button onclick="toggleTravelAdvisorModal()" style="background:var(--accent-color,#d4af37);color:var(--bg-color,#0a0a0c);border:none;padding:12px 20px;border-radius:30px;font-weight:600;font-size:.9rem;cursor:pointer;box-shadow:0 4px 12px rgba(0,0,0,.5);display:flex;align-items:center;gap:8px">✨ <span id="float-btn-text">Asesoría Privada Mirror To You</span></button>
+<button onclick="toggleTravelAdvisorModal()" style="background:var(--accent-color,#d4af37);color:var(--bg-color,#0a0a0c);border:none;padding:12px 20px;border-radius:30px;font-weight:600;font-size:.9rem;cursor:pointer;box-shadow:0 4px 12px rgba(0,0,0,.5);display:flex;align-items:center;gap:8px">✈️ <span id="float-btn-text">Asesoría de Viaje Privada</span></button>
 </div>
 
 <div id="travel-advisor-modal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(11,15,25,.85);z-index:2500;justify-content:center;align-items:center;padding:20px">
 <div class="legal-box travel-advisor-box" style="position:relative;max-width:450px;background:var(--card-bg,#141416);padding:24px;border-radius:16px;border:1px solid var(--border-color,rgba(255,255,255,.1));color:var(--text-main,#f1f1f3)">
 <button onclick="toggleTravelAdvisorModal()" style="position:absolute;top:15px;right:15px;background:none;border:none;color:var(--text-muted,#888);font-size:1.2rem;cursor:pointer">✕</button>
-<h2 id="modal-advisor-title" style="color:var(--accent-color,#d4af37);margin-bottom:10px;font-size:1.2rem">Mirror To You - Asesoría Privada</h2>
+<h2 id="modal-advisor-title" style="color:var(--accent-color,#d4af37);margin-bottom:10px;font-size:1.2rem">May Roga LLC - Viajes de Lujo</h2>
 <p id="modal-advisor-desc" style="color:var(--text-muted,#ccc);font-size:.9rem;margin-bottom:20px;text-align:left">Conecta directamente con tu asesor privado certificado para diseñar itinerarios a la medida y gestionar tus reservas exclusivas.</p>
 <div style="display:flex;flex-direction:column;gap:12px">
 <a id="whatsapp-link" href="https://wa.me/17866471371?text=Hola%20Maykel%2C%20vengo%20de%20la%20aplicación%20y%20deseo%20cotizar%20un%20viaje%20o%20itinerario%20privado" target="_blank" style="background:#25d366;color:#fff;padding:12px;border-radius:6px;text-decoration:none;font-weight:600;font-size:.95rem;display:flex;align-items:center;justify-content:center;gap:8px">💬 <span id="wa-btn-label">Chat Directo por WhatsApp</span></a>
-<a id="email-link" href="mailto:maykel75122805321@gmail.com?subject=Solicitud%20de%20Asesoría%20Privada%20Mirror%20To%20You" style="background:var(--card-bg,#1e1e22);border:1px solid var(--border-color,rgba(255,255,255,.2));color:var(--text-main,#fff);padding:12px;border-radius:6px;text-decoration:none;font-weight:600;font-size:.95rem;display:flex;align-items:center;justify-content:center;gap:8px">✉️ <span id="email-btn-label">Enviar Correo Electrónico</span></a>
+<a id="email-link" href="mailto:maykel75122805321@gmail.com?subject=Solicitud%20de%20Asesoría%20de%20Viaje%20Privada" style="background:var(--card-bg,#1e1e22);border:1px solid var(--border-color,rgba(255,255,255,.2));color:var(--text-main,#fff);padding:12px;border-radius:6px;text-decoration:none;font-weight:600;font-size:.95rem;display:flex;align-items:center;justify-content:center;gap:8px">✉️ <span id="email-btn-label">Enviar Correo Electrónico</span></a>
 </div>
 <div class="tvid-curtain">
 <button class="tvid-curtain-toggle" onclick="toggleTvidWindow()" type="button">
@@ -834,7 +641,7 @@ es:[
 {title:"💋 Técnica del Beso — Tres palabras",objective:"Convertir el afecto en palabras sencillas que puedan mejorar un momento.",steps:["Piensa en alguien a quien quieras tratar con consideración.","Inhala durante 4 segundos y elige una palabra amable.","Mantén 2 segundos sintiendo la intención detrás de esa palabra.","Exhala durante 6 segundos y decide cuándo expresarla."]},
 {title:"💋 Técnica del Beso — El gesto invisible",objective:"Transformar la ternura en una intención positiva.",steps:["Piensa en una persona o en ti mismo como alguien que merece cuidado.","Inhala durante 4 segundos con una intención afectuosa.","Mantén 2 segundos y pregunta qué pequeño gesto sería útil.","Exhala durante 6 segundos y comprométete con ese gesto."]},
 {title:"💋 Técnica del Beso — Trato amable",objective:"Practicar consideración mediante la forma en que te hablas.",steps:["Observa cómo te estás hablando internamente.","Inhala durante 4 segundos y sustituye una frase dura por una amable.","Mantén 2 segundos aceptando que puedes corregirte sin maltratarte.","Exhala durante 6 segundos y conserva esa nueva forma de hablarte."]},
-{title:"💋 Técnica del Beso — Regala atención",objective:"Comprender que prestar atención también puede ser una expresión de afecto.",steps:["Piensa en alguien que merezca un poco más de tu atención.","Inhala durante 4 segundos imaginando que escuchas sin interrumpir.","Mantén 2 segundos con una actitud de consideración.","Exhala خلال 6 segundos y decide ofrecer atención real cuando sea posible."]},
+{title:"💋 Técnica del Beso — Regala atención",objective:"Comprender que prestar atención también puede ser una expresión de afecto.",steps:["Piensa en alguien que merezca un poco más de tu atención.","Inhala durante 4 segundos imaginando que escuchas sin interrumpir.","Mantén 2 segundos con una actitud de consideración.","Exhala durante 6 segundos y decide ofrecer atención real cuando sea posible."]},
 {title:"💋 Técnica del Beso — Amor en acción",objective:"Convertir una intención afectuosa en una acción concreta y sencilla.",steps:["Elige una persona, situación o aspecto de ti que quieras cuidar.","Inhala durante 4 segundos conectando con una intención de cariño.","Mantén 2 segundos preguntando qué necesita realmente.","Exhala durante 6 segundos y define un gesto concreto de cuidado."]}
 ],
 en:[
