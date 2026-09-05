@@ -61,21 +61,7 @@ footer{text-align:center;font-size:.8rem;color:var(--text-muted);padding-top:20p
 <button onclick="location.reload()" id="shut-btn" style="background:var(--accent-color);color:var(--bg-color);font-weight:600;margin-top:10px">Reiniciar Sesión</button>
 </div>
 </div>
-<!-- STRIPE SCREEN -->
-<div id="tvid-stripe-screen" class="tvid-content-view" style="display:none">
-<div class="tvid-exercise-top">
-<button class="tvid-back-btn" onclick="backTvidSelection()" id="tvid-stripe-back">← Volver</button>
-</div>
-<h3 id="tvid-stripe-title" style="font-size:14px;margin-bottom:10px;">Pasarela de Pago Stripe</h3>
-<div class="tvid-stripe-box">
-<p id="tvid-stripe-desc" style="font-size:12px;margin:0 0 10px 0;color:var(--text-main);">Seleccione su plan de acceso autorizado:</p>
-<div style="display:flex;gap:8px;justify-content:center;margin-bottom:10px;">
-<button class="tvid-sec-action" onclick="processStripeCheckout(15)" style="font-size:11px;padding:6px 10px;">$15 / 10 Días</button>
-<button class="tvid-main-action" onclick="processStripeCheckout(25)" style="font-size:11px;padding:6px 10px;">$25 / 28 Días</button>
-</div>
-<p id="tvid-stripe-status" style="font-size:11px;color:var(--accent-color);margin:0;"></p>
-</div>
-</div>
+
 <header>
 <div class="logo" id="app-title">MIRROR TO YOU</div>
 <div class="controls">
@@ -954,21 +940,3 @@ if(arrow)arrow.innerText='＋'
 
 </body>
 </html>
-
-
-
-<!-- STRIPE SCREEN -->
-<div id="tvid-stripe-screen" class="tvid-content-view" style="display:none">
-<div class="tvid-exercise-top">
-<button class="tvid-back-btn" onclick="backTvidSelection()" id="tvid-stripe-back">← Volver</button>
-</div>
-<h3 id="tvid-stripe-title" style="font-size:14px;margin-bottom:10px;">Pasarela de Pago Stripe</h3>
-<div class="tvid-stripe-box">
-<p id="tvid-stripe-desc" style="font-size:12px;margin:0 0 10px 0;color:var(--text-main);">Seleccione su plan de acceso autorizado:</p>
-<div style="display:flex;gap:8px;justify-content:center;margin-bottom:10px;">
-<button class="tvid-sec-action" onclick="processStripeCheckout(15)" style="font-size:11px;padding:6px 10px;">$15 / 10 Días</button>
-<button class="tvid-main-action" onclick="processStripeCheckout(25)" style="font-size:11px;padding:6px 10px;">$25 / 28 Días</button>
-</div>
-<p id="tvid-stripe-status" style="font-size:11px;color:var(--accent-color);margin:0;"></p>
-</div>
-</div>
