@@ -167,27 +167,167 @@ let currentLang='es',voiceEnabled=false,currentModeInterval=null,phraseInterval=
 let conversationMemory=[],MAX_MEMORY_TURNS=15;
 let accessGranted=false;
 
-async function handlePaymentReturn() {
-    const params = new URLSearchParams(location.search);
-    const paymentStatus = params.get('payment');
-    const sessionId = params.get('session_id');
+let paymentInProgress=false;
 
-    if (paymentStatus === 'success' && sessionId) {
-        try {
-            const res = await fetch(`/api/verify-payment?session_id=${sessionId}`);
-            const data = await res.json();
-            if (data.paid) {
-                unlockApp();
-            } else {
-                showPaywallError('El pago está pendiente de confirmación.');
-            }
-        } catch (err) {
-            showPaywallError('No se pudo verificar el estado del pago con el servidor.');
+function showPaywallError(message){
+    const error=document.getElementById('paywall-error');
+    if(!error)return;
+    error.innerText=message;
+    error.style.display='block';
+}
+
+function clearPaywallError(){
+    const error=document.getElementById('paywall-error');
+    if(!error)return;
+    error.innerText='';
+    error.style.display='none';
+}
+
+function unlockApp(){
+    accessGranted=true;
+    const paywall=document.getElementById('paywallModal');
+    const app=document.getElementById('appInterface');
+    if(paywall)paywall.style.display='none';
+    if(app)app.classList.add('active');
+    clearPaywallError();
+}
+
+async function startCheckout(priceType){
+    if(paymentInProgress)return;
+
+    clearPaywallError();
+
+    const button=document.getElementById(`price-btn-${priceType}`);
+    if(!button){
+        showPaywallError(currentLang==='es'?'Opción de pago no disponible.':'Payment option unavailable.');
+        return;
+    }
+
+    paymentInProgress=true;
+    button.disabled=true;
+
+    try{
+        const response=await fetch('/api/create-checkout-session',{
+            method:'POST',
+            headers:{'Content-Type':'application/json'},
+            body:JSON.stringify({price_type:String(priceType)})
+        });
+
+        let data={};
+        try{
+            data=await response.json();
+        }catch(e){}
+
+        if(!response.ok){
+            throw new Error(data.detail||'No se pudo crear la sesión de pago.');
         }
-        history.replaceState({}, document.title, location.pathname);
-    } else if (paymentStatus === 'cancelled') {
-        showPaywallError('El proceso de pago fue cancelado.');
-        history.replaceState({}, document.title, location.pathname);
+
+        if(!data.url){
+            throw new Error('Stripe no devolvió una URL de pago.');
+        }
+
+        window.location.href=data.url;
+    }catch(error){
+        showPaywallError(
+            currentLang==='es'
+            ?`No se pudo iniciar el pago: ${error.message||'Error de Stripe'}.`
+            :`Unable to start payment: ${error.message||'Stripe error'}.`
+        );
+        paymentInProgress=false;
+        button.disabled=false;
+    }
+}
+
+async function adminLogin(event){
+    event.preventDefault();
+    clearPaywallError();
+
+    const username=document.getElementById('admin-username').value.trim();
+    const password=document.getElementById('admin-password').value;
+
+    if(!username||!password){
+        showPaywallError(currentLang==='es'?'Introduzca usuario y contraseña.':'Enter username and password.');
+        return;
+    }
+
+    const button=document.getElementById('login-btn');
+    button.disabled=true;
+
+    try{
+        const response=await fetch('/api/login',{
+            method:'POST',
+            headers:{'Content-Type':'application/json'},
+            body:JSON.stringify({username,password})
+        });
+
+        let data={};
+        try{
+            data=await response.json();
+        }catch(e){}
+
+        if(!response.ok||data.status!=='success'){
+            throw new Error(data.detail||'Credenciales inválidas.');
+        }
+
+        unlockApp();
+    }catch(error){
+        showPaywallError(
+            currentLang==='es'
+            ?(error.message||'Usuario o contraseña incorrectos.')
+            :(error.message||'Invalid username or password.')
+        );
+    }finally{
+        button.disabled=false;
+    }
+}
+
+
+async function handlePaymentReturn() {
+    const params=new URLSearchParams(location.search);
+    const paymentStatus=params.get('payment');
+    const sessionId=params.get('session_id');
+
+    if(paymentStatus==='success'&&sessionId){
+        try{
+            const res=await fetch(`/api/verify-payment?session_id=${encodeURIComponent(sessionId)}`,{
+                method:'GET',
+                headers:{'Accept':'application/json'}
+            });
+
+            let data={};
+            try{
+                data=await res.json();
+            }catch(e){}
+
+            if(!res.ok){
+                throw new Error(data.detail||'Unable to verify payment.');
+            }
+
+            if(data.paid){
+                unlockApp();
+            }else{
+                showPaywallError(
+                    currentLang==='es'
+                    ?'El pago todavía no aparece como completado.'
+                    :'The payment is not marked as completed yet.'
+                );
+            }
+        }catch(err){
+            showPaywallError(
+                currentLang==='es'
+                ?'No se pudo verificar el pago con el servidor.'
+                :'The payment could not be verified with the server.'
+            );
+        }
+
+        history.replaceState({},document.title,location.pathname);
+    }else if(paymentStatus==='cancelled'){
+        showPaywallError(
+            currentLang==='es'
+            ?'El proceso de pago fue cancelado.'
+            :'The payment process was cancelled.'
+        );
+        history.replaceState({},document.title,location.pathname);
     }
 }
 
@@ -503,7 +643,6 @@ document.getElementById('email-btn-label').innerText='Enviar Correo Electrónico
 document.getElementById('whatsapp-link').href='https://wa.me/17866471371?text=Hola%20Maykel%2C%20vengo%20de%20la%20aplicación%20y%20deseo%20cotizar%20un%20viaje%20o%20itinerario%20privado'
 }
 }
-handlePaymentReturn();
 updateTexts();
 </script>
 
