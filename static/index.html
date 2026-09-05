@@ -167,25 +167,32 @@ let currentLang='es',voiceEnabled=false,currentModeInterval=null,phraseInterval=
 let conversationMemory=[],MAX_MEMORY_TURNS=15;
 let accessGranted=false;
 
-function showPaywallError(message){const el=document.getElementById('paywall-error');el.innerText=message;el.style.display='block'}
-function clearPaywallError(){const el=document.getElementById('paywall-error');el.innerText='';el.style.display='none'}
-function unlockApp(){accessGranted=true;document.getElementById('paywallModal').style.display='none';document.getElementById('appInterface').style.display='flex';document.getElementById('legal-gate').style.display='flex'}
-async function startCheckout(type){
- clearPaywallError();
- const buttons=[document.getElementById('price-btn-1'),document.getElementById('price-btn-2')];buttons.forEach(b=>b.disabled=true);
- try{const r=await fetch('/api/create-checkout-session',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({price_type:String(type)})});const data=await r.json().catch(()=>({}));if(!r.ok||!data.url)throw new Error(data.detail||'Stripe no está disponible en este momento.');window.location.href=data.url}
- catch(e){showPaywallError(e.message||'No se pudo iniciar el pago.');buttons.forEach(b=>b.disabled=false)}
-}
-async function adminLogin(event){
- event.preventDefault();clearPaywallError();
- const username=document.getElementById('admin-username').value.trim(),password=document.getElementById('admin-password').value;
- const btn=document.getElementById('login-btn');btn.disabled=true;
- try{const r=await fetch('/api/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username,password})});const data=await r.json().catch(()=>({}));if(!r.ok||data.access!=='granted')throw new Error(data.detail||'Usuario o contraseña incorrectos.');unlockApp()}
- catch(e){showPaywallError(e.message||'No se pudo validar el acceso.')}
- finally{btn.disabled=false}
-}
-function handlePaymentReturn(){const params=new URLSearchParams(location.search);if(params.get('success')==='true'){showPaywallError('El pago fue enviado a Stripe. El acceso requiere confirmación del servidor.');history.replaceState({},document.title,location.pathname)}}
+async function handlePaymentReturn() {
+    const params = new URLSearchParams(location.search);
+    const paymentStatus = params.get('payment');
+    const sessionId = params.get('session_id');
 
+    if (paymentStatus === 'success' && sessionId) {
+        try {
+            const res = await fetch(`/api/verify-payment?session_id=${sessionId}`);
+            const data = await res.json();
+            if (data.paid) {
+                unlockApp();
+            } else {
+                showPaywallError('El pago está pendiente de confirmación.');
+            }
+        } catch (err) {
+            showPaywallError('No se pudo verificar el estado del pago con el servidor.');
+        }
+        history.replaceState({}, document.title, location.pathname);
+    } else if (paymentStatus === 'cancelled') {
+        showPaywallError('El proceso de pago fue cancelado.');
+        history.replaceState({}, document.title, location.pathname);
+    }
+}
+
+// Ejecutar al cargar la página
+window.addEventListener('DOMContentLoaded', handlePaymentReturn);
 
 const randomMapsLinks=[
 "https://maps.google.com/?q=Central+Park+New+York",
