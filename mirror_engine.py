@@ -77,12 +77,13 @@ async def admin_login(req: LoginRequest):
         return {"valid": True, "type": "admin"}
     raise HTTPException(status_code=401, detail="Credenciales inválidas.")
 
+# Asegúrate de que la función reciba el parámetro 'request: Request' exactamente así:
 @app.post("/api/checkout/create-session")
 async def create_checkout_session(req: CheckoutRequest, request: Request):
     price_id = PRICE_ID_MONTHLY if req.priceType == "unlimited" else PRICE_ID_SINGLE
     mode = "subscription" if req.priceType == "unlimited" else "payment"
     
-    # Construcción limpia de URLs dinámicas basadas en la petición de origen para Render
+    # Esto evita el fallo de variable indefinida en Render
     origin_url = request.headers.get("origin") or str(request.base_url)
     
     try:
