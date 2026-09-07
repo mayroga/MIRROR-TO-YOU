@@ -1,3 +1,4 @@
+# mirror_engine.py
 import os
 import httpx
 from fastapi import FastAPI, HTTPException, Request
@@ -117,7 +118,6 @@ async def check_session_access(req: AccessCheckRequest):
 async def process_chat_directive(req: ChatRequest):
     global VOLATILE_KERNEL
     
-    # Verificación de seguridad estricta antes de gastar recursos de IA
     access_granted = False
     if req.authType == "admin":
         access_granted = True
@@ -134,7 +134,7 @@ async def process_chat_directive(req: ChatRequest):
 
     system_prompt = (
         "Eres un asesor experto de bienestar y estilo de vida. Mantén el hilo de la conversación, sé conciso, directo, empático y guía al usuario paso a paso sin perder la coherencia de las preguntas anteriores."
-        if req.lang == "es" 
+        if req.lang == "es"
         else "You are an expert wellness and lifestyle advisor. Maintain the conversation thread, be concise, direct, empathetic, and guide the user step-by-step without losing coherence from previous questions."
     )
 
@@ -148,7 +148,7 @@ async def process_chat_directive(req: ChatRequest):
                     "parts": [{"text": msg.content}]
                 })
 
-            gemini_url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={GEMINI_API_KEY}"
+            gemini_url = f"https://googleapis.com{GEMINI_API_KEY}"
             payload = {
                 "system_instruction": {"parts": [{"text": system_prompt}]},
                 "contents": formatted_contents
@@ -156,6 +156,7 @@ async def process_chat_directive(req: ChatRequest):
             response = await client.post(gemini_url, json=payload)
             if response.status_code == 200:
                 data = response.json()
+                # RECTIFICACIÓN CLAVE: Mapeo exacto de la respuesta JSON por índices nativos de la API
                 reply = data["candidates"][0]["content"]["parts"][0]["text"]
                 return {"reply": reply, "provider": "gemini"}
             else:
@@ -177,7 +178,7 @@ async def process_chat_directive(req: ChatRequest):
                     "Content-Type": "application/json"
                 }
 
-                openai_response = await client.post("https://api.openai.com/v1/chat/completions", json=openai_payload, headers=headers)
+                openai_response = await client.post("https://openai.com", json=openai_payload, headers=headers)
                 if openai_response.status_code == 200:
                     openai_data = openai_response.json()
                     reply = openai_data["choices"][0]["message"]["content"]
