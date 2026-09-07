@@ -42,6 +42,41 @@ footer{text-align:center;font-size:.8rem;color:var(--text-muted);padding-top:20p
 </style>
 </head>
 <body>
+<!-- 1. VENTANA FLOTANTE DEL PAYWALL Y LOGIN ADMINISTRATIVO -->
+<div id="paywallModal">
+    <div class="paywall-card">
+        <div class="brand-title">MIRROR TO YOU</div>
+        <div class="brand-subtitle">Bienestar Privado y Asesoría Exclusiva</div>
+        
+        <!-- Botones de Pago de Stripe Checkout -->
+        <div class="pricing-options">
+            <button class="price-btn" onclick="redirectToStripe('single')">
+                <span>Acceso Único Personalizado</span>
+                <span class="price">$200.00</span>
+            </button>
+            <button class="price-btn" onclick="redirectToStripe('unlimited')">
+                <span>Suscripción Ilimitada (30 Días)</span>
+                <span class="price">$499.00</span>
+            </button>
+        </div>
+
+        <div class="divider">ó acceso de cortesía</div>
+
+        <!-- Formulario de Acceso para Administradores -->
+        <form class="login-form" onsubmit="handleAdminLogin(event)">
+            <input type="text" id="admin-username-input" class="login-input" placeholder="Nombre de usuario" required>
+            <input type="password" id="admin-password-input" class="login-input" placeholder="Contraseña secreta" required>
+            <button type="submit" class="login-btn">Acceder Gratis</button>
+            <div id="login-error-msg" class="error-msg"></div>
+        </form>
+    </div>
+</div>
+
+<!-- 2. INTERFAZ PRINCIPAL DE TU APLICACIÓN (OCULTA POR DEFECTO) -->
+<div id="appInterface">
+    <!-- Mueve TODO el contenido original que ya tenías en tu index.html AQUÍ ADENTRO -->
+    <!-- (Es decir, tu header, tus paneles de bienestar, tu chat de viaje y tu footer) -->
+</div>
 
 <div id="legal-gate">
 <div class="legal-box">
