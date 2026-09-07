@@ -42,41 +42,6 @@ footer{text-align:center;font-size:.8rem;color:var(--text-muted);padding-top:20p
 </style>
 </head>
 <body>
-<!-- 1. VENTANA FLOTANTE DEL PAYWALL Y LOGIN ADMINISTRATIVO -->
-<div id="paywallModal">
-    <div class="paywall-card">
-        <div class="brand-title">MIRROR TO YOU</div>
-        <div class="brand-subtitle">Bienestar Privado y Asesoría Exclusiva</div>
-        
-        <!-- Botones de Pago de Stripe Checkout -->
-        <div class="pricing-options">
-            <button class="price-btn" onclick="redirectToStripe('single')">
-                <span>Acceso Único Personalizado</span>
-                <span class="price">$200.00</span>
-            </button>
-            <button class="price-btn" onclick="redirectToStripe('unlimited')">
-                <span>Suscripción Ilimitada (30 Días)</span>
-                <span class="price">$499.00</span>
-            </button>
-        </div>
-
-        <div class="divider">ó acceso de cortesía</div>
-
-        <!-- Formulario de Acceso para Administradores -->
-        <form class="login-form" onsubmit="handleAdminLogin(event)">
-            <input type="text" id="admin-username-input" class="login-input" placeholder="Nombre de usuario" required>
-            <input type="password" id="admin-password-input" class="login-input" placeholder="Contraseña secreta" required>
-            <button type="submit" class="login-btn">Acceder Gratis</button>
-            <div id="login-error-msg" class="error-msg"></div>
-        </form>
-    </div>
-</div>
-
-<!-- 2. INTERFAZ PRINCIPAL DE TU APLICACIÓN (OCULTA POR DEFECTO) -->
-<div id="appInterface">
-    <!-- Mueve TODO el contenido original que ya tenías en tu index.html AQUÍ ADENTRO -->
-    <!-- (Es decir, tu header, tus paneles de bienestar, tu chat de viaje y tu footer) -->
-</div>
 
 <div id="legal-gate">
 <div class="legal-box">
@@ -965,13 +930,56 @@ breathAnimationInterval=null;
 if('speechSynthesis'in window)window.speechSynthesis.cancel()
 }
 
-function closeTvidWindow(){
-stopTvidTimers();
-document.getElementById('tvid-floating-window').style.display='none';
-const arrow=document.getElementById('tvid-curtain-arrow');
-if(arrow)arrow.innerText='＋'
-}
-</script>
-<script src="app.js"></script>
-</body>
+    function closeTvidWindow(){ 
+        stopTvidTimers(); 
+        document.getElementById('tvid-floating-window').style.display='none'; 
+        const arrow=document.getElementById('tvid-curtain-arrow'); 
+        if(arrow)arrow.innerText='＋' 
+    } 
+</script> 
+
+<!-- 1. VENTANA FLOTANTE DEL PAYWALL Y LOGIN ADMINISTRATIVO --> 
+<div id="paywallModal"> 
+    <div class="paywall-card"> 
+        <div class="brand-title">MIRROR TO YOU</div> 
+        <div class="brand-subtitle">Bienestar Privado y Asesoría Exclusiva</div> 
+        
+        <!-- Botones de Pago de Stripe Checkout --> 
+        <div class="pricing-options"> 
+            <button class="price-btn" onclick="redirectToStripe('single')"> 
+                <span>Acceso Único Personalizado</span> 
+                <span class="price">$200.00</span> 
+            </button> 
+            <button class="price-btn" onclick="redirectToStripe('unlimited')"> 
+                <span>Suscripción Ilimitada (30 Días)</span> 
+                <span class="price">$499.00</span> 
+            </button> 
+        </div> 
+        
+        <div class="divider">ó acceso de cortesía</div> 
+        
+        <!-- Formulario de Acceso para Administradores --> 
+        <form class="login-form" onsubmit="handleAdminLogin(event)"> 
+            <input type="text" id="admin-username-input" class="login-input" placeholder="Nombre de usuario" required> 
+            <input type="password" id="admin-password-input" class="login-input" placeholder="Contraseña secreta" required> 
+            <button type="submit" class="login-btn">Acceder Gratis</button> 
+            <div id="login-error-msg" class="error-msg"></div> 
+        </form> 
+    </div> 
+</div> 
+
+<!-- NOTA: Asegúrate de que TODO tu HTML antiguo anterior (desde el <header>, el <div id="legal-gate">, etc.) 
+     lo hayas cortado de arriba y lo pegues exactamente AQUÍ ABAJO, dentro de estas dos etiquetas de appInterface -->
+
+<!-- 2. INTERFAZ PRINCIPAL DE TU APLICACIÓN (OCULTA POR DEFECTO) --> 
+<div id="appInterface" style="display: none;"> 
+
+    <!-- !!! AQUÍ ADENTRO DEBE IR TU INTERFAZ COMPLETA !!! -->
+    <!-- Mueve aquí tu <div id="legal-gate">, tus paneles de chat, menús, etc. -->
+
+</div> 
+
+<!-- CARGA DE LÓGICA DE CONTROL Y STRIPE -->
+<script src="app.js"></script> 
+</body> 
 </html>
