@@ -1,16 +1,5 @@
-// app.js (Gestión de Interfaz de Usuario, Control de Flujo de Autenticación, Paywall y Stripe Checkout)
 let currentLang = 'en';
 let inactivityTimer;
-
-// Identificadores de control de acceso local
-let authType = null; 
-let clientSessionId = localStorage.getItem('mirror_session_id');
-
-// Generar un ID de sesión único permanente si no existe ninguno en el dispositivo
-if (!clientSessionId) {
-    clientSessionId = 'sess_' + Math.random().toString(36).substring(2, 15) + Date.now().toString(36);
-    localStorage.setItem('mirror_session_id', clientSessionId);
-}
 
 // Memoria contextual local para mantener el hilo de la conversación
 let conversationMemory = [];
@@ -75,99 +64,6 @@ function setBreathingMode(mode) {
     }, 3000);
 }
 
-// Ejecución de Login Administrativo gratuito
-async function handleAdminLogin(event) {
-    if (event) event.preventDefault();
-    const userIn = document.getElementById('admin-username-input').value.trim();
-    const passIn = document.getElementById('admin-password-input').value.trim();
-    const errBox = document.getElementById('login-error-msg');
-
-    if (!userIn || !passIn) return;
-
-    try {
-        const response = await fetch('/api/auth/login', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ username: userIn, password: passIn })
-        });
-        const data = await response.json();
-
-        if (response.ok && data.valid) {
-            authType = 'admin';
-            sessionStorage.setItem('mirror_auth_type', 'admin');
-            unlockApplicationInterface();
-        } else {
-            errBox.innerText = data.error || 'Credenciales inválidas.';
-            errBox.style.display = 'block';
-        }
-    } catch (err) {
-        errBox.innerText = 'Error de comunicación con el servidor.';
-        errBox.style.display = 'block';
-    }
-}
-
-// Redirección del usuario hacia las pasarelas externas de Stripe Checkout
-async function redirectToStripe(priceType) {
-    try {
-        const response = await fetch('/api/checkout/create-session', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ priceType: priceType, clientSessionId: clientSessionId })
-        });
-        const data = await response.json();
-        if (data.url) {
-            window.location.href = data.url; // Redirige a Stripe
-        } else {
-            alert('No se pudo generar la sesión de pago.');
-        }
-    } catch (error) {
-        console.error('Error al conectar con Stripe:', error);
-    }
-}
-
-// Verifica de manera asíncrona si la sesión activa cuenta con un pago verificado
-async function verifyAccessRights() {
-    // Si ya se autenticó como admin en esta pestaña, mantener acceso libre
-    if (sessionStorage.getItem('mirror_auth_type') === 'admin') {
-        authType = 'admin';
-        unlockApplicationInterface();
-        return;
-    }
-
-    try {
-        const response = await fetch('/api/auth/check-access', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ clientSessionId: clientSessionId })
-        });
-        const data = await response.json();
-
-        if (data.hasAccess) {
-            unlockApplicationInterface();
-        } else {
-            lockApplicationInterface();
-        }
-    } catch (error) {
-        console.error('Error verificando derechos de acceso:', error);
-    }
-}
-
-function unlockApplicationInterface() {
-    const paywall = document.getElementById('paywallModal');
-    const mainApp = document.getElementById('appInterface');
-    if (paywall) paywall.style.display = 'none';
-    if (mainApp) mainApp.style.display = 'flex';
-    resetTimer();
-}
-
-function lockApplicationInterface() {
-    const paywall = document.getElementById('paywallModal');
-    const mainApp = document.getElementById('appInterface');
-    if (paywall) paywall.style.display = 'flex';
-    if (mainApp) mainApp.style.display = 'none';
-    clearTimeout(inactivityTimer);
-}
-
 async function sendTravelRequest() {
     const inputField = document.getElementById('travel-input');
     const input = inputField.value.trim();
@@ -194,9 +90,7 @@ async function sendTravelRequest() {
             },
             body: JSON.stringify({
                 messages: conversationMemory,
-                lang: currentLang,
-                authType: authType,
-                clientSessionId: clientSessionId
+                lang: currentLang
             })
         });
 
@@ -206,17 +100,8 @@ async function sendTravelRequest() {
             // Guardar la respuesta del asesor en la memoria local
             conversationMemory.push({ role: 'assistant', content: data.reply });
             output.innerText = data.reply;
-            
-            // Si el cliente realizó un pago único, tras realizar la primera consulta el servidor revocará su acceso,
-            // por lo que re-verificamos su estado de inmediato para retornar a la pantalla de paywall.
-            if (authType !== 'admin') {
-                await verifyAccessRights();
-            }
         } else {
             output.innerText = data.error || (currentLang === 'es' ? 'Error al procesar la directiva.' : 'Error processing directive.');
-            if (response.status === 402) {
-                lockApplicationInterface();
-            }
         }
     } catch (error) {
         output.innerText = currentLang === 'es' ? 'Error temporal de enlace con el servidor de asesoría.' : 'Temporary advisory server link error.';
@@ -224,10 +109,6 @@ async function sendTravelRequest() {
 }
 
 function resetTimer() {
-    // Si la interfaz de la aplicación principal no se encuentra visible, omitimos la ejecución del temporizador
-    const mainApp = document.getElementById('appInterface');
-    if (!mainApp || mainApp.style.display === 'none') return;
-
     clearTimeout(inactivityTimer);
     const modal = document.getElementById('warning-modal');
     if (modal) {
@@ -246,11 +127,8 @@ function dismissWarning() {
 }
 
 window.onload = () => {
-    // Escucha de eventos de interacción global para el refresco del temporizador de inactividad
     window.addEventListener('mousemove', resetTimer);
-window.addEventListener('keypress', resetTimer);
-window.addEventListener('touchstart', resetTimer);
-
-// Evaluación automática inicial de permisos al cargar la ventana del navegador
-verifyAccessRights();
-}; // RECTIFICACIÓN: Llave de cierre añadida correctamente aquí para cerrar el window.onload
+    window.addEventListener('keypress', resetTimer);
+    window.addEventListener('touchstart', resetTimer);
+    resetTimer();
+};
