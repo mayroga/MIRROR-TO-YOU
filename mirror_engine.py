@@ -83,7 +83,7 @@ async def create_checkout_session(req: CheckoutRequest, request: Request):
     price_id = PRICE_ID_MONTHLY if req.priceType == "unlimited" else PRICE_ID_SINGLE
     mode = "subscription" if req.priceType == "unlimited" else "payment"
     
-    # Esto evita el fallo de variable indefinida en Render
+    # Captura de forma segura la URL de tu app en Render sin romper el servidor
     origin_url = request.headers.get("origin") or str(request.base_url)
     
     try:
@@ -97,6 +97,7 @@ async def create_checkout_session(req: CheckoutRequest, request: Request):
         )
         return {"url": session.url}
     except Exception as e:
+        # Esto te mostrará el motivo exacto en los logs de Render si Stripe rechaza la llave
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/api/auth/check-access")
