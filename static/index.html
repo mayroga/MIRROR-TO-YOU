@@ -712,7 +712,9 @@ en:[
 }
 };
 
-let currentTechKey=null,currentExerciseIndex=0,currentStepIndex=0,breathAnimationInterval=null,tvidLimitInterval=null,tvidExerciseStartedAt=0,tvidExerciseCompleted=false;
+// Removemos breathAnimationInterval de aquí porque app.js ya la declara de forma global de su lado
+let currentTechKey=null,currentExerciseIndex=0,currentStepIndex=0,tvidLimitInterval=null,tvidExerciseStartedAt=0,tvidExerciseCompleted=false;
+
 
 function getTvidProgress(){
 try{
