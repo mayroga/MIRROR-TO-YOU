@@ -10,14 +10,15 @@ import stripe
 app = FastAPI(title="MIRROR TO YOU", version="1.0.0")
 
 VOLATILE_KERNEL = {}
-ACTIVE_ACCESS = {}  # Memoria volátil para controlar los accesos de pago por sesión temporal
+ACTIVE_ACCESS = {}  # Control en memoria de accesos de pago por sesión temporal del navegador
 
-# Carga de variables de entorno desde Render
+# Tus credenciales protegidas cargadas de Render
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 ADMIN_USERNAME = os.getenv("ADMIN_USERNAME")
 ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD")
 
+# Configuración de llaves y precios de Stripe
 stripe.api_key = os.getenv("STRIPE_SECRET_KEY")
 STRIPE_WEBHOOK_SECRET = os.getenv("STRIPE_WEBHOOK_SECRET")
 PRICE_ID_SINGLE = os.getenv("STRIPE_PRICE_ID1")     # $200.00
@@ -47,6 +48,10 @@ class AccessCheckRequest(BaseModel):
 class WellnessRequest(BaseModel):
     objective: str
     duration_seconds: int = 60
+
+# =====================================================================
+# ENDPOINTS DE CONTROL DE ACCESO, LOGIN Y STRIPE
+# =====================================================================
 
 @app.post("/api/webhook")
 async def stripe_webhook(request: Request):
@@ -82,8 +87,7 @@ async def create_checkout_session(req: CheckoutRequest, request: Request):
     price_id = PRICE_ID_MONTHLY if req.priceType == "unlimited" else PRICE_ID_SINGLE
     mode = "subscription" if req.priceType == "unlimited" else "payment"
     
-    # URL Base fija solicitada para mitigar errores de proxy en Render
-    base_url = "https://mirror-to-you.onrender.com"
+    base_url = "https://onrender.com"
     
     try:
         session = stripe.checkout.sessions.create(
@@ -105,10 +109,15 @@ async def check_session_access(req: AccessCheckRequest):
         return {"hasAccess": True, "details": ACTIVE_ACCESS[req.clientSessionId]}
     return {"hasAccess": False}
 
+# =====================================================================
+# ENDPOINTS ORIGINALES DE IA Y ASESORÍA (PROTEGIDOS POR PAYWALL)
+# =====================================================================
+
 @app.post("/api/chat")
 async def process_chat_directive(req: ChatRequest):
     global VOLATILE_KERNEL
     
+    # Verificación de seguridad estricta antes de gastar recursos de IA
     access_granted = False
     if req.authType == "admin":
         access_granted = True
@@ -125,7 +134,7 @@ async def process_chat_directive(req: ChatRequest):
 
     system_prompt = (
         "Eres un asesor experto de bienestar y estilo de vida. Mantén el hilo de la conversación, sé conciso, directo, empático y guía al usuario paso a paso sin perder la coherencia de las preguntas anteriores."
-        if req.lang == "es"
+        if req.lang == "es" 
         else "You are an expert wellness and lifestyle advisor. Maintain the conversation thread, be concise, direct, empathetic, and guide the user step-by-step without losing coherence from previous questions."
     )
 
@@ -139,7 +148,7 @@ async def process_chat_directive(req: ChatRequest):
                     "parts": [{"text": msg.content}]
                 })
 
-            gemini_url = f"https://googleapis.com{GEMINI_API_KEY}"
+            gemini_url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={GEMINI_API_KEY}"
             payload = {
                 "system_instruction": {"parts": [{"text": system_prompt}]},
                 "contents": formatted_contents
@@ -147,7 +156,6 @@ async def process_chat_directive(req: ChatRequest):
             response = await client.post(gemini_url, json=payload)
             if response.status_code == 200:
                 data = response.json()
-                # Extracción limpia con el índice [0] del candidato de Gemini para evitar fallos
                 reply = data["candidates"][0]["content"]["parts"][0]["text"]
                 return {"reply": reply, "provider": "gemini"}
             else:
@@ -169,7 +177,7 @@ async def process_chat_directive(req: ChatRequest):
                     "Content-Type": "application/json"
                 }
 
-                openai_response = await client.post("https://openai.com", json=openai_payload, headers=headers)
+                openai_response = await client.post("https://api.openai.com/v1/chat/completions", json=openai_payload, headers=headers)
                 if openai_response.status_code == 200:
                     openai_data = openai_response.json()
                     reply = openai_data["choices"][0]["message"]["content"]
@@ -179,6 +187,21 @@ async def process_chat_directive(req: ChatRequest):
 
             except Exception as openai_error:
                 raise HTTPException(status_code=500, detail="No se pudo procesar la respuesta con el motor de asesoría.")
+
+@app.post("/api/wellness")
+async def process_wellness_routine(req: WellnessRequest):
+    return {
+        "status": "active",
+        "objective": req.objective,
+        "rhythm": "synchronized",
+        "message": "Volatile anti-stress routine initiated."
+    }
+
+@app.delete("/api/clear")
+async def clear_kernel_memory():
+    global VOLATILE_KERNEL
+    VOLATILE_KERNEL.clear()
+    return {"status": "cleared", "memory": "zero"}
 
 if os.path.exists("static"):
     app.mount("/", StaticFiles(directory="static", html=True), name="static")
