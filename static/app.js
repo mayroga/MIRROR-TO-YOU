@@ -253,3 +253,4 @@ window.addEventListener('touchstart', resetTimer);
 
 // Evaluación automática inicial de permisos al cargar la ventana del navegador
 verifyAccessRights();
+}; // RECTIFICACIÓN: Llave de cierre añadida correctamente aquí para cerrar el window.onload
