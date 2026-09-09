@@ -58,7 +58,76 @@ footer{text-align:center;font-size:.8rem;color:var(--text-muted);padding-top:20p
 <p id="shut-text" style="color:var(--text-muted);font-size:.9rem">El tiempo límite de 10 minutos ha concluido. La sesión se ha cerrado por seguridad.</p> 
 <button onclick="location.reload()" id="shut-btn" style="background:var(--accent-color);color:var(--bg-color);font-weight:600;margin-top:10px">Reiniciar Sesión</button> </div> 
 </div>
+    <!-- Interfaz Operativa Principal de Mirror to You -->
+    <div id="appInterface" style="display:none; flex-direction:column; width:100%; flex:1;">
+        <header>
+            <div class="logo" id="app-title">MIRROR TO YOU</div>
+            <div class="controls">
+                <button id="lang-btn" onclick="toggleLanguage()">ES</button>
+                <button id="audio-btn" onclick="toggleVoiceGuide()">🔊 Voz: OFF</button>
+                <button class="btn-danger" id="close-btn" onclick="closeSession()">Cerrar</button>
+            </div>
+        </header>
 
+        <main>
+            <div class="panel">
+                <h2 id="wellness-title">Bienestar General</h2>
+                <div class="breathing-container">
+                    <div class="breathing-circle" id="b-circle">
+                        <span id="b-phase" style="font-weight:600">Ready</span>
+                        <span id="b-counter" style="font-size:.8rem">0s</span>
+                    </div>
+                    <div class="dynamic-speech-box" id="dynamic-speech">Seleccione un objetivo de bienestar para iniciar la alineación...</div>
+                    <div class="objective-info" id="objective-desc">Opciones cognitivas.</div>
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+                    <button onclick="setBreathingMode('antipanic')" id="btn-p1">Protocolo Antipánico</button>
+                    <button onclick="setBreathingMode('focus')" id="btn-p2">Enfoque Ejecutivo</button>
+                    <button onclick="setBreathingMode('sleep')" id="btn-p3">Restauración Profunda</button>
+                    <button onclick="setBreathingMode('energy')" id="btn-p4">Impulso Antifatiga</button>
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+                    <button onclick="startChallenge60()" id="btn-p5" style="background-color:rgba(56,189,248,.2);border-color:var(--accent-color)">⚡ Reto Vital 60s</button>
+                    <button onclick="toggleMusicModal()" id="btn-p6">🎵 Frecuencias Antiestrés</button>
+                </div>
+                <div id="yt-container" style="display:none;margin-top:5px">
+                    <iframe id="yt-player" width="100%" height="60" src="" frameborder="0" allow="autoplay"></iframe>
+                </div>
+            </div>
+
+            <div class="panel">
+                <div class="mortals-corner">
+                    <button class="mortals-btn" id="mortals-label" onclick="toggleMortalsDrawer()">Uso para mortales</button>
+                    <div class="mortals-modal" id="mortals-drawer">
+                        <div style="font-size:.75rem;color:var(--text-muted);margin-bottom:6px;text-align:center" id="mortals-sub">Enlaces externos</div>
+                        <div class="mortals-grid">
+                            <a id="m-maps" href="#" target="_blank">Google Maps</a>
+                            <a href="https://google.com" target="_blank">Google Fly</a>
+                            <a href="https://jetblue.com" target="_blank">JetBlue</a>
+                            <a href="https://uber.com" target="_blank">Uber</a>
+                            <a href="https://lyft.com" target="_blank">Lyft</a>
+                            <a href="https://mcdonalds.com" target="_blank">McDonald's</a>
+                            <a href="https://bk.com" target="_blank">Burger King</a>
+                            <a href="https://walmart.com" target="_blank">Walmart</a>
+                            <a href="https://costco.com" target="_blank">Costco</a>
+                            <a href="https://youtube.com" target="_blank">YouTube</a>
+                            <a href="https://spotify.com" target="_blank">Spotify</a>
+                        </div>
+                    </div>
+                </div>
+
+                <h2 id="travel-title">Asesor Conversacional Mirror To You</h2>
+                <div class="input-group">
+                    <textarea id="travel-input" rows="3" placeholder="Escriba su consulta o use los botones de asistencia..."></textarea>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+                        <button onclick="handleNoIdea()" id="btn-no">❓ No sé</button>
+                        <button onclick="handleHelpMe()" id="btn-help">🤝Ayúdame</button>
+                    </div>
+                    <button onclick="resolveTravelDirective()" id="btn-send" style="background:var(--accent-color);color:var(--bg-color);font-weight:600;margin-top:4px">Enviar Conversación</button>
+                </div>
+                <div class="output-box" id="travel-output">Inicie una conversación o pulse un botón de asistencia guiada para recibir orientación experta en tiempo real...</div>
+
+              
 <header>
 <div class="logo" id="app-title">MIRROR TO YOU</div>
 <div class="controls">
