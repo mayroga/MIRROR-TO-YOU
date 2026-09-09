@@ -123,55 +123,119 @@ footer{text-align:center;font-size:.8rem;color:var(--text-muted);padding-top:20p
             </div>
         </header>
 
-</main>
+        <main>
+            <div class="panel">
+                <h2 id="wellness-title">Bienestar General</h2>
+                <div class="breathing-container">
+                    <div class="breathing-circle" id="b-circle">
+                        <span id="b-phase" style="font-weight:600">Ready</span>
+                        <span id="b-counter" style="font-size:.8rem">0s</span>
+                    </div>
+                    <div class="dynamic-speech-box" id="dynamic-speech">Seleccione un objetivo de bienestar para iniciar la alineación...</div>
+                    <div class="objective-info" id="objective-desc">Opciones cognitivas.</div>
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+                    <button onclick="setBreathingMode('antipanic')" id="btn-p1">Protocolo Antipánico</button>
+                    <button onclick="setBreathingMode('focus')" id="btn-p2">Enfoque Ejecutivo</button>
+                    <button onclick="setBreathingMode('sleep')" id="btn-p3">Restauración Profunda</button>
+                    <button onclick="setBreathingMode('energy')" id="btn-p4">Impulso Antifatiga</button>
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+                    <button onclick="startChallenge60()" id="btn-p5" style="background-color:rgba(56,189,248,.2);border-color:var(--accent-color)">⚡ Reto Vital 60s</button>
+                    <button onclick="toggleMusicModal()" id="btn-p6">🎵 Frecuencias Antiestrés</button>
+                </div>
+                <div id="yt-container" style="display:none;margin-top:5px">
+                    <iframe id="yt-player" width="100%" height="60" src="" frameborder="0" allow="autoplay"></iframe>
+                </div>
+            </div>
+            <div class="panel">
+                <div class="mortals-corner">
+                    <button class="mortals-btn" id="mortals-label" onclick="toggleMortalsDrawer()">Uso para mortales</button>
+                    <div class="mortals-modal" id="mortals-drawer">
+                        <div style="font-size:.75rem;color:var(--text-muted);margin-bottom:6px;text-align:center" id="mortals-sub">Enlaces externos</div>
+                        <div class="mortals-grid">
+                            <a id="m-maps" href="#" target="_blank">Google Maps</a>
+                            <a href="https://google.com" target="_blank">Google Fly</a>
+                            <a href="https://jetblue.com" target="_blank">JetBlue</a>
+                            <a href="https://uber.com" target="_blank">Uber</a>
+                            <a href="https://lyft.com" target="_blank">Lyft</a>
+                            <a href="https://mcdonalds.com" target="_blank">McDonald's</a>
+                            <a href="https://bk.com" target="_blank">Burger King</a>
+                            <a href="https://walmart.com" target="_blank">Walmart</a>
+                            <a href="https://costco.com" target="_blank">Costco</a>
+                            <a href="https://youtube.com" target="_blank">YouTube</a>
+                            <a href="https://spotify.com" target="_blank">Spotify</a>
+                        </div>
+                    </div>
+                </div>
+                <h2 id="travel-title">Asesor Conversacional Mirror To You</h2>
+                <div class="input-group">
+                    <textarea id="travel-input" rows="3" placeholder="Escriba su consulta o use los botones de asistencia..."></textarea>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+                        <button onclick="handleNoIdea()" id="btn-no" style="background-color:rgba(239,68,68,.15);border-color:rgba(239,68,68,.4)">❓ No sé</button>
+                        <button onclick="handleHelpMe()" id="btn-help" style="background-color:rgba(56,189,248,.15);border-color:var(--accent-color)">🤝Ayúdame</button>
+                    </div>
+                    <button onclick="resolveTravelDirective()" id="btn-send" style="background:var(--accent-color);color:var(--bg-color);font-weight:600;margin-top:4px">Enviar Conversación</button>
+                </div>
+                <div class="output-box" id="travel-output">Inicie una conversación o pulse un botón de asistencia guiada para recibir orientación experta en tiempo real...</div>
+                <!-- SECCIÓN MAESTRA REINTEGRADA: PUERTO DE CARGA RÁPIDA (TVid) -->
+                <div class="tvid-curtain" style="margin-top:14px;">
+                    <button class="tvid-curtain-toggle" onclick="toggleTvidWindow()" type="button" style="width:100%;background:rgba(15,23,42,.85);border:1px solid var(--border-color,rgba(255,255,255,.2));color:var(--text-main,#fff);padding:10px 12px;border-radius:10px;font-weight:600;font-size:.85rem;display:flex;align-items:center;justify-content:space-between;gap:8px;cursor:pointer;">
+                        <span>⚡ <span id="tvid-float-label">Carga Rápida (TVid)</span></span>
+                        <span class="tvid-curtain-controls" style="display:flex;align-items:center;gap:8px;">
+                            <span id="tvid-curtain-arrow">＋</span>
+                            <span onclick="event.stopPropagation();toggleTvidLang()" id="tvid-lang-btn" class="tvid-lang-btn" style="background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:var(--text-main,#fff);width:28px;height:28px;border-radius:50%;font-weight:600;font-size:.75rem;display:flex;align-items:center;justify-content:center;cursor:pointer;">ES</span>
+                        </span>
+                    </button>
+                    
+                    <div id="tvid-floating-window" class="tvid-modal-overlay" style="display:none;position:relative;top:auto;left:auto;width:100%;height:auto;background:none;backdrop-filter:none;justify-content:center;align-items:stretch;z-index:auto;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;margin-top:10px;">
+                        <div class="tvid-modal-container" style="background:var(--card-bg,#141416);border:1px solid var(--border-color,rgba(255,255,255,.1));width:100%;max-width:100%;border-radius:12px;padding:14px;color:var(--text-main,#f1f1f3);box-shadow:0 10px 25px rgba(0,0,0,.35);">
+                            <div class="tvid-header" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:15px;border-bottom:1px solid var(--border-color,rgba(255,255,255,.08));padding-bottom:10px;">
+                                <div style="display:flex;align-items:center;gap:8px;">
+                                    <span class="tvid-badge" style="background:rgba(212,175,55,.15);color:var(--accent-color,#d4af37);font-size:10px;font-weight:600;padding:3px 6px;border-radius:4px;text-transform:uppercase;" id="tvid-badge-text">5-Min Recharge</span>
+                                </div>
+                                <h2 id="tvid-main-title" style="font-size:15px;margin:0;font-weight:500;">Puerto de Carga Rápida</h2>
+                                <button class="tvid-close-btn" onclick="closeTvidWindow()" style="background:none;border:none;color:var(--text-muted,#888);font-size:22px;cursor:pointer;">&times;</button>
+                            </div>
+                            
+                            <div id="tvid-selection-screen" class="tvid-content-view" style="width:100%;">
+                                <p class="tvid-subtitle" id="tvid-subtitle-text" style="font-size:12px;color:var(--text-muted,#999);margin-bottom:12px;">Selecciona tu protocolo de adaptación y bienestar:</p>
+                                <div class="tvid-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+                                    <button class="tvid-card-btn" onclick="loadTvidExercise('Madre')" style="background:var(--card-bg,#1e1e22);border:1px solid var(--border-color,rgba(255,255,255,.06));color:var(--text-main,#f1f1f3);padding:10px;border-radius:8px;font-size:12px;text-align:left;cursor:pointer;"><span data-es="Técnica de la Madre" data-en="Mother Technique">Técnica de la Madre</span></button>
+                                    <button class="tvid-card-btn" onclick="loadTvidExercise('Padre')" style="background:var(--card-bg,#1e1e22);border:1px solid var(--border-color,rgba(255,255,255,.06));color:var(--text-main,#f1f1f3);padding:10px;border-radius:8px;font-size:12px;text-align:left;cursor:pointer;"><span data-es="Técnica del Padre" data-en="Father Technique">Técnica del Padre</span></button>
+                                    <button class="tvid-card-btn" onclick="loadTvidExercise('Niño')" style="background:var(--card-bg,#1e1e22);border:1px solid var(--border-color,rgba(255,255,255,.06));color:var(--text-main,#f1f1f3);padding:10px;border-radius:8px;font-size:12px;text-align:left;cursor:pointer;"><span data-es="Técnica del Niño" data-en="Child Technique">Técnica del Niño</span></button>
+                                    <button class="tvid-card-btn" onclick="loadTvidExercise('Beso')" style="background:var(--card-bg,#1e1e22);border:1px solid var(--border-color,rgba(255,255,255,.06));color:var(--text-main,#f1f1f3);padding:10px;border-radius:8px;font-size:12px;text-align:left;cursor:pointer;"><span data-es="Técnica del Beso" data-en="Kiss Technique">Técnica del Beso</span></button>
+                                    <button class="tvid-card-btn" onclick="loadTvidExercise('Mal')" style="background:var(--card-bg,#1e1e22);border:1px solid var(--border-color,rgba(255,255,255,.06));color:var(--text-main,#f1f1f3);padding:10px;border-radius:8px;font-size:12px;text-align:left;cursor:pointer;"><span data-es="Técnica del Mal" data-en="Adversity Technique">Técnica del Mal</span></button>
+                                    <button class="tvid-card-btn" onclick="loadTvidExercise('Bien')" style="background:var(--card-bg,#1e1e22);border:1px solid var(--border-color,rgba(255,255,255,.06));color:var(--text-main,#f1f1f3);padding:10px;border-radius:8px;font-size:12px;text-align:left;cursor:pointer;"><span data-es="Técnica del Bien" data-en="Wellbeing Technique">Técnica del Bien</span></button>
+                                    <button class="tvid-card-btn tvid-full" onclick="loadTvidExercise('Guerra')" style="grid-column:span 2;background:var(--card-bg,#1e1e22);border:1px solid var(--border-color,rgba(255,255,255,.06));color:var(--text-main,#f1f1f3);padding:10px;border-radius:8px;font-size:12px;text-align:left;cursor:pointer;"><span data-es="Técnica de Guerra" data-en="Strategy Technique">Técnica de Guerra</span></button>
+                                </div>
+                            </div>
+                            
+                            <div id="tvid-exercise-screen" class="tvid-content-view" style="display:none;width:100%;">
+                                <div class="tvid-exercise-top" style="display:flex;justify-content:flex-start;align-items:center;margin-bottom:10px;">
+                                    <button class="tvid-back-btn" onclick="backTvidSelection()" id="tvid-back-text" style="background:none;border:none;color:var(--accent-color,#d4af37);cursor:pointer;font-size:12px;">← Volver</button>
+                                </div>
+                                <h3 id="tvid-exercise-title" style="font-size:15px;margin:0;font-weight:500;">Título del Ejercicio</h3>
+                                <div class="tvid-breath-container" style="display:flex;justify-content:center;align-items:center;margin:15px 0;">
+                                    <div id="tvid-breath-circle" class="tvid-breath-circle" style="width:90px;height:90px;border-radius:50%;background:rgba(212,175,55,.15);border:2px solid var(--accent-color,#d4af37);display:flex;justify-content:center;align-items:center;font-size:13px;font-weight:600;color:var(--accent-color,#d4af37);transition:transform 4s ease-in-out;box-shadow:0 0 20px rgba(212,175,55,.2);">
+                                        <span id="tvid-breath-label">Inhala</span>
+                                    </div>
+                                </div>
+                                <div id="tvid-objective-box" class="tvid-objective-box" style="background:rgba(212,175,55,.08);border-left:3px solid var(--accent-color,#d4af37);padding:8px 12px;border-radius:4px;font-size:12px;margin-bottom:10px;color:var(--text-main,#ddd);">
+                                    <strong>🎯 Objetivo:</strong>
+                                    <span id="tvid-objective-text">Mantener estabilidad y presencia.</span>
+                                </div>
+                                <div id="tvid-exercise-steps" class="tvid-steps-container" style="font-size:13px;line-height:1.5;color:var(--text-muted,#ccc);min-height:70px;margin-bottom:12px;background:rgba(0,0,0,.2);padding:12px;border-radius:8px;"></div>
+                                <div style="display:flex;gap:8px;">
+                                    <button id="tvid-speak-btn" class="tvid-sec-action" onclick="speakCurrentStep()" style="background:rgba(255,255,255,.08);color:var(--text-main,#fff);border:1px solid var(--border-color,rgba(255,255,255,.2));padding:10px;border-radius:8px;font-weight:600;font-size:13px;cursor:pointer;">🔊 Escuchar</button>
+                                    <button id="tvid-action-btn" class="tvid-main-action" onclick="nextTvidStep()" style="flex:1;background:var(--accent-color,#d4af37);color:var(--bg-color,#0a0a0c);border:none;padding:10px;border-radius:8px;font-weight:600;font-size:13px;cursor:pointer;">Siguiente paso</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
-<footer>
-<span id="footer-text">Sesión Volátil Encriptada. Cero Datos Retenidos.</span>
-<span id="timer-display" style="font-family:monospace;color:var(--accent-color)">10:00</span>
-</footer>
-
-<script>
-let currentLang='es',voiceEnabled=false,currentModeInterval=null,phraseInterval=null,sessionTimer=null,timeLeft=600;
-let conversationMemory=[],MAX_MEMORY_TURNS=15;
-
-const randomMapsLinks=[
-"https://maps.google.com/?q=Central+Park+New+York",
-"https://maps.google.com/?q=Aspen+Mountain+Ski+Resort",
-"https://maps.google.com/?q=Grace+Bay+Turks+and+Caicos",
-"https://maps.google.com/?q=Key+West+Florida",
-"https://maps.google.com/?q=Yellowstone+National+Park"
-];
-
-function updateMapsLink(){
-document.getElementById('m-maps').href=randomMapsLinks[Math.floor(Math.random()*randomMapsLinks.length)]
-}
-
-function switchGateLang(){
-currentLang=currentLang==='es'?'en':'es';
-updateTexts()
-}
-
-function startSession(){
-document.getElementById('legal-gate').style.display='none';
-updateMapsLink();
-startSessionTimer();
-if(voiceEnabled)speak(currentLang==='es'?'Sesión iniciada. Bienvenido.':'Session started. Welcome.')
-}
-
-function startSessionTimer(){
-if(sessionTimer)clearInterval(sessionTimer);
-sessionTimer=setInterval(()=>{
-timeLeft--;
-let m=Math.floor(timeLeft/60),s=timeLeft%60;
-document.getElementById('timer-display').innerText=`${m}:${s<10?'0':''}${s}`;
-if(timeLeft<=0){
-clearInterval(sessionTimer);
-stopTvidTimers();
-document.getElementById('shutdown-overlay').style.display='flex'
-}
-},1000)
-}
-
+            
 function closeSession(){
 if(sessionTimer)clearInterval(sessionTimer);
 stopTvidTimers();
