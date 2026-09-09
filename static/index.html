@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -6,6 +5,13 @@
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>MIRROR TO YOU</title>
 <style>
+  
+body { font-family: Arial, sans-serif; background: #f4f6f8; padding: 50px; text-align: center; }
+.card { background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); max-width: 400px; margin: auto; }
+input, button { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+button { background: #0070f3; color: white; border: none; font-weight: bold; cursor: pointer; }
+button:hover { background: #0051a2; }
+  
 :root{--bg-color:#0b0f19;--card-bg:#111827;--accent-color:#38bdf8;--text-main:#f3f4f6;--text-muted:#9ca3af;--border-color:#1f2937;--danger-color:#ef4444}
 *{box-sizing:border-box;margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
 body{background:var(--bg-color);color:var(--text-main);min-height:100vh;display:flex;flex-direction:column;justify-content:space-between;padding:20px}
@@ -43,7 +49,25 @@ footer{text-align:center;font-size:.8rem;color:var(--text-muted);padding-top:20p
 </style>
 </head>
 <body>
-
+    <div class="card">
+        <h2>Acceso Administrador</h2>
+        <form method="POST" action="/login">
+            <input type="text" name="username" placeholder="Username" required>
+            <input type="password" name="password" placeholder="Password" required>
+            <button type="submit">Entrar Gratis</button>
+        </form>
+        <hr style="margin: 20px 0;">
+        <h2>Adquirir Servicio</h2>
+        <form method="POST" action="/create-checkout-session">
+            <input type="hidden" name="price_id" value="{{ price_id_1 }}">
+            <button type="submit">Pago Único ($200)</button>
+        </form>
+        <form method="POST" action="/create-checkout-session">
+            <input type="hidden" name="price_id" value="{{ price_id_2 }}">
+            <button type="submit" style="background: #28a745;">Suscripción Mensual ($499)</button>
+        </form>
+    </div>
+</body>
 <div id="legal-gate">
 <div class="legal-box">
 <h2 id="gate-title">AVISO LEGAL Y PROTECCIÓN</h2>
