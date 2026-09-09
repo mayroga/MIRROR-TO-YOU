@@ -42,7 +42,35 @@ footer{text-align:center;font-size:.8rem;color:var(--text-muted);padding-top:20p
 </style>
 </head>
 <body>
-
+    <!-- Paywall Interceptador y Formulario de Login -->
+    <div id="paywallModal">
+        <div class="paywall-card">
+            <div class="brand-title">MIRROR TO YOU</div>
+            <div class="brand-subtitle" id="pw-subtitle">Selecciona una opción de acceso privado para activar el servicio corporativo.</div>
+            
+            <!-- Opciones de Cobro con Stripe -->
+            <div class="pricing-options">
+                <button class="price-btn" onclick="triggerStripePayment(1)">
+                    <span>Pase Único Bienestar</span>
+                    <span class="price">$200</span>
+                </button>
+                <button class="price-btn" onclick="triggerStripePayment(2)">
+                    <span>Acceso Premium ilimitado</span>
+                    <span class="price">$399</span>
+                </button>
+            </div>
+            
+            <div class="divider">ó</div>
+            
+            <!-- Formulario de Acceso por Credenciales -->
+            <div class="login-form">
+                <input type="text" id="loginUsername" class="login-input" placeholder="Nombre de usuario">
+                <input type="password" id="loginPassword" class="login-input" placeholder="Contraseña de acceso">
+                <button class="login-btn" onclick="executeAdminLogin()">Ingresar con Credenciales</button>
+                <div class="error-msg" id="loginError">Acceso denegado. Intente nuevamente.</div>
+            </div>
+        </div>
+    </div>
 <div id="legal-gate">
 <div class="legal-box">
 <h2 id="gate-title">AVISO LEGAL Y PROTECCIÓN</h2>
