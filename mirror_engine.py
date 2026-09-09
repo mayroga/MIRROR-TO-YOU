@@ -10,18 +10,21 @@ from pydantic import BaseModel
 from typing import List
 
 app = FastAPI(title="MIRROR TO YOU", version="1.0.0")
-app.add_middleware(SessionMiddleware, secret_key=os.getenv("ADMIN_PASSWORD", "clave_por_defecto"))
+
+# Fallback seguro para que las variables de entorno nunca sean None y colapsen el servidor
+ADMIN_USERNAME = os.getenv("ADMIN_USERNAME", "admin")
+ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "clave_por_defecto")
+STRIPE_SECRET_KEY = os.getenv("STRIPE_SECRET_KEY", "sk_test_mock")
+STRIPE_WEBHOOK_SECRET = os.getenv("STRIPE_WEBHOOK_SECRET", "whsec_mock")
+STRIPE_PRICE_ID1 = os.getenv("STRIPE_PRICE_ID1", "price_mock1")
+STRIPE_PRICE_ID2 = os.getenv("STRIPE_PRICE_ID2", "price_mock2")
+BASE_URL = os.getenv("RENDER_EXTERNAL_URL", "https://mirror-to-you.onrender.com")
+
+app.add_middleware(SessionMiddleware, secret_key=ADMIN_PASSWORD)
 
 templates = Jinja2Templates(directory="static")
 
-stripe.api_key = os.getenv("STRIPE_SECRET_KEY")
-STRIPE_WEBHOOK_SECRET = os.getenv("STRIPE_WEBHOOK_SECRET")
-
-ADMIN_USERNAME = os.getenv("ADMIN_USERNAME")
-ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD")
-STRIPE_PRICE_ID1 = os.getenv("STRIPE_PRICE_ID1")
-STRIPE_PRICE_ID2 = os.getenv("STRIPE_PRICE_ID2")
-BASE_URL = "https://mirror-to-you.onrender.com"
+stripe.api_key = STRIPE_SECRET_KEY
 
 @app.get("/", response_class=HTMLResponse)
 async def index(request: Request):
@@ -76,8 +79,8 @@ async def stripe_webhook(request: Request):
 
 VOLATILE_KERNEL = {}
 
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
 
 class Message(BaseModel):
     role: str
