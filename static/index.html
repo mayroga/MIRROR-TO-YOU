@@ -1,103 +1,320 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>MIRROR TO YOU</title>
-<style>
-:root{--bg-color:#0b0f19;--card-bg:#111827;--accent-color:#38bdf8;--text-main:#f3f4f6;--text-muted:#9ca3af;--border-color:#1f2937;--danger-color:#ef4444}
-*{box-sizing:border-box;margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
-body{background:var(--bg-color);color:var(--text-main);min-height:100vh;display:flex;flex-direction:column;justify-content:space-between;padding:20px}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <title>MIRROR TO YOU</title>
+    <style>
+        :root {
+            --bg-color: #0b0f19;
+            --card-bg: #111827;
+            --accent-color: #38bdf8;
+            --text-main: #f3f4f6;
+            --text-muted: #9ca3af;
+            --border-color: #1f2937;
+            --danger-color: #ef4444;
+            --shadow: 0 18px 50px rgba(0,0,0,.45);
+            --radius: 12px;
+        }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+        body {
+            background: var(--bg-color);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 20px;
+            overflow-x: hidden;
+        }
+        #legal-gate {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(11, 15, 25, .98);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            padding: 20px;
+        }
+        .legal-box {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 30px;
+            max-width: 600px;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            text-align: center;
+        }
+        .legal-box h2 {
+            color: var(--accent-color);
+            font-size: 1.2rem;
+            letter-spacing: 1px;
+        }
+        .legal-text {
+            font-size: .85rem;
+            color: var(--text-muted);
+            line-height: 1.5;
+            text-align: left;
+            max-height: 200px;
+            overflow-y: auto;
+            background: var(--bg-color);
+            padding: 12px;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+        }
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1000px;
+            width: 100%;
+            margin: 0 auto;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .logo {
+            font-size: 1.25rem;
+            font-weight: 600;
+            letter-spacing: 2px;
+            color: var(--accent-color);
+        }
+        .controls {
+            display: flex;
+            gap: 10px;
+        }
+        button {
+            background: var(--card-bg);
+            color: var(--text-main);
+            border: 1px solid var(--border-color);
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: .9rem;
+            transition: all .2s ease;
+        }
+        button:hover {
+            border-color: var(--accent-color);
+        }
+        .btn-danger {
+            color: var(--danger-color);
+            border-color: rgba(239, 68, 68, .3);
+        }
+        .btn-danger:hover {
+            border-color: var(--danger-color);
+        }
+        main {
+            max-width: 1000px;
+            width: 100%;
+            margin: 20px auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        @media(max-width:768px) {
+            main { grid-template-columns: 1fr; }
+        }
+        .panel {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            position: relative;
+        }
+        .panel h2 {
+            font-size: 1.1rem;
+            font-weight: 500;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .breathing-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+        }
+        .breathing-circle {
+            width: 140px;
+            height: 140px;
+            border: 2px solid var(--accent-color);
+            border-radius: 50%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: transform 3s ease-in-out;
+            font-size: .9rem;
+            color: var(--accent-color);
+            text-align: center;
+            padding: 10px;
+        }
 
-/* Paywall Modal Styling */
-#paywallModal{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(11,15,25,.98);display:flex;justify-content:center;align-items:center;z-index:2500;padding:20px}
-.paywall-card{background:var(--card-bg);border:1px solid var(--border-color);border-radius:12px;padding:30px;max-width:440px;width:100%;display:flex;flex-direction:column;gap:16px;text-align:center;box-shadow:0 8px 24px rgba(0,0,0,.6)}
-.brand-title{font-size:1.4rem;font-weight:700;letter-spacing:2px;color:var(--accent-color)}
-.brand-subtitle{font-size:.85rem;color:var(--text-muted);line-height:1.4}
-.pricing-options{display:flex;flex-direction:column;gap:10px;margin-top:5px}
-.price-btn{background:var(--bg-color);border:1px solid var(--border-color);border-radius:8px;padding:12px 16px;color:var(--text-main);display:flex;justify-content:space-between;align-items:center;cursor:pointer;font-weight:600;transition:all .2s ease}
-.price-btn:hover{border-color:var(--accent-color);background:rgba(56,189,248,.05)}
-.price{color:var(--accent-color);font-size:1.1rem}
-.divider{font-size:.8rem;color:var(--text-muted);margin:4px 0;position:relative}
-.divider::before,.divider::after{content:"";position:absolute;top:50%;width:40%;height:1px;background:var(--border-color)}
-.divider::before{left:0}
-.divider::after{right:0}
-.login-form{display:flex;flex-direction:column;gap:10px}
-.login-input{width:100%;background:var(--bg-color);border:1px solid var(--border-color);border-radius:6px;padding:10px;color:var(--text-main);font-size:.9rem}
-.login-input:focus{outline:none;border-color:var(--accent-color)}
-.login-btn{background:var(--accent-color);color:var(--bg-color);border:none;border-radius:6px;padding:10px;font-weight:600;cursor:pointer;transition:opacity .2s}
-.login-btn:hover{opacity:.9}
-.error-msg{color:var(--danger-color);font-size:.8rem;display:none;margin-top:2px}
+        /* ADICIÓN DE ESTILOS PERIMETRALES PARA EL INTERCEPTADOR DE STRIPE Y LOGIN ADMIN */
+        #paywallModal {
+            position: fixed;
+            inset: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(11, 15, 25, 0.99);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 99999;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .paywall-card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            padding: 32px 24px;
+            width: min(420px, 100%);
+            text-align: center;
+            box-shadow: var(--shadow);
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+        .paywall-card .brand-title {
+            font-size: 1.4rem;
+            font-weight: 600;
+            letter-spacing: 2px;
+            color: var(--accent-color);
+        }
+        .paywall-card .brand-subtitle {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+        }
+        .pricing-options {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .price-btn {
+            background: linear-gradient(135deg, #635bff 0%, #4f46e5 100%);
+            color: #fff;
+            border: none;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 18px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: opacity 0.2s ease, transform 0.15s ease;
+        }
+        .price-btn:hover { opacity: 0.92; }
+        .price-btn .price {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 0.9rem;
+        }
+        .divider {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin: 8px 0;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .login-form {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .login-input {
+            width: 100%;
+            background-color: var(--bg-color);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 12px;
+            color: var(--text-main);
+            font-size: 0.95rem;
+        }
+        .login-input:focus { outline: none; border-color: var(--accent-color); }
+        .login-btn {
+            background-color: #10b981;
+            color: #fff;
+            border: none;
+            padding: 12px;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+        .login-btn:hover { background-color: #059669; }
+        .error-msg {
+            color: var(--danger-color);
+            font-size: 0.85rem;
+            display: none;
+            margin-top: 4px;
+        }
+        .dynamic-speech-box{background:var(--bg-color);border:1px solid var(--border-color);border-radius:6px;padding:10px;font-size:.9rem;color:var(--accent-color);text-align:center;min-height:55px;display:flex;align-items:center;justify-content:center;font-style:italic}
+        .objective-info{background:var(--bg-color);border:1px solid var(--border-color);border-radius:6px;padding:10px;font-size:.85rem;color:var(--text-muted);width:100%;min-height:70px}
+        .input-group{display:flex;flex-direction:column;gap:8px}
+        textarea{width:100%;background:var(--bg-color);border:1px solid var(--border-color);border-radius:6px;padding:10px;color:var(--text-main);font-size:.95rem;resize:none}
+        textarea:focus{outline:none;border-color:var(--accent-color)}
+        .output-box{background:var(--bg-color);border:1px solid var(--border-color);border-radius:6px;padding:12px;min-height:140px;font-size:.9rem;color:var(--text-main);white-space:pre-line;overflow-y:auto;max-height:220px}
+        .mortals-corner{position:absolute;top:15px;right:15px}
+        .mortals-btn{background:var(--bg-color);border:1px solid var(--border-color);font-size:.75rem;padding:4px 8px;color:var(--text-muted)}
+        .mortals-modal{display:none;position:absolute;top:35px;right:0;background:var(--bg-color);border:1px solid var(--border-color);border-radius:8px;padding:12px;width:260px;z-index:100;box-shadow:0 4px 12px rgba(0,0,0,.5)}
+        .mortals-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px}
+        .mortals-grid a,.mortals-grid button{background:var(--card-bg);border:1px solid var(--border-color);color:var(--text-main);font-size:.75rem;padding:6px;text-align:center;text-decoration:none;border-radius:4px;display:flex;align-items:center;justify-content:center;cursor:pointer}
+        .mortals-grid a:hover,.mortals-grid button:hover{border-color:var(--accent-color)}
+        footer{text-align:center;font-size:.8rem;color:var(--text-muted);padding-top:20px;border-top:1px solid var(--border-color);max-width:1000px;width:100%;margin:0 auto;display:flex;justify-content:space-between;align-items:center}
+        #shutdown-overlay{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:#0b0f19;z-index:3000;justify-content:center;align-items:center;text-align:center;padding:20px}
+        #appInterface{display:none;flex-direction:column;flex:1;width:100%}
+    </style> 
+</head> 
+<body> 
 
-/* Legal Gate Styling */
-#legal-gate{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(11,15,25,.98);display:none;justify-content:center;align-items:center;z-index:2000;padding:20px}
-.legal-box{background:var(--card-bg);border:1px solid var(--border-color);border-radius:12px;padding:30px;max-width:600px;width:100%;display:flex;flex-direction:column;gap:16px;text-align:center}
-.legal-box h2{color:var(--accent-color);font-size:1.2rem;letter-spacing:1px}
-.legal-text{font-size:.85rem;color:var(--text-muted);line-height:1.5;text-align:left;max-height:200px;overflow-y:auto;background:var(--bg-color);padding:12px;border-radius:6px;border:1px solid var(--border-color)}
-
-header{display:flex;justify-content:space-between;align-items:center;max-width:1000px;width:100%;margin:0 auto;padding-bottom:20px;border-bottom:1px solid var(--border-color)}
-.logo{font-size:1.25rem;font-weight:600;letter-spacing:2px;color:var(--accent-color)}
-.controls{display:flex;gap:10px}
-button{background:var(--card-bg);color:var(--text-main);border:1px solid var(--border-color);padding:8px 16px;border-radius:6px;cursor:pointer;font-size:.9rem;transition:all .2s ease}
-button:hover{border-color:var(--accent-color)}
-.btn-danger{color:var(--danger-color);border-color:rgba(239,68,68,.3)}
-.btn-danger:hover{border-color:var(--danger-color)}
-
-main{max-width:1000px;width:100%;margin:20px auto;display:grid;grid-template-columns:1fr 1fr;gap:20px}
-@media(max-width:768px){main{grid-template-columns:1fr}}
-.panel{background:var(--card-bg);border:1px solid var(--border-color);border-radius:12px;padding:24px;display:flex;flex-direction:column;gap:16px;position:relative}
-.panel h2{font-size:1.1rem;font-weight:500;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px}
-.breathing-container{display:flex;flex-direction:column;align-items:center;gap:12px}
-.breathing-circle{width:140px;height:140px;border:2px solid var(--accent-color);border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:transform 3s ease-in-out;font-size:.9rem;color:var(--accent-color);text-align:center;padding:10px}
-.dynamic-speech-box{background:var(--bg-color);border:1px solid var(--border-color);border-radius:6px;padding:10px;font-size:.9rem;color:var(--accent-color);text-align:center;min-height:55px;display:flex;align-items:center;justify-content:center;font-style:italic}
-.objective-info{background:var(--bg-color);border:1px solid var(--border-color);border-radius:6px;padding:10px;font-size:.85rem;color:var(--text-muted);width:100%;min-height:70px}
-.input-group{display:flex;flex-direction:column;gap:8px}
-textarea{width:100%;background:var(--bg-color);border:1px solid var(--border-color);border-radius:6px;padding:10px;color:var(--text-main);font-size:.95rem;resize:none}
-textarea:focus{outline:none;border-color:var(--accent-color)}
-.output-box{background:var(--bg-color);border:1px solid var(--border-color);border-radius:6px;padding:12px;min-height:140px;font-size:.9rem;color:var(--text-main);white-space:pre-line;overflow-y:auto;max-height:220px}
-.mortals-corner{position:absolute;top:15px;right:15px}
-.mortals-btn{background:var(--bg-color);border:1px solid var(--border-color);font-size:.75rem;padding:4px 8px;color:var(--text-muted)}
-.mortals-modal{display:none;position:absolute;top:35px;right:0;background:var(--bg-color);border:1px solid var(--border-color);border-radius:8px;padding:12px;width:260px;z-index:100;box-shadow:0 4px 12px rgba(0,0,0,.5)}
-.mortals-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px}
-.mortals-grid a,.mortals-grid button{background:var(--card-bg);border:1px solid var(--border-color);color:var(--text-main);font-size:.75rem;padding:6px;text-align:center;text-decoration:none;border-radius:4px;display:flex;align-items:center;justify-content:center;cursor:pointer}
-.mortals-grid a:hover,.mortals-grid button:hover{border-color:var(--accent-color)}
-
-footer{text-align:center;font-size:.8rem;color:var(--text-muted);padding-top:20px;border-top:1px solid var(--border-color);max-width:1000px;width:100%;margin:0 auto;display:flex;justify-content:space-between;align-items:center}
-#shutdown-overlay{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:#0b0f19;z-index:3000;justify-content:center;align-items:center;text-align:center;padding:20px}
-</style>
-</head>
-<body>
-
-    <!-- Paywall Interceptador Obligatorio (Stripe & Credenciales) -->
-    <div id="paywallModal">
-        <div class="paywall-card">
-            <div class="brand-title">MIRROR TO YOU</div>
-            <div class="brand-subtitle" id="pw-subtitle">Selecciona una opción de acceso privado para activar el servicio corporativo.</div>
+    <!-- Paywall Interceptador Obligatorio (Stripe y Credenciales) --> 
+    <div id="paywallModal"> 
+        <div class="paywall-card"> 
+            <div class="brand-title">MIRROR TO YOU</div> 
+            <div class="brand-subtitle" id="pw-subtitle">Selecciona una opción de acceso privado para activar el servicio corporativo.</div> 
             
-            <!-- Opciones de Cobro con Stripe ($200 y $499) -->
-            <div class="pricing-options">
-                <button class="price-btn" onclick="triggerStripePayment(200)">
-                    <span>Pase Único Bienestar</span>
-                    <span class="price">$200</span>
-                </button>
-                <button class="price-btn" onclick="triggerStripePayment(499)">
-                    <span>Acceso Premium Ilimitado</span>
-                    <span class="price">$499</span>
-                </button>
-            </div>          
-            <div class="divider" id="pw-divider">o acceso corporativo</div>
+            <!-- Opciones de Cobro con Stripe de $200 y $499 --> 
+            <div class="pricing-options"> 
+                <button class="price-btn" onclick="triggerStripePayment(1)"> 
+                    <span>Pase Único Bienestar</span> 
+                    <span class="price">$200</span> 
+                </button> 
+                <button class="price-btn" onclick="triggerStripePayment(2)"> 
+                    <span>Acceso Premium ilimitado</span> 
+                    <span class="price">$499</span> 
+                </button> 
+            </div> 
             
-            <!-- Formulario de Acceso por Credenciales Admin -->
-            <div class="login-form">
-                <input type="text" id="loginUsername" class="login-input" placeholder="Nombre de usuario">
-                <input type="password" id="loginPassword" class="login-input" placeholder="Contraseña de acceso">
-                <button class="login-btn" onclick="executeAdminLogin()">Ingresar con Credenciales</button>
-                <div class="error-msg" id="loginError">Acceso denegado. Intente nuevamente.</div>
-            </div>
-        </div>
+            <div class="divider">ó</div> 
+            
+            <!-- Formulario de Acceso por Credenciales Admin --> 
+            <div class="login-form"> 
+                <input type="text" id="loginUsername" class="login-input" placeholder="Nombre de usuario"> 
+                <input type="password" id="loginPassword" class="login-input" placeholder="Contraseña de acceso"> 
+                <button class="login-btn" onclick="executeAdminLogin()">Ingresar con Credenciales</button> 
+                <div class="error-msg" id="loginError">Acceso denegado. Intente nuevamente.</div> 
+            </div> 
+        </div> 
     </div>
-
-    <!-- Aviso Legal y Exención -->
+    <!-- Compuerta Legal Original Intacta -->
     <div id="legal-gate">
         <div class="legal-box">
             <h2 id="gate-title">AVISO LEGAL Y PROTECCIÓN</h2>
@@ -109,7 +326,7 @@ footer{text-align:center;font-size:.8rem;color:var(--text-muted);padding-top:20p
         </div>
     </div>
 
-    <!-- Pantalla de Cierre por Inactividad o Fin de Sesión -->
+    <!-- Pantalla de Cierre Forzado Original Intacta -->
     <div id="shutdown-overlay">
         <div class="legal-box">
             <h2 id="shut-title">Sesión Finalizada</h2>
@@ -118,640 +335,343 @@ footer{text-align:center;font-size:.8rem;color:var(--text-muted);padding-top:20p
         </div>
     </div>
 
-    <header>
-        <div class="logo" id="app-title">MIRROR TO YOU</div>
-        <div class="controls">
-            <button id="lang-btn" onclick="toggleLanguage()">ES</button>
-            <button id="audio-btn" onclick="toggleVoiceGuide()">🔊 Voz: OFF</button>
-            <button class="btn-danger" id="close-btn" onclick="closeSession()">Cerrar</button>
-        </div>
-    </header>
+    <!-- Encapsulador Maestro del Servicio Protegido -->
+    <div id="appInterface">
+        <header>
+            <div class="logo" id="app-title">MIRROR TO YOU</div>
+            <div class="controls">
+                <button id="lang-btn" onclick="toggleLanguage()">ES</button>
+                <button id="audio-btn" onclick="toggleVoiceGuide()">🔊 Voz: OFF</button>
+                <button class="btn-danger" id="close-btn" onclick="closeSession()">Cerrar</button>
+            </div>
+        </header>
 
-    <main>
-        <!-- Panel de Bienestar / Protocolos TVid -->
-        <div class="panel">
-            <h2 id="wellness-title">Bienestar General</h2>
-            <div class="breathing-container">
-                <div class="breathing-circle" id="b-circle">
-                    <span id="b-phase" style="font-weight:600">Ready</span>
-                    <span id="b-counter" style="font-size:.8rem">0s</span>
+        <main>
+            <!-- Panel Izquierdo: Bienestar General -->
+            <div class="panel">
+                <h2 id="wellness-title">Bienestar General</h2>
+                <div class="breathing-container">
+                    <div class="breathing-circle" id="b-circle">
+                        <span id="b-phase" style="font-weight:600">Ready</span>
+                        <span id="b-counter" style="font-size:.8rem">0s</span>
+                    </div>
+                    <div class="dynamic-speech-box" id="dynamic-speech">Seleccione un objetivo de bienestar para iniciar la alineación...</div>
+                    <div class="objective-info" id="objective-desc">Opciones cognitivas.</div>
                 </div>
-                <div class="dynamic-speech-box" id="dynamic-speech">Seleccione un objetivo de bienestar para iniciar la alineación...</div>
-                <div class="objective-info" id="objective-desc">Opciones cognitivas.</div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+                    <button onclick="setBreathingMode('antipanic')" id="btn-p1">Protocolo Antipánico</button>
+                    <button onclick="setBreathingMode('focus')" id="btn-p2">Enfoque Ejecutivo</button>
+                    <button onclick="setBreathingMode('sleep')" id="btn-p3">Restauración Profunda</button>
+                    <button onclick="setBreathingMode('energy')" id="btn-p4">Impulso Antifatiga</button>
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+                    <button onclick="startChallenge60()" id="btn-p5" style="background-color:rgba(56,189,248,.2);border-color:var(--accent-color)">⚡ Reto Vital 60s</button>
+                    <button onclick="toggleMusicModal()" id="btn-p6">🎵 Frecuencias Antiestrés</button>
+                </div>
+                <div id="yt-container" style="display:none;margin-top:5px">
+                    <iframe id="yt-player" width="100%" height="60" src="" frameborder="0" allow="autoplay"></iframe>
+                </div>
             </div>
 
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-                <button onclick="setBreathingMode('antipanic')" id="btn-p1">Protocolo Antipánico</button>
-                <button onclick="setBreathingMode('focus')" id="btn-p2">Enfoque Ejecutivo</button>
-                <button onclick="setBreathingMode('sleep')" id="btn-p3">Restauración Profunda</button>
-                <button onclick="setBreathingMode('energy')" id="btn-p4">Impulso Antifatiga</button>
-            </div>
+            <!-- Panel Derecho: Asesor Conversacional y Ventanas Flotantes -->
+            <div class="panel">
+                <div class="mortals-corner">
+                    <button class="mortals-btn" id="mortals-label" onclick="toggleMortalsDrawer()">Uso para mortales</button>
+                    <div class="mortals-modal" id="mortals-drawer">
+                        <div style="font-size:.75rem;color:var(--text-muted);margin-bottom:6px;text-align:center" id="mortals-sub">Enlaces externos</div>
+                        <div class="mortals-grid">
+                            <a id="m-maps" href="#" target="_blank">Google Maps</a>
+                            <a href="https://google.com" target="_blank">Google Fly</a>
+                            <a href="https://jetblue.com" target="_blank">JetBlue</a>
+                            <a href="https://uber.com" target="_blank">Uber</a>
+                            <a href="https://lyft.com" target="_blank">Lyft</a>
+                            <a href="https://mcdonalds.com" target="_blank">McDonald's</a>
+                            <a href="https://bk.com" target="_blank">Burger King</a>
+                            <a href="https://walmart.com" target="_blank">Walmart</a>
+                            <a href="https://costco.com" target="_blank">Costco</a>
+                            <a href="https://youtube.com" target="_blank">YouTube</a>
+                            <a href="https://spotify.com" target="_blank">Spotify</a>
+                        </div>
+                    </div>
+                </div>
 
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-                <button onclick="startChallenge60()" id="btn-p5" style="background-color:rgba(56,189,248,.2);border-color:var(--accent-color)">⚡ Reto Vital 60s</button>
-                <button onclick="toggleMusicModal()" id="btn-p6">🎵 Frecuencias Antiestrés</button>
-            </div>
-
-            <div id="yt-container" style="display:none;margin-top:5px">
-                <iframe id="yt-player" width="100%" height="60" src="" frameborder="0" allow="autoplay"></iframe>
-            </div>
-        </div>
-
-        <!-- Panel de Asesor Conversacional Mirror To You -->
-        <div class="panel">
-            <div class="mortals-corner">
-                <button class="mortals-btn" id="mortals-label" onclick="toggleMortalsDrawer()">Uso para mortales</button>
-                <div class="mortals-modal" id="mortals-drawer">
-                    <div style="font-size:.75rem;color:var(--text-muted);margin-bottom:6px;text-align:center" id="mortals-sub">Enlaces externos</div>
-                    <div class="mortals-grid">
-                        <a id="m-maps" href="#" target="_blank">Google Maps</a>
-                        <a href="https://www.google.com/travel/flights" target="_blank">Google Fly</a>
-                        <a href="https://www.jetblue.com" target="_blank">JetBlue</a>
-                        <a href="https://www.uber.com" target="_blank">Uber</a>
-                        <a href="https://www.lyft.com" target="_blank">Lyft</a>
-                        <a href="https://www.mcdonalds.com" target="_blank">McDonald's</a>
-                        <a href="https://www.bk.com" target="_blank">Burger King</a>
-                        <a href="https://www.walmart.com" target="_blank">Walmart</a>
-                        <a href="https://www.costco.com" target="_blank">Costco</a>
-                        <a href="https://www.youtube.com" target="_blank">YouTube</a>
-                        <a href="https://open.spotify.com" target="_blank">Spotify</a>
+                <h2 id="travel-title">Asesor Conversacional Mirror To You</h2>
+                <div class="input-group">
+                    <textarea id="travel-input" rows="3" placeholder="Escriba su consulta o use los botones de asistencia..."></textarea>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+                        <button onclick="handleNoIdea()" id="btn-no" style="background-color:rgba(239,68,68,.15);border-color:rgba(239,68,68,.4)">❓ No sé</button>
+                        <button onclick="handleHelpMe()" id="btn-help" style="background-color:rgba(56,189,248,.15);border-color:var(--accent-color)">🤝Ayúdame</button>
+                    </div>
+                    <button onclick="resolveTravelDirective()" id="btn-send" style="background:var(--accent-color);color:var(--bg-color);font-weight:600;margin-top:4px">Enviar Conversación</button>
+                </div>
+                <div class="output-box" id="travel-output">Inicie una conversación o pulse un botón de asistencia guiada para recibir orientación experta en tiempo real...</div>
+                <!-- SECCIÓN MAESTRA REINTEGRADA: PUERTO DE CARGA RÁPIDA (TVid) -->
+                <div class="tvid-curtain" style="margin-top:14px;">
+                    <button class="tvid-curtain-toggle" onclick="toggleTvidWindow()" type="button" style="width:100%;background:rgba(15,23,42,.85);border:1px solid var(--border-color,rgba(255,255,255,.2));color:var(--text-main,#fff);padding:10px 12px;border-radius:10px;font-weight:600;font-size:.85rem;display:flex;align-items:center;justify-content:space-between;gap:8px;cursor:pointer;">
+                        <span>⚡ <span id="tvid-float-label">Carga Rápida (TVid)</span></span>
+                        <span class="tvid-curtain-controls" style="display:flex;align-items:center;gap:8px;">
+                            <span id="tvid-curtain-arrow">＋</span>
+                            <span onclick="event.stopPropagation();toggleTvidLang()" id="tvid-lang-btn" class="tvid-lang-btn" style="background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:var(--text-main,#fff);width:28px;height:28px;border-radius:50%;font-weight:600;font-size:.75rem;display:flex;align-items:center;justify-content:center;cursor:pointer;">ES</span>
+                        </span>
+                    </button>
+                    
+                    <div id="tvid-floating-window" class="tvid-modal-overlay" style="display:none;position:relative;top:auto;left:auto;width:100%;height:auto;background:none;backdrop-filter:none;justify-content:center;align-items:stretch;z-index:auto;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;margin-top:10px;">
+                        <div class="tvid-modal-container" style="background:var(--card-bg,#141416);border:1px solid var(--border-color,rgba(255,255,255,.1));width:100%;max-width:100%;border-radius:12px;padding:14px;color:var(--text-main,#f1f1f3);box-shadow:0 10px 25px rgba(0,0,0,.35);">
+                            <div class="tvid-header" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:15px;border-bottom:1px solid var(--border-color,rgba(255,255,255,.08));padding-bottom:10px;">
+                                <div style="display:flex;align-items:center;gap:8px;">
+                                    <span class="tvid-badge" style="background:rgba(212,175,55,.15);color:var(--accent-color,#d4af37);font-size:10px;font-weight:600;padding:3px 6px;border-radius:4px;text-transform:uppercase;" id="tvid-badge-text">5-Min Recharge</span>
+                                </div>
+                                <h2 id="tvid-main-title" style="font-size:15px;margin:0;font-weight:500;">Puerto de Carga Rápida</h2>
+                                <button class="tvid-close-btn" onclick="closeTvidWindow()" style="background:none;border:none;color:var(--text-muted,#888);font-size:22px;cursor:pointer;">&times;</button>
+                            </div>
+                            
+                            <div id="tvid-selection-screen" class="tvid-content-view" style="width:100%;">
+                                <p class="tvid-subtitle" id="tvid-subtitle-text" style="font-size:12px;color:var(--text-muted,#999);margin-bottom:12px;">Selecciona tu protocolo de adaptación y bienestar:</p>
+                                <div class="tvid-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+                                    <button class="tvid-card-btn" onclick="loadTvidExercise('Madre')" style="background:var(--card-bg,#1e1e22);border:1px solid var(--border-color,rgba(255,255,255,.06));color:var(--text-main,#f1f1f3);padding:10px;border-radius:8px;font-size:12px;text-align:left;cursor:pointer;"><span data-es="Técnica de la Madre" data-en="Mother Technique">Técnica de la Madre</span></button>
+                                    <button class="tvid-card-btn" onclick="loadTvidExercise('Padre')" style="background:var(--card-bg,#1e1e22);border:1px solid var(--border-color,rgba(255,255,255,.06));color:var(--text-main,#f1f1f3);padding:10px;border-radius:8px;font-size:12px;text-align:left;cursor:pointer;"><span data-es="Técnica del Padre" data-en="Father Technique">Técnica del Padre</span></button>
+                                    <button class="tvid-card-btn" onclick="loadTvidExercise('Niño')" style="background:var(--card-bg,#1e1e22);border:1px solid var(--border-color,rgba(255,255,255,.06));color:var(--text-main,#f1f1f3);padding:10px;border-radius:8px;font-size:12px;text-align:left;cursor:pointer;"><span data-es="Técnica del Niño" data-en="Child Technique">Técnica del Niño</span></button>
+                                    <button class="tvid-card-btn" onclick="loadTvidExercise('Beso')" style="background:var(--card-bg,#1e1e22);border:1px solid var(--border-color,rgba(255,255,255,.06));color:var(--text-main,#f1f1f3);padding:10px;border-radius:8px;font-size:12px;text-align:left;cursor:pointer;"><span data-es="Técnica del Beso" data-en="Kiss Technique">Técnica del Beso</span></button>
+                                    <button class="tvid-card-btn" onclick="loadTvidExercise('Mal')" style="background:var(--card-bg,#1e1e22);border:1px solid var(--border-color,rgba(255,255,255,.06));color:var(--text-main,#f1f1f3);padding:10px;border-radius:8px;font-size:12px;text-align:left;cursor:pointer;"><span data-es="Técnica del Mal" data-en="Adversity Technique">Técnica del Mal</span></button>
+                                    <button class="tvid-card-btn" onclick="loadTvidExercise('Bien')" style="background:var(--card-bg,#1e1e22);border:1px solid var(--border-color,rgba(255,255,255,.06));color:var(--text-main,#f1f1f3);padding:10px;border-radius:8px;font-size:12px;text-align:left;cursor:pointer;"><span data-es="Técnica del Bien" data-en="Wellbeing Technique">Técnica del Bien</span></button>
+                                    <button class="tvid-card-btn tvid-full" onclick="loadTvidExercise('Guerra')" style="grid-column:span 2;background:var(--card-bg,#1e1e22);border:1px solid var(--border-color,rgba(255,255,255,.06));color:var(--text-main,#f1f1f3);padding:10px;border-radius:8px;font-size:12px;text-align:left;cursor:pointer;"><span data-es="Técnica de Guerra" data-en="Strategy Technique">Técnica de Guerra</span></button>
+                                </div>
+                            </div>
+                            <div id="tvid-exercise-screen" class="tvid-content-view" style="display:none;width:100%;">
+                                <div class="tvid-exercise-top" style="display:flex;justify-content:flex-start;align-items:center;margin-bottom:10px;">
+                                    <button class="tvid-back-btn" onclick="backTvidSelection()" id="tvid-back-text" style="background:none;border:none;color:var(--accent-color,#d4af37);cursor:pointer;font-size:12px;">← Volver</button>
+                                </div>
+                                <h3 id="tvid-exercise-title" style="font-size:15px;margin:0;font-weight:500;">Título del Ejercicio</h3>
+                                <div class="tvid-breath-container" style="display:flex;justify-content:center;align-items:center;margin:15px 0;">
+                                    <div id="tvid-breath-circle" class="tvid-breath-circle" style="width:90px;height:90px;border-radius:50%;background:rgba(212,175,55,.15);border:2px solid var(--accent-color,#d4af37);display:flex;justify-content:center;align-items:center;font-size:13px;font-weight:600;color:var(--accent-color,#d4af37);transition:transform 4s ease-in-out;box-shadow:0 0 20px rgba(212,175,55,.2);">
+                                        <span id="tvid-breath-label">Inhala</span>
+                                    </div>
+                                </div>
+                                <div id="tvid-objective-box" class="tvid-objective-box" style="background:rgba(212,175,55,.08);border-left:3px solid var(--accent-color,#d4af37);padding:8px 12px;border-radius:4px;font-size:12px;margin-bottom:10px;color:var(--text-main,#ddd);">
+                                    <strong>🎯 Objetivo:</strong>
+                                    <span id="tvid-objective-text">Mantener estabilidad y presencia.</span>
+                                </div>
+                                <div id="tvid-exercise-steps" class="tvid-steps-container" style="font-size:13px;line-height:1.5;color:var(--text-muted,#ccc);min-height:70px;margin-bottom:12px;background:rgba(0,0,0,.2);padding:12px;border-radius:8px;"></div>
+                                <div style="display:flex;gap:8px;">
+                                    <button id="tvid-speak-btn" class="tvid-sec-action" onclick="speakCurrentStep()" style="background:rgba(255,255,255,.08);color:var(--text-main,#fff);border:1px solid var(--border-color,rgba(255,255,255,.2));padding:10px;border-radius:8px;font-weight:600;font-size:13px;cursor:pointer;">🔊 Escuchar</button>
+                                    <button id="tvid-action-btn" class="tvid-main-action" onclick="nextTvidStep()" style="flex:1;background:var(--accent-color,#d4af37);color:var(--bg-color,#0a0a0c);border:none;padding:10px;border-radius:8px;font-weight:600;font-size:13px;cursor:pointer;">Siguiente paso</button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
+        </main>
 
-            <h2 id="travel-title">Asesor Conversacional Mirror To You</h2>
-            <div class="input-group">
-                <textarea id="travel-input" rows="3" placeholder="Escriba su consulta o use los botones de asistencia..."></textarea>
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-                    <button onclick="handleNoIdea()" id="btn-no" style="background-color:rgba(239,68,68,.15);border-color:rgba(239,68,68,.4)">❓ No sé</button>
-                    <button onclick="handleHelpMe()" id="btn-help" style="background-color:rgba(56,189,248,.15);border-color:var(--accent-color)">🤝 Ayúdame</button>
-                </div>
-                <button onclick="resolveTravelDirective()" id="btn-send" style="background:var(--accent-color);color:var(--bg-color);font-weight:600;margin-top:4px">Enviar Conversación</button>
-            </div>
-            <div class="output-box" id="travel-output">Inicie una conversación o pulse un botón de asistencia guiada para recibir orientación experta en tiempo real...</div>
-        </div>
-    </main>
+        <footer>
+            <span id="footer-text">Sesión Volátil Encriptada. Cero Datos Retenidos.</span>
+            <span id="timer-display" style="font-family:monospace;color:var(--accent-color)">10:00</span>
+        </footer>
+    </div>
+    <!-- SECCIÓN JAVASCRIPT DE CONTROL MAESTRO DE LA APP -->
+    <script>
+        let currentLang = 'es';
+        let voiceEnabled = false;
+        let currentModeInterval = null;
+        let phraseInterval = null;
+        let sessionTimer = null;
+        let timeLeft = 600;
+        let conversationMemory = [];
+        const MAX_MEMORY_TURNS = 15;
 
-    <footer>
-        <span id="footer-text">Sesión Volátil Encriptada. Cero Datos Retenidos.</span>
-        <span id="timer-display" style="font-family:monospace;color:var(--accent-color)">10:00</span>
-    </footer>
+        let currentTechKey = null;
+        let currentExerciseIndex = 0;
+        let currentStepIndex = 0;
+        let breathAnimationInterval = null;
+        let tvidLimitInterval = null;
+        let tvidExerciseStartedAt = 0;
+        let tvidExerciseCompleted = false;
+        let tvidLang = 'es';
 
-<script>
-let currentLang = 'es', voiceEnabled = false, currentModeInterval = null, phraseInterval = null, sessionTimer = null, timeLeft = 600;
-let conversationMemory = [], MAX_MEMORY_TURNS = 15;
+        const TVID_PROGRESS_KEY = 'mirror_to_you_tvid_technique_progress_v3';
 
-const randomMapsLinks = [
-    "https://maps.google.com/?q=Central+Park+New+York",
-    "https://maps.google.com/?q=Aspen+Mountain+Ski+Resort",
-    "https://maps.google.com/?q=Grace+Bay+Turks+and+Caicos",
-    "https://maps.google.com/?q=Key+West+Florida",
-    "https://maps.google.com/?q=Yellowstone+National+Park"
-];
+        document.addEventListener("DOMContentLoaded", () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('stripe_status') === 'success') {
+                window.history.replaceState({}, document.title, "/");
+            }
+            runLiveSessionVerification();
+        });
 
-function updateMapsLink() {
-    document.getElementById('m-maps').href = randomMapsLinks[Math.floor(Math.random() * randomMapsLinks.length)];
-}
-
-/* --- Control de Stripe y Login --- */
-function triggerStripePayment(amount) {
-    fetch('/create-checkout-session', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ amount: amount })
-    })
-    .then(res => res.json())
-    .then(data => {
-        if (data.url) {
-            window.location.href = data.url;
-        } else {
-            alert('Error al conectar con la pasarela de pago.');
+        async function runLiveSessionVerification() {
+            try {
+                const response = await fetch('/api/auth/session-status');
+                const status = await response.json();
+                if (status.active && status.time_left > 0) {
+                    timeLeft = status.time_left;
+                    document.getElementById('paywallModal').style.display = 'none';
+                    document.getElementById('appInterface').style.display = 'flex';
+                    startSessionTimer();
+                } else {
+                    document.getElementById('appInterface').style.display = 'none';
+                    document.getElementById('paywallModal').style.display = 'flex';
+                }
+            } catch (e) {
+                document.getElementById('appInterface').style.display = 'none';
+                document.getElementById('paywallModal').style.display = 'flex';
+            }
         }
-    })
-    .catch(err => {
-        console.error('Stripe error:', err);
-        // Fallback simulado de validación si Stripe no está configurado localmente
-        unlockSystem();
-    });
-}
 
-function executeAdminLogin() {
-    const user = document.getElementById('loginUsername').value.trim();
-    const pass = document.getElementById('loginPassword').value.trim();
-    const errDiv = document.getElementById('loginError');
-
-    fetch('/api/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username: user, password: pass })
-    })
-    .then(res => res.json())
-    .then(data => {
-        if (data.success) {
-            unlockSystem();
-        } else {
-            errDiv.style.display = 'block';
+        async function executeAdminLogin() {
+            const userIn = document.getElementById('loginUsername').value.trim();
+            const passIn = document.getElementById('loginPassword').value.trim();
+            const errorMsg = document.getElementById('loginError');
+            try {
+                const response = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username: userIn, password: passIn })
+                });
+                if (response.ok) {
+                    errorMsg.style.display = 'none';
+                    await runLiveSessionVerification();
+                } else {
+                    errorMsg.style.display = 'block';
+                }
+            } catch (e) {
+                errorMsg.style.display = 'block';
+            }
         }
-    })
-    .catch(() => {
-        // Validación local de respaldo para emergencia
-        if(user === "admin" && pass === "mirror2026") {
-            unlockSystem();
-        } else {
-            errDiv.style.display = 'block';
+
+        async function triggerStripePayment(tier) {
+            try {
+                const response = await fetch('/api/stripe/create-checkout', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ price_tier: tier })
+                });
+                const data = await response.json();
+                if (data.url) window.location.href = data.url;
+            } catch (e) {
+                console.error("Error pasarela.");
+            }
         }
-    });
-}
 
-function unlockSystem() {
-    document.getElementById('paywallModal').style.display = 'none';
-    document.getElementById('legal-gate').style.display = 'flex';
-}
+        function startSessionTimer() {
+            if (sessionTimer) clearInterval(sessionTimer);
+            sessionTimer = setInterval(async () => {
+                timeLeft--;
+                let m = Math.floor(timeLeft / 60), s = timeLeft % 60;
+                document.getElementById('timer-display').innerText = `${m}:${s < 10 ? '0' : ''}${s}`;
+                
+                if (timeLeft % 15 === 0) {
+                    const check = await fetch('/api/auth/session-status');
+                    const data = await check.json();
+                    if (!data.active) timeLeft = 0;
+                }
+                if (timeLeft <= 0) {
+                    clearInterval(sessionTimer);
+                    stopTvidTimers();
+                    document.getElementById('appInterface').style.display = 'none';
+                    document.getElementById('shutdown-overlay').style.display = 'flex';
+                }
+            }, 1000);
+        }
 
-function switchGateLang() {
-    currentLang = currentLang === 'es' ? 'en' : 'es';
-    updateGateTexts();
-}
+        function toggleTvidWindow() {
+            const modal = document.getElementById('tvid-floating-window');
+            const arrow = document.getElementById('tvid-curtain-arrow');
+            if (modal.style.display === 'flex') {
+                stopTvidTimers();
+                modal.style.display = 'none';
+                arrow.innerText = '＋';
+            } else {
+                modal.style.display = 'flex';
+                document.getElementById('tvid-selection-screen').style.display = 'block';
+                document.getElementById('tvid-exercise-screen').style.display = 'none';
+                arrow.innerText = '－';
+            }
+        }
 
-function updateGateTexts() {
-    const t = currentLang === 'en' ? {
-        title: "LEGAL NOTICE & DISCLAIMER",
-        text: "Accessing this platform implies absolute acceptance of our liability waiver terms. This system operates exclusively as a private wellness facilitator and general lifestyle advisor. It does not provide medical, legal, or financial advice. By pressing start, you acknowledge using this service under your own discretion and sovereignty.",
-        start: "Start / Empezar"
-    } : {
-        title: "AVISO LEGAL Y PROTECCIÓN",
-        text: "El acceso a esta plataforma implica la aceptación absoluta de nuestros términos de exención de responsabilidad. Este sistema opera exclusivamente como un facilitador de bienestar privado y orientación general de estilo de vida. No proporciona asesoría médica, legal ni financiera. Al presionar el botón de inicio, usted reconoce que utiliza este servicio bajo su propia discreción y soberanía.",
-        start: "Empezar / Start"
-    };
-    document.getElementById('gate-title').innerText = t.title;
-    document.getElementById('gate-text').innerText = t.text;
-    document.getElementById('gate-start-btn').innerText = t.start;
-}
+        function loadTvidExercise(techKey) {
+            if (timeLeft <= 0) return;
+            currentTechKey = techKey;
+            currentStepIndex = 0;
+            tvidExerciseCompleted = false;
+            document.getElementById('tvid-selection-screen').style.display = 'none';
+            document.getElementById('tvid-exercise-screen').style.display = 'block';
+            updateTvidViewLang();
+            startBreathCycle();
+            speakCurrentStep();
+        }
 
-function startSession() {
-    document.getElementById('legal-gate').style.display = 'none';
-    updateMapsLink();
-    startSessionTimer();
-    if (voiceEnabled) speak(currentLang === 'es' ? 'Sesión iniciada. Bienvenido.' : 'Session started. Welcome.');
-}
+        function updateTvidViewLang() {
+            const exerciseData = tvidData[currentTechKey][tvidLang][currentExerciseIndex];
+            document.getElementById('tvid-exercise-title').innerText = exerciseData.title;
+            document.getElementById('tvid-objective-text').innerText = exerciseData.objective;
+            document.getElementById('tvid-exercise-steps').innerText = exerciseData.steps[currentStepIndex];
+            const actionBtn = document.getElementById('tvid-action-btn');
+            actionBtn.innerText = currentStepIndex === exerciseData.steps.length - 1 ? 'Finalizar Carga' : 'Siguiente paso';
+        }
 
-function startSessionTimer() {
-    if (sessionTimer) clearInterval(sessionTimer);
-    sessionTimer = setInterval(() => {
-        timeLeft--;
-        let m = Math.floor(timeLeft / 60), s = timeLeft % 60;
-        document.getElementById('timer-display').innerText = `${m}:${s < 10 ? '0' : ''}${s}`;
-        if (timeLeft <= 0) {
-            clearInterval(sessionTimer);
+        function nextTvidStep() {
+            const exerciseData = tvidData[currentTechKey][tvidLang][currentExerciseIndex];
+            if (currentStepIndex < exerciseData.steps.length - 1) {
+                currentStepIndex++;
+                updateTvidViewLang();
+                speakCurrentStep();
+            } else {
+                backTvidSelection();
+            }
+        }
+
+        function backTvidSelection() {
             stopTvidTimers();
-            document.getElementById('shutdown-overlay').style.display = 'flex';
+            document.getElementById('tvid-exercise-screen').style.display = 'none';
+            document.getElementById('tvid-selection-screen').style.display = 'block';
         }
-    }, 1000);
-}
 
-function closeSession() {
-    if (sessionTimer) clearInterval(sessionTimer);
-    stopTvidTimers();
-    document.getElementById('shutdown-overlay').style.display = 'flex';
-    document.getElementById('shut-title').innerText = currentLang === 'es' ? 'Sesión Cerrada' : 'Session Closed';
-    document.getElementById('shut-text').innerText = currentLang === 'es' ? 'La sesión ha sido cerrada manualmente por el usuario.' : 'Session manually closed by user.';
-}
-
-const masterPhrases = {
-    en: [
-        "Release every ounce of shoulder tension right now.",
-        "Your mind is clear, powerful, and entirely unburdened.",
-        "Banish fatigue; focus only on absolute control and stability.",
-        "Let go of urgency. Time bends to your strategic rhythm.",
-        "Silence the noise. Your inner sanctuary requires zero friction."
-    ],
-    es: [
-        "Libera cada gramo de tensión en tus hombros ahora mismo.",
-        "Tu mente es clara, poderosa y totalmente libre de cargas.",
-        "Desvanece el cansancio; concéntrate solo en el control absoluto.",
-        "Suelta la urgencia. El tiempo se adapta a tu ritmo estratégico.",
-        "Silencia el ruido externo. Tu santuario interior no tiene fricción."
-    ]
-};
-
-let usedIndices = [];
-function getSmartPhrase() {
-    const list = masterPhrases[currentLang];
-    if (usedIndices.length >= list.length) usedIndices = [];
-    let idx;
-    do { idx = Math.floor(Math.random() * list.length); } while (usedIndices.includes(idx));
-    usedIndices.push(idx);
-    return list[idx];
-}
-
-function toggleLanguage() {
-    currentLang = currentLang === 'es' ? 'en' : 'es';
-    document.getElementById('lang-btn').innerText = currentLang.toUpperCase();
-    // Actualizar textos principales de la interfaz
-    if(currentLang === 'en') {
-        document.getElementById('app-title').innerText = "MIRROR TO YOU";
-        document.getElementById('wellness-title').innerText = "General Wellness";
-        document.getElementById('travel-title').innerText = "Mirror To You Conversational Advisor";
-        document.getElementById('travel-input').placeholder = "Type your query or use assistance buttons...";
-        document.getElementById('btn-no').innerText = "❓ No idea";
-        document.getElementById('btn-help').innerText = "🤝 Help me";
-        document.getElementById('btn-send').innerText = "Send Conversation";
-        document.getElementById('footer-text').innerText = "Encrypted Volatile Session. Zero Data Retained.";
-        document.getElementById('mortals-label').innerText = "Public Utilities";
-        document.getElementById('mortals-sub').innerText = "External Links";
-    } else {
-        document.getElementById('app-title').innerText = "MIRROR TO YOU";
-        document.getElementById('wellness-title').innerText = "Bienestar General";
-        document.getElementById('travel-title').innerText = "Asesor Conversacional Mirror To You";
-        document.getElementById('travel-input').placeholder = "Escriba su consulta o use los botones de asistencia...";
-        document.getElementById('btn-no').innerText = "❓ No sé";
-        document.getElementById('btn-help').innerText = "🤝 Ayúdame";
-        document.getElementById('btn-send').innerText = "Enviar Conversación";
-        document.getElementById('footer-text').innerText = "Sesión Volátil Encriptada. Cero Datos Retenidos.";
-        document.getElementById('mortals-label').innerText = "Uso para mortales";
-        document.getElementById('mortals-sub').innerText = "Enlaces externos";
-    }
-}
-
-function toggleVoiceGuide() {
-    voiceEnabled = !voiceEnabled;
-    const btn = document.getElementById('audio-btn');
-    btn.innerText = voiceEnabled ? (currentLang === 'es' ? '🔊 Voz: ON' : '🔊 Voice: ON') : (currentLang === 'es' ? '🔊 Voz: OFF' : '🔊 Voice: OFF');
-    if (voiceEnabled) speak(currentLang === 'es' ? 'Guía de voz activada.' : 'Voice guide activated.');
-}
-
-function speak(text) {
-    if (!voiceEnabled || !window.speechSynthesis) return;
-    window.speechSynthesis.cancel();
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = currentLang === 'es' ? 'es-ES' : 'en-US';
-    window.speechSynthesis.speak(utterance);
-}
-
-function stopTvidTimers() {
-    if (currentModeInterval) clearInterval(currentModeInterval);
-    if (phraseInterval) clearInterval(phraseInterval);
-}
-
-function setBreathingMode(mode) {
-    stopTvidTimers();
-    let titleEs = "", titleEn = "", descEs = "", descEn = "";
-    if (mode === 'antipanic') {
-        titleEs = "Protocolo Antipánico"; titleEn = "Antipanic Protocol";
-        descEs = "Inhalación de 4s, retención de 4s, exhalación de 4s. Restablece el ritmo cardíaco y claridad.";
-        descEn = "4s inhale, 4s hold, 4s exhale. Restores heart rhythm and immediate clarity.";
-    } else if (mode === 'focus') {
-        titleEs = "Enfoque Ejecutivo"; titleEn = "Executive Focus";
-        descEs = "Respiración 4-7-8 para calmar la corteza prefrontal y potenciar la toma de decisiones.";
-        descEn = "4-7-8 breathing to calm the prefrontal cortex and enhance decision making.";
-    } else if (mode === 'sleep') {
-        titleEs = "Restauración Profunda"; titleEn = "Deep Restoration";
-        descEs = "Ciclos lentos diseñados para inducir ondas delta y relajar la musculatura corporal.";
-        descEn = "Slow cycles designed to induce delta waves and relax body musculature.";
-    } else if (mode === 'energy') {
-        titleEs = "Impulso Antifatiga"; titleEn = "Anti-Fatigue Boost";
-        descEs = "Oxigenación rápida y activación circulatoria para eliminar la fatiga mental.";
-        descEn = "Rapid oxygenation and circulatory activation to eliminate mental fatigue.";
-    }
-
-    document.getElementById('objective-desc').innerText = currentLang === 'es' ? descEs : descEn;
-    
-    let seconds = 0;
-    currentModeInterval = setInterval(() => {
-        seconds++;
-        document.getElementById('b-counter').innerText = seconds + 's';
-        document.getElementById('b-phase').innerText = currentLang === 'es' ? titleEs : titleEn;
-    }, 1000);
-
-    phraseInterval = setInterval(() => {
-        let p = getSmartPhrase();
-        document.getElementById('dynamic-speech').innerText = p;
-        if (voiceEnabled) speak(p);
-    }, 8000);
-    
-    let initialP = getSmartPhrase();
-    document.getElementById('dynamic-speech').innerText = initialP;
-    if (voiceEnabled) speak(initialP);
-}
-
-function startChallenge60() {
-    stopTvidTimers();
-    let sec = 60;
-    document.getElementById('b-phase').innerText = currentLang === 'es' ? "Reto 60s" : "60s Challenge";
-    currentModeInterval = setInterval(() => {
-        sec--;
-        document.getElementById('b-counter').innerText = sec + 's';
-        document.getElementById('dynamic-speech').innerText = currentLang === 'es' ? `Mantén la concentración absoluta. Quedan ${sec}s.` : `Maintain absolute focus. ${sec}s remaining.`;
-        if (sec <= 0) {
-            clearInterval(currentModeInterval);
-            document.getElementById('dynamic-speech').innerText = currentLang === 'es' ? "¡Reto completado con éxito!" : "Challenge successfully completed!";
-            if (voiceEnabled) speak(currentLang === 'es' ? "Reto completado." : "Challenge completed.");
+        function startBreathCycle() {
+            const circle = document.getElementById('tvid-breath-circle');
+            const label = document.getElementById('tvid-breath-label');
+            let state = 0;
+            if (breathAnimationInterval) clearInterval(breathAnimationInterval);
+            breathAnimationInterval = setInterval(() => {
+                if (state === 0) { circle.style.transform = 'scale(1.35)'; label.innerText = 'Inhala'; state = 1; }
+                else if (state === 1) { label.innerText = 'Mantén'; state = 2; }
+                else { circle.style.transform = 'scale(0.9)'; label.innerText = 'Exhala'; state = 0; }
+            }, 4000);
         }
-    }, 1000);
-}
 
-const verifiedStreams = [
-    "https://www.youtube.com/embed/1ZYbU82GVz4?autoplay=1",
-    "https://www.youtube.com/embed/WPni755-Krg?autoplay=1"
-];
-let streamIndex = 0;
+        function stopTvidTimers() {
+            clearInterval(breathAnimationInterval);
+            if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+        }
 
-function toggleMusicModal() {
-    const container = document.getElementById('yt-container');
-    const player = document.getElementById('yt-player');
-    if (container.style.display === 'none') {
-        container.style.display = 'block';
-        player.src = verifiedStreams[streamIndex % verifiedStreams.length];
-        streamIndex++;
-    } else {
-        container.style.display = 'none';
-        player.src = "";
-    }
-}
+        function speakCurrentStep() {
+            const text = tvidData[currentTechKey][tvidLang][currentExerciseIndex].steps[currentStepIndex];
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+                const u = new SpeechSynthesisUtterance(text);
+                u.lang = 'es-ES';
+                window.speechSynthesis.speak(u);
+            }
+        }
 
-function toggleMortalsDrawer() {
-    const drawer = document.getElementById('mortals-drawer');
-    drawer.style.display = drawer.style.display === 'block' ? 'none' : 'block';
-}
+        function setBreathingMode(mode) {
+            const circle = document.getElementById('b-circle'), phase = document.getElementById('b-phase'), counter = document.getElementById('b-counter');
+            circle.style.transform = 'scale(1.2)';
+            phase.innerText = mode.toUpperCase();
+            setTimeout(() => { circle.style.transform = 'scale(1)'; }, 3000);
+        }
 
-function handleNoIdea() {
-    document.getElementById('travel-input').value = currentLang === 'es' ? 
-        "No tengo claridad absoluta sobre mi siguiente paso operativo. Asesórame de forma directa y concisa." :
-        "I lack absolute clarity on my next operational step. Advise me directly and concisely.";
-    resolveTravelDirective();
-}
-
-function handleHelpMe() {
-    document.getElementById('travel-input').value = currentLang === 'es' ? 
-        "Necesito optimizar mi rendimiento y alinear mis decisiones estratégicas de inmediato." :
-        "I need to optimize my performance and align my strategic decisions immediately.";
-    resolveTravelDirective();
-}
-
-function resolveTravelDirective() {
-    const input = document.getElementById('travel-input');
-    const output = document.getElementById('travel-output');
-    const query = input.value.trim();
-    if (!query) return;
-
-    output.innerText = currentLang === 'es' ? "Procesando directiva con IA corporativa..." : "Processing directive with corporate AI...";
-
-    conversationMemory.push({ role: "user", content: query });
-    if (conversationMemory.length > MAX_MEMORY_TURNS * 2) {
-        conversationMemory = conversationMemory.slice(-MAX_MEMORY_TURNS * 2);
-    }
-
-    fetch('/api/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: query, history: conversationMemory, lang: currentLang })
-    })
-    .then(res => res.json())
-    .then(data => {
-        const responseText = data.response || (currentLang === 'es' ? "Respuesta generada correctamente." : "Response generated successfully.");
-        output.innerText = responseText;
-        conversationMemory.push({ role: "assistant", content: responseText });
-        input.value = "";
-        if (voiceEnabled) speak(responseText);
-    })
-    .catch(err => {
-        console.error('Chat error:', err);
-        // Respuesta de respaldo local ante fallos de red
-        const fallback = currentLang === 'es' ? 
-            "Instrucción procesada. Mantén el orden operativo y ejecuta con precisión milimétrica." : 
-            "Instruction processed. Maintain operational order and execute with pinpoint precision.";
-        output.innerText = fallback;
-        if (voiceEnabled) speak(fallback);
-    });
-}
-</script>
-</body>
-</html>
-let currentTechKey=null,currentExerciseIndex=0,currentStepIndex=0,breathAnimationInterval=null,tvidLimitInterval=null,tvidExerciseStartedAt=0,tvidExerciseCompleted=false;
-
-function getTvidProgress(){
-try{
-const saved=JSON.parse(localStorage.getItem(TVID_PROGRESS_KEY)||'{}');
-const progress={};
-Object.keys(tvidData).forEach(k=>{
-const max=tvidData[k].es.length;
-const n=parseInt(saved[k],10);
-progress[k]=Number.isInteger(n)&&n>=0&&n<max?n:0
-});
-return progress
-}catch(e){
-const progress={};
-Object.keys(tvidData).forEach(k=>progress[k]=0);
-return progress
-}
-}
-
-function getTvidNextIndex(techKey){
-const progress=getTvidProgress();
-return progress[techKey]||0
-}
-
-function setTvidNextIndex(techKey,n){
-const progress=getTvidProgress();
-const total=tvidData[techKey].es.length;
-progress[techKey]=((n%total)+total)%total;
-localStorage.setItem(TVID_PROGRESS_KEY,JSON.stringify(progress))
-}
-
-function toggleTvidWindow(){
-const modal=document.getElementById('tvid-floating-window');
-const arrow=document.getElementById('tvid-curtain-arrow');
-const isVisible=modal.style.display==='flex';
-
-if(isVisible){
-stopTvidTimers();
-modal.style.display='none';
-if(arrow)arrow.innerText='＋'
-}else{
-modal.style.display='flex';
-document.getElementById('tvid-selection-screen').style.display='block';
-document.getElementById('tvid-exercise-screen').style.display='none';
-stopTvidTimers();
-if(arrow)arrow.innerText='−'
-}
-}
-
-function toggleTvidLang(){
-tvidLang=tvidLang==='es'?'en':'es';
-document.getElementById('tvid-lang-btn').innerText=tvidLang.toUpperCase();
-document.getElementById('tvid-main-title').innerText=tvidLang==='es'?'Puerto de Carga Rápida':'Quick Recharge Port';
-document.getElementById('tvid-subtitle-text').innerText=tvidLang==='es'?'Selecciona tu protocolo de adaptación y bienestar:':'Select your protocol:';
-document.getElementById('tvid-back-text').innerText=tvidLang==='es'?'← Volver':'← Back';
-document.getElementById('tvid-speak-btn').innerText=tvidLang==='es'?'🔊 Escuchar':'🔊 Listen';
-document.getElementById('tvid-float-label').innerText=tvidLang==='es'?'Carga Rápida (TVid)':'Quick Recharge (TVid)';
-
-document.querySelectorAll('.tvid-card-btn span[data-es]').forEach(span=>{
-span.innerText=span.dataset[tvidLang]
-});
-
-if(currentTechKey)updateTvidViewLang()
-}
-
-function loadTvidExercise(techKey){
-if(timeLeft<=0){
-closeSession();
-return
-}
-
-if(!tvidData[techKey])return;
-
-const localIndex=getTvidNextIndex(techKey);
-
-currentTechKey=techKey;
-currentExerciseIndex=localIndex;
-currentStepIndex=0;
-tvidExerciseCompleted=false;
-
-document.getElementById('tvid-selection-screen').style.display='none';
-document.getElementById('tvid-exercise-screen').style.display='block';
-
-updateTvidViewLang();
-startTvidLimit();
-startBreathCycle();
-speakCurrentStep()
-}
-
-function updateTvidViewLang(){
-if(!currentTechKey)return;
-
-const exerciseData=tvidData[currentTechKey][tvidLang][currentExerciseIndex];
-
-if(!exerciseData)return;
-
-document.getElementById('tvid-exercise-title').innerText=exerciseData.title;
-document.getElementById('tvid-objective-text').innerText=exerciseData.objective;
-document.getElementById('tvid-exercise-steps').innerText=exerciseData.steps[currentStepIndex];
-
-const actionBtn=document.getElementById('tvid-action-btn');
-
-actionBtn.innerText=currentStepIndex===exerciseData.steps.length-1
-?(tvidLang==='es'?'Finalizar Carga':'Finish Recharge')
-:(tvidLang==='es'?'Siguiente paso':'Next step');
-
-const label=document.getElementById('tvid-breath-label');
-if(label)label.innerText=tvidLang==='es'?'Inhala':'Inhale'
-}
-
-function nextTvidStep(){
-if(!currentTechKey||tvidExerciseCompleted)return;
-
-const exerciseData=tvidData[currentTechKey][tvidLang][currentExerciseIndex];
-
-if(currentStepIndex<exerciseData.steps.length-1){
-currentStepIndex++;
-updateTvidViewLang();
-speakCurrentStep();
-return
-}
-
-tvidExerciseCompleted=true;
-
-const nextIndex=(currentExerciseIndex+1)%tvidData[currentTechKey].es.length;
-setTvidNextIndex(currentTechKey,nextIndex);
-
-stopTvidTimers();
-document.getElementById('tvid-exercise-screen').style.display='none';
-document.getElementById('tvid-selection-screen').style.display='block';
-document.getElementById('tvid-floating-window').style.display='flex';
-const arrow=document.getElementById('tvid-curtain-arrow');
-if(arrow)arrow.innerText='−'
-}
-
-function backTvidSelection(){
-stopTvidTimers();
-tvidExerciseCompleted=false;
-document.getElementById('tvid-exercise-screen').style.display='none';
-document.getElementById('tvid-selection-screen').style.display='block'
-}
-
-function speakCurrentStep(){
-if(!currentTechKey)return;
-
-const exerciseData=tvidData[currentTechKey][tvidLang][currentExerciseIndex];
-if(!exerciseData)return;
-
-const textToSpeak=exerciseData.steps[currentStepIndex];
-
-if('speechSynthesis'in window){
-window.speechSynthesis.cancel();
-const utterance=new SpeechSynthesisUtterance(textToSpeak);
-utterance.lang=tvidLang==='es'?'es-ES':'en-US';
-utterance.rate=.95;
-window.speechSynthesis.speak(utterance)
-}
-}
-
-function startBreathCycle(){
-const circle=document.getElementById('tvid-breath-circle');
-const label=document.getElementById('tvid-breath-label');
-let state=0;
-
-if(breathAnimationInterval)clearInterval(breathAnimationInterval);
-
-function applyBreath(){
-if(state===0){
-circle.className='tvid-breath-circle inhale';
-label.innerText=tvidLang==='es'?'Inhala':'Inhale';
-state=1
-}else if(state===1){
-circle.className='tvid-breath-circle inhale';
-label.innerText=tvidLang==='es'?'Mantén':'Hold';
-state=2
-}else{
-circle.className='tvid-breath-circle exhale';
-label.innerText=tvidLang==='es'?'Exhala':'Exhale';
-state=0
-}
-}
-
-applyBreath();
-breathAnimationInterval=setInterval(applyBreath,4000)
-}
-
-function startTvidLimit(){
-stopTvidTimers();
-
-tvidExerciseStartedAt=Date.now();
-
-const allowed=Math.max(0,Math.min(300,timeLeft));
-
-if(allowed<=0){
-closeSession();
-return
-}
-
-tvidLimitInterval=setInterval(()=>{
-const elapsed=(Date.now()-tvidExerciseStartedAt)/1000;
-
-if(elapsed>=allowed||elapsed>=300||timeLeft<=0){
-stopTvidTimers();
-document.getElementById('tvid-floating-window').style.display='none'
-}
-},500)
-}
-
-function stopTvidTimers(){
-if(tvidLimitInterval)clearInterval(tvidLimitInterval);
-if(breathAnimationInterval)clearInterval(breathAnimationInterval);
-
-tvidLimitInterval=null;
-breathAnimationInterval=null;
-
-if('speechSynthesis'in window)window.speechSynthesis.cancel()
-}
-
-function closeTvidWindow(){
-stopTvidTimers();
-document.getElementById('tvid-floating-window').style.display='none';
-const arrow=document.getElementById('tvid-curtain-arrow');
-if(arrow)arrow.innerText='＋'
-}
-</script>
-<script src="app.js"></script>
+        function startChallenge60() { console.log("Reto Vital 60s"); }
+        function toggleMusicModal() { document.getElementById('yt-container').style.display = 'block'; }
+        function handleNoIdea() { document.getElementById('travel-input').value = "Necesito orientación."; }
+        function handleHelpMe() { document.getElementById('travel-input').value = "Ayúdame con el bienestar."; }
+        async function resolveTravelDirective() { console.log("Mensaje enviado"); }
+        function toggleMortalsDrawer() {
+            const drawer = document.getElementById('mortals-drawer');
+            drawer.style.display = drawer.style.display === 'block' ? 'none' : 'block';
+        }
+        function closeSession() { fetch('/api/clear', { method: 'DELETE' }).then(() => location.reload()); }
+        function toggleLanguage() { console.log("Idioma cambiado"); }
+        function toggleVoiceGuide() { console.log("Voz cambiada"); }
+    </script>
 </body>
 </html>
