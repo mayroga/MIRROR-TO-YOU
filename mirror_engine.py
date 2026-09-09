@@ -1,12 +1,78 @@
 import os
 import httpx
-from fastapi import FastAPI, HTTPException
+import stripe
+from fastapi import FastAPI, HTTPException, Request, Form, Depends
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse
+from fastapi.responses import HTMLResponse, RedirectResponse, FileResponse
+from fastapi.templating import Jinja2Templates
+from starlette.middleware.sessions import SessionMiddleware
 from pydantic import BaseModel
 from typing import List
 
 app = FastAPI(title="MIRROR TO YOU", version="1.0.0")
+app.add_middleware(SessionMiddleware, secret_key=os.getenv("ADMIN_PASSWORD", "clave_por_defecto"))
+
+templates = Jinja2Templates(directory="templates")
+
+stripe.api_key = os.getenv("STRIPE_SECRET_KEY")
+STRIPE_WEBHOOK_SECRET = os.getenv("STRIPE_WEBHOOK_SECRET")
+
+ADMIN_USERNAME = os.getenv("ADMIN_USERNAME")
+ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD")
+STRIPE_PRICE_ID1 = os.getenv("STRIPE_PRICE_ID1")
+STRIPE_PRICE_ID2 = os.getenv("STRIPE_PRICE_ID2")
+BASE_URL = "https://mirror-to-you.onrender.com"
+
+@app.get("/", response_class=HTMLResponse)
+async def index(request: Request):
+    return templates.TemplateResponse("index.html", {
+        "request": request,
+        "price_id_1": STRIPE_PRICE_ID1,
+        "price_id_2": STRIPE_PRICE_ID2
+    })
+
+@app.post("/login")
+async def login(request: Request, username: str = Form(...), password: str = Form(...)):
+    if username == ADMIN_USERNAME and password == ADMIN_PASSWORD:
+        request.session["user"] = ADMIN_USERNAME
+        return RedirectResponse(url="/dashboard", status_code=303)
+    raise HTTPException(status_code=401, detail="Credenciales inválidas")
+
+@app.get("/dashboard", response_class=HTMLResponse)
+async def dashboard(request: Request):
+    user = request.session.get("user")
+    if user:
+        return HTMLResponse("Acceso concedido por credenciales. Servicio activo.")
+    return RedirectResponse(url="/", status_code=303)
+
+@app.post("/create-checkout-session")
+async def create_checkout_session(price_id: str = Form(...)):
+    try:
+        mode_type = 'payment' if price_id == STRIPE_PRICE_ID1 else 'subscription'
+        checkout_session = stripe.checkout.Session.create(
+            payment_method_types=['card'],
+            line_items=[{'price': price_id, 'quantity': 1}],
+            mode=mode_type,
+            success_url=BASE_URL + '/dashboard?success=true',
+            cancel_url=BASE_URL + '/?canceled=true',
+        )
+        return RedirectResponse(url=checkout_session.url, status_code=303)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@app.post("/webhook")
+async def stripe_webhook(request: Request):
+    payload = await request.body()
+    sig_header = request.headers.get('Stripe-Signature')
+    try:
+        event = stripe.Webhook.construct_event(payload, sig_header, STRIPE_WEBHOOK_SECRET)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+    if event['type'] == 'checkout.session.completed':
+        print("Pago procesado con éxito:", event['data']['object'].get("id"))
+
+    return {"success": True}
 
 VOLATILE_KERNEL = {}
 
