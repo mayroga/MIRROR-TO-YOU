@@ -1,6 +1,50 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+// =====================================================================
+// 2. PASARELAS DE ACCESO PRIVADO (STRIPE Y LOGIN ADMINISTRATIVO)
+// =====================================================================
+async function executeAdminLogin() {
+    const userIn = document.getElementById('loginUsername').value.trim();
+    const passIn = document.getElementById('loginPassword').value.trim();
+    const errorMsg = document.getElementById('loginError');
+    
+    if (!userIn || !passIn) return;
+    
+    try {
+        const response = await fetch('/api/auth/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username: userIn, password: passIn })
+        });
+        
+        if (response.ok) {
+            errorMsg.style.display = 'none';
+            await runLiveSessionVerification();
+        } else {
+            errorMsg.style.display = 'block';
+        }
+    } catch (e) {
+        errorMsg.style.display = 'block';
+    }
+}
+
+async function triggerStripePayment(tier) {
+    try {
+        const response = await fetch('/api/stripe/create-checkout', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ price_tier: tier })
+        });
+        const data = await response.json();
+        if (data.url) {
+            window.location.href = data.url;
+        }
+    } catch (e) {
+        console.error("Error al conectar con la pasarela de Stripe.");
+    }
+}
+    
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>MIRROR TO YOU</title>
@@ -70,91 +114,7 @@ footer{text-align:center;font-size:.8rem;color:var(--text-muted);padding-top:20p
 <button class="btn-danger" id="close-btn" onclick="closeSession()">Cerrar</button>
 </div>
 </header>
-// =====================================================================
-// 2. PASARELAS DE ACCESO PRIVADO (STRIPE Y LOGIN ADMINISTRATIVO)
-// =====================================================================
-async function executeAdminLogin() {
-    const userIn = document.getElementById('loginUsername').value.trim();
-    const passIn = document.getElementById('loginPassword').value.trim();
-    const errorMsg = document.getElementById('loginError');
-    
-    if (!userIn || !passIn) return;
-    
-    try {
-        const response = await fetch('/api/auth/login', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ username: userIn, password: passIn })
-        });
-        
-        if (response.ok) {
-            errorMsg.style.display = 'none';
-            await runLiveSessionVerification();
-        } else {
-            errorMsg.style.display = 'block';
-        }
-    } catch (e) {
-        errorMsg.style.display = 'block';
-    }
-}
 
-async function triggerStripePayment(tier) {
-    try {
-        const response = await fetch('/api/stripe/create-checkout', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ price_tier: tier })
-        });
-        const data = await response.json();
-        if (data.url) {
-            window.location.href = data.url;
-        }
-    } catch (e) {
-        console.error("Error al conectar con la pasarela de Stripe.");
-    }
-}
-
-// =====================================================================
-// 3. CONTROL DE TIEMPO VOLÁTIL (TEMPORIZADORES DE CIERRE ABSOLUTO)
-// =====================================================================
-function startSessionTimer() {
-    if (sessionTimer) clearInterval(sessionTimer);
-    sessionTimer = setInterval(async () => {
-        timeLeft--;
-        let m = Math.floor(timeLeft / 60);
-        let s = timeLeft % 60;
-        document.getElementById('timer-display').innerText = `${m}:${s < 10 ? '0' : ''}${s}`;
-        
-        // Sincronizar el reloj del navegador de forma periódica con Render
-        if (timeLeft % 15 === 0) {
-            try {
-                const check = await fetch('/api/auth/session-status');
-                const data = await check.json();
-                if (!data.active) timeLeft = 0;
-            } catch (err) {
-                timeLeft = 0;
-            }
-        }
-
-        if (timeLeft <= 0) {
-            clearInterval(sessionTimer);
-            if (currentModeInterval) clearInterval(currentModeInterval);
-            if (phraseInterval) clearInterval(phraseInterval);
-            if ('speechSynthesis' in window) window.speechSynthesis.cancel();
-            
-            // Cierre total instantáneo e irreversible de funciones en pantalla
-            document.getElementById('appInterface').style.display = 'none';
-            document.getElementById('paywallModal').style.display = 'none';
-            document.getElementById('shutdown-overlay').style.display = 'flex';
-        }
-    }, 1000);
-}
-
-function closeSession() {
-    fetch('/api/clear', { method: 'DELETE' }).then(() => {
-        location.reload();
-    });
-}
 <main>
 <div class="panel">
 <h2 id="wellness-title">Bienestar General</h2>
