@@ -483,6 +483,78 @@ document.getElementById('email-btn-label').innerText='Enviar Correo Electrónico
 document.getElementById('whatsapp-link').href='https://wa.me/17866471371?text=Hola%20Maykel%2C%20vengo%20de%20la%20aplicación%20y%20deseo%20cotizar%20un%20viaje%20o%20itinerario%20privado'
 }
 }
+// =====================================================================
+// INTERCEPTADOR DE SESIÓN, PASARELA DE STRIPE Y ACCESO POR CREDENCIALES
+// =====================================================================
+
+// Escucha el inicio de la carga para limpiar los parámetros de Stripe y validar el estado de sesión activo
+document.addEventListener("DOMContentLoaded", () => {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('stripe_status') === 'success') {
+        window.history.replaceState({}, document.title, "/");
+    }
+    runLiveSessionVerification();
+});
+
+// Verifica asíncronamente con el backend de FastAPI si hay una sesión activa autorizada
+async function runLiveSessionVerification() {
+    try {
+        const response = await fetch('/api/auth/session-status');
+        const status = await response.json();
+        if (status.active && status.time_left > 0) {
+            timeLeft = status.time_left;
+            document.getElementById('paywallModal').style.display = 'none';
+            document.getElementById('appInterface').style.display = 'flex';
+            // Llama a tu función original que arranca el reloj regresivo
+            startSessionTimer(); 
+        } else {
+            document.getElementById('appInterface').style.display = 'none';
+            document.getElementById('paywallModal').style.display = 'flex';
+        }
+    } catch (e) {
+        document.getElementById('appInterface').style.display = 'none';
+        document.getElementById('paywallModal').style.display = 'flex';
+    }
+}
+
+// Ejecuta la validación manual del Login con el Backend usando Username y Password
+async function executeAdminLogin() {
+    const userIn = document.getElementById('loginUsername').value.trim();
+    const passIn = document.getElementById('loginPassword').value.trim();
+    const errorMsg = document.getElementById('loginError');
+    if (!userIn || !passIn) return;
+    try {
+        const response = await fetch('/api/auth/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username: userIn, password: passIn })
+        });
+        if (response.ok) {
+            errorMsg.style.display = 'none';
+            await runLiveSessionVerification();
+        } else {
+            errorMsg.style.display = 'block';
+        }
+    } catch (e) {
+        errorMsg.style.display = 'block';
+    }
+}
+
+// Enruta de forma dinámica la redirección de Stripe Checkout según el plan ($200 o $499)
+async function triggerStripePayment(tier) {
+    try {
+        const response = await fetch('/api/stripe/create-checkout', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ price_tier: tier })
+        });
+        const data = await response.json();
+        if (data.url) window.location.href = data.url;
+    } catch (e) {
+        console.error("Error al conectar con la pasarela de Stripe.");
+    }
+}
+        
 </script>
 
 <div id="travel-advisor-float" style="position:fixed;bottom:20px;right:20px;z-index:1500;display:flex;align-items:center;gap:8px">
@@ -604,78 +676,6 @@ document.getElementById('whatsapp-link').href='https://wa.me/17866471371?text=Ho
 .tvid-sec-action,.tvid-main-action{font-size:12px;padding:9px 7px}
 }
 </style>
-// =====================================================================
-// INTERCEPTADOR DE SESIÓN, PASARELA DE STRIPE Y ACCESO POR CREDENCIALES
-// =====================================================================
-
-// Escucha el inicio de la carga para limpiar los parámetros de Stripe y validar el estado de sesión activo
-document.addEventListener("DOMContentLoaded", () => {
-    const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.get('stripe_status') === 'success') {
-        window.history.replaceState({}, document.title, "/");
-    }
-    runLiveSessionVerification();
-});
-
-// Verifica asíncronamente con el backend de FastAPI si hay una sesión activa autorizada
-async function runLiveSessionVerification() {
-    try {
-        const response = await fetch('/api/auth/session-status');
-        const status = await response.json();
-        if (status.active && status.time_left > 0) {
-            timeLeft = status.time_left;
-            document.getElementById('paywallModal').style.display = 'none';
-            document.getElementById('appInterface').style.display = 'flex';
-            // Llama a tu función original que arranca el reloj regresivo
-            startSessionTimer(); 
-        } else {
-            document.getElementById('appInterface').style.display = 'none';
-            document.getElementById('paywallModal').style.display = 'flex';
-        }
-    } catch (e) {
-        document.getElementById('appInterface').style.display = 'none';
-        document.getElementById('paywallModal').style.display = 'flex';
-    }
-}
-
-// Ejecuta la validación manual del Login con el Backend usando Username y Password
-async function executeAdminLogin() {
-    const userIn = document.getElementById('loginUsername').value.trim();
-    const passIn = document.getElementById('loginPassword').value.trim();
-    const errorMsg = document.getElementById('loginError');
-    if (!userIn || !passIn) return;
-    try {
-        const response = await fetch('/api/auth/login', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ username: userIn, password: passIn })
-        });
-        if (response.ok) {
-            errorMsg.style.display = 'none';
-            await runLiveSessionVerification();
-        } else {
-            errorMsg.style.display = 'block';
-        }
-    } catch (e) {
-        errorMsg.style.display = 'block';
-    }
-}
-
-// Enruta de forma dinámica la redirección de Stripe Checkout según el plan ($200 o $499)
-async function triggerStripePayment(tier) {
-    try {
-        const response = await fetch('/api/stripe/create-checkout', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ price_tier: tier })
-        });
-        const data = await response.json();
-        if (data.url) window.location.href = data.url;
-    } catch (e) {
-        console.error("Error al conectar con la pasarela de Stripe.");
-    }
-}
-    
 <script>
 tvidLang='es';
 const TVID_PROGRESS_KEY='mirror_to_you_tvid_technique_progress_v3';
