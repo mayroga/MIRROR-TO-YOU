@@ -12,7 +12,7 @@ from typing import List
 app = FastAPI(title="MIRROR TO YOU", version="1.0.0")
 app.add_middleware(SessionMiddleware, secret_key=os.getenv("ADMIN_PASSWORD", "clave_por_defecto"))
 
-templates = Jinja2Templates(directory="templates")
+templates = Jinja2Templates(directory="static")
 
 stripe.api_key = os.getenv("STRIPE_SECRET_KEY")
 STRIPE_WEBHOOK_SECRET = os.getenv("STRIPE_WEBHOOK_SECRET")
