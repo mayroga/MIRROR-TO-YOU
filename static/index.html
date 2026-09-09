@@ -57,7 +57,7 @@ footer{text-align:center;font-size:.8rem;color:var(--text-muted);padding-top:20p
                     <span>Acceso Premium ilimitado</span>
                     <span class="price">$499</span>
                 </button>
-            </div>          
+            </div>         
             <div class="divider">ó</div>
             <!-- Formulario de Acceso por Credenciales Admin -->
             <div class="login-form">
@@ -68,7 +68,6 @@ footer{text-align:center;font-size:.8rem;color:var(--text-muted);padding-top:20p
             </div>
         </div>
     </div>
-];
 
 <div id="legal-gate">
 <div class="legal-box">
@@ -279,232 +278,104 @@ document.getElementById('btn-no').innerText=currentLang==='es'?'❓ No sé':'❓
 document.getElementById('btn-help').innerText=currentLang==='es'?'🤝 Ayúdame':'🤝 Help Me';
 document.getElementById('btn-send').innerText=currentLang==='es'?'Enviar Conversación':'Send Conversation'
 }
-
-function toggleVoiceGuide(){
-voiceEnabled=!voiceEnabled;
-document.getElementById('audio-btn').innerText=voiceEnabled?(currentLang==='es'?'🔊 Voz: ON':'🔊 Voice: ON'):(currentLang==='es'?'🔊 Voz: OFF':'🔊 Voice: OFF');
-if(voiceEnabled)speak(currentLang==='es'?'Guía por voz activada.':'Voice guide activated.')
-}
-
-function speak(text){
-if(!voiceEnabled||!('speechSynthesis'in window))return;
-window.speechSynthesis.cancel();
-const utterance=new SpeechSynthesisUtterance(text);
-utterance.lang=currentLang==='es'?'es-ES':'en-US';
-utterance.rate=.95;
-window.speechSynthesis.speak(utterance)
-}
-
-function setBreathingMode(mode){
-if(currentModeInterval)clearInterval(currentModeInterval);
-if(phraseInterval)clearInterval(phraseInterval);
-const speechBox=document.getElementById('dynamic-speech'),initialPhrase=getSmartPhrase();
-speechBox.innerText=initialPhrase;
-speak(initialPhrase);
-phraseInterval=setInterval(()=>{
-const nextPhrase=getSmartPhrase();
-speechBox.innerText=nextPhrase;
-speak(nextPhrase)
-},15000);
-
-const circle=document.getElementById('b-circle'),phase=document.getElementById('b-phase'),counter=document.getElementById('b-counter');
-let step=0;
-const sequence=[
-{text:currentLang==='es'?'Inhalar':'Inhale',scale:'scale(1.3)',time:4},
-{text:currentLang==='es'?'Retener':'Hold',scale:'scale(1.3)',time:4},
-{text:currentLang==='es'?'Exhalar':'Exhale',scale:'scale(1)',time:4}
-];
-
-function runStep(){
-const current=sequence[step%sequence.length];
-phase.innerText=current.text;
-circle.style.transform=current.scale;
-let t=current.time;
-counter.innerText=`${t}s`;
-currentModeInterval=setInterval(()=>{
-t--;
-counter.innerText=`${t}s`;
-if(t<=0){
-clearInterval(currentModeInterval);
-step++;
-runStep()
-}
-},1000)
-}
-runStep()
-}
-
-function startChallenge60(){
-if(currentModeInterval)clearInterval(currentModeInterval);
-if(phraseInterval)clearInterval(phraseInterval);
-const speechBox=document.getElementById('dynamic-speech'),counter=document.getElementById('b-counter'),phase=document.getElementById('b-phase');
-phase.innerText=currentLang==='es'?'RETO VITAL':'VITALITY';
-let totalTime=60;
-const challengeTexts=currentLang==='es'?[
-"Silencio absoluto: Desconecta el ruido externo por 60 segundos.",
-"Enfoque: Define con claridad tu próximo destino de paz.",
-"Reinicio físico: Libera tensión acumulada en hombros y cuello."
-]:[
-"Absolute silence: Disconnect from external noise for 60s.",
-"Focus: Clearly define your next peaceful destination.",
-"Physical reset: Release tension accumulated in shoulders."
-];
-let textIdx=0;
-speechBox.innerText=challengeTexts[textIdx];
-speak(challengeTexts[textIdx]);
-
-currentModeInterval=setInterval(()=>{
-totalTime--;
-counter.innerText=`${totalTime}s`;
-if(totalTime%20===0&&textIdx<challengeTexts.length-1){
-textIdx++;
-speechBox.innerText=challengeTexts[textIdx];
-speak(challengeTexts[textIdx])
-}
-if(totalTime<=0){
-clearInterval(currentModeInterval);
-speechBox.innerText=currentLang==='es'?'¡Reto de 60 segundos superado con éxito!':'60-second challenge successfully completed!';
-speak(speechBox.innerText)
-}
-},1000)
-}
-
-function toggleMusicModal(){
-const container=document.getElementById('yt-container'),player=document.getElementById('yt-player');
-if(container.style.display==='none'){
-player.src=verifiedStreams[streamIndex%verifiedStreams.length];
-streamIndex++;
-container.style.display='block';
-speak(currentLang==='es'?'Frecuencia antiestrés activada.':'Anti-stress frequency activated.')
-}else{
-player.src='';
-container.style.display='none'
-}
-}
-
-function handleNoIdea(){
-const inputField=document.getElementById('travel-input');
-inputField.value=currentLang==='es'?"No tengo un rumbo fijo, necesito orientación general.":"I don't have a fixed direction, I need general guidance.";
-resolveTravelDirective()
-}
-
-function handleHelpMe(){
-const inputField=document.getElementById('travel-input');
-inputField.value=currentLang==='es'?"Ayúdame a encontrar la mejor opción de bienestar y estabilidad.":"Help me find the best wellness and stability option.";
-resolveTravelDirective()
-}
-
-async function resolveTravelDirective(){
-const inputField=document.getElementById('travel-input');
-const userInput=inputField.value.trim();
-const output=document.getElementById('travel-output');
-
-if(!userInput){
-output.innerText=currentLang==='es'?'Por favor, escribe tu mensaje o usa los botones de asistencia.':'Please type your message or use assistance buttons.';
-return
-}
-
-conversationMemory.push({role:'user',content:userInput});
-if(conversationMemory.length>MAX_MEMORY_TURNS*2)conversationMemory=conversationMemory.slice(-MAX_MEMORY_TURNS*2);
-
-inputField.value='';
-output.innerText=currentLang==='es'?'Analizando solicitud, por favor espere un momento...':'Analyzing request, please hold a moment...';
-
-const controller=new AbortController();
-const timeoutId=setTimeout(()=>controller.abort(),30000);
-
-try{
-const response=await fetch('/api/chat',{
-method:'POST',
-headers:{'Content-Type':'application/json'},
-body:JSON.stringify({
-messages:conversationMemory,
-lang:currentLang
-}),
-signal:controller.signal
-});
-
-clearTimeout(timeoutId);
-
-if(!response.ok)throw new Error('Conexión en curso');
-
-const data=await response.json();
-let aiResponseText=(data.reply||data.response||data.message||'').trim();
-
-if(!aiResponseText){
-throw new Error('Respuesta vacía')
-}
-
-conversationMemory.push({role:'assistant',content:aiResponseText});
-output.innerText=aiResponseText;
-speak(aiResponseText)
-
-}catch(error){
-clearTimeout(timeoutId);
-output.innerText=currentLang==='es'?'Error de conexión o tiempo de espera agotado. Intente nuevamente.':'Connection error or timeout. Please try again.'
-}
-}
-
-function toggleMortalsDrawer(){
-const drawer=document.getElementById('mortals-drawer');
-drawer.style.display=drawer.style.display==='block'?'none':'block';
-updateMapsLink()
-}
-
-let advisorLang='es';
-
-function toggleTravelAdvisorModal(){
-const modal=document.getElementById('travel-advisor-modal');
-modal.style.display=modal.style.display==='flex'?'none':'flex'
-}
-
-function toggleAdvisorLang(){
-advisorLang=advisorLang==='es'?'en':'es';
-document.getElementById('advisor-lang-btn').innerText=advisorLang.toUpperCase();
-
-if(advisorLang==='en'){
-document.getElementById('float-btn-text').innerText='Private Travel Advisory';
-document.getElementById('modal-advisor-title').innerText='May Roga LLC - Luxury Travel';
-document.getElementById('modal-advisor-desc').innerText='Connect directly with your certified private advisor to design custom itineraries and manage exclusive bookings.';
-document.getElementById('wa-btn-label').innerText='Direct WhatsApp Chat';
-document.getElementById('email-btn-label').innerText='Send Email';
-document.getElementById('whatsapp-link').href='https://wa.me/17866471371?text=Hello%20Maykel%2C%20I%20came%20from%20the%20app%20and%20want%20to%20quote%20a%20private%20trip%20or%20itinerary'
-}else{
-document.getElementById('float-btn-text').innerText='Asesoría de Viaje Privada';
-document.getElementById('modal-advisor-title').innerText='May Roga LLC - Viajes de Lujo';
-document.getElementById('modal-advisor-desc').innerText='Conecta directamente con tu asesor privado certificado para diseñar itinerarios a la medida y gestionar tus reservas exclusivas.';
-document.getElementById('wa-btn-label').innerText='Chat Directo por WhatsApp';
-document.getElementById('email-btn-label').innerText='Enviar Correo Electrónico';
-document.getElementById('whatsapp-link').href='https://wa.me/17866471371?text=Hola%20Maykel%2C%20vengo%20de%20la%20aplicación%20y%20deseo%20cotizar%20un%20viaje%20o%20itinerario%20privado'
-}
-}
-</script>
-
-<div id="travel-advisor-float" style="position:fixed;bottom:20px;right:20px;z-index:1500;display:flex;align-items:center;gap:8px">
-<button onclick="toggleAdvisorLang()" id="advisor-lang-btn" style="background:rgba(255,255,255,.15);backdrop-filter:blur(5px);border:1px solid rgba(255,255,255,.3);color:var(--text-main,#fff);padding:10px 12px;border-radius:50%;font-weight:600;font-size:.8rem;cursor:pointer;box-shadow:0 4px 12px rgba(0,0,0,.3);transition:background .2s ease" title="Cambiar Idioma / Switch Language">ES</button>
-<button onclick="toggleTravelAdvisorModal()" style="background:var(--accent-color,#d4af37);color:var(--bg-color,#0a0a0c);border:none;padding:12px 20px;border-radius:30px;font-weight:600;font-size:.9rem;cursor:pointer;box-shadow:0 4px 12px rgba(0,0,0,.5);display:flex;align-items:center;gap:8px">✈️ <span id="float-btn-text">Asesoría de Viaje Privada</span></button>
+<div class="tvid-header">
+<h3 id="tvid-title">Asesoría TVid - Guía Rápida</h3>
+<button onclick="toggleTvidWindow()" class="tvid-close-btn">✕</button>
+</div>
+<div class="tvid-content">
+<p id="tvid-desc" class="tvid-description">Selecciona un pilar de la metodología para obtener instrucciones directas, concisas y de alto impacto operativo.</p>
+<div class="tvid-grid">
+<button onclick="runTvidPillar('bien')" class="tvid-pillar-btn">⚖️ <span id="tvid-p1">Técnica del Bien</span></button>
+<button onclick="runTvidPillar('mal')" class="tvid-pillar-btn">⚠️ <span id="tvid-p2">Técnica del Mal</span></button>
+<button onclick="runTvidPillar('nino')" class="tvid-pillar-btn">👶 <span id="tvid-p3">Técnica del Niño</span></button>
+<button onclick="runTvidPillar('padre')" class="tvid-pillar-btn">👔 <span id="tvid-p4">Técnica del Padre</span></button>
+<button onclick="runTvidPillar('madre')" class="tvid-pillar-btn">🛡️ <span id="tvid-p5">Técnica de la Madre</span></button>
+</div>
+<div id="tvid-response-box" class="tvid-response">
+Esperando instrucción rápida...
+</div>
+</div>
+</div>
+</div>
 </div>
 
-<div id="travel-advisor-modal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(11,15,25,.85);z-index:2500;justify-content:center;align-items:center;padding:20px">
-<div class="legal-box travel-advisor-box" style="position:relative;max-width:450px;background:var(--card-bg,#141416);padding:24px;border-radius:16px;border:1px solid var(--border-color,rgba(255,255,255,.1));color:var(--text-main,#f1f1f3)">
-<button onclick="toggleTravelAdvisorModal()" style="position:absolute;top:15px;right:15px;background:none;border:none;color:var(--text-muted,#888);font-size:1.2rem;cursor:pointer">✕</button>
-<h2 id="modal-advisor-title" style="color:var(--accent-color,#d4af37);margin-bottom:10px;font-size:1.2rem">May Roga LLC - Viajes de Lujo</h2>
-<p id="modal-advisor-desc" style="color:var(--text-muted,#ccc);font-size:.9rem;margin-bottom:20px;text-align:left">Conecta directamente con tu asesor privado certificado para diseñar itinerarios a la medida y gestionar tus reservas exclusivas.</p>
-<div style="display:flex;flex-direction:column;gap:12px">
-<a id="whatsapp-link" href="https://wa.me/17866471371?text=Hola%20Maykel%2C%20vengo%20de%20la%20aplicación%20y%20deseo%20cotizar%20un%20viaje%20o%20itinerario%20privado" target="_blank" style="background:#25d366;color:#fff;padding:12px;border-radius:6px;text-decoration:none;font-weight:600;font-size:.95rem;display:flex;align-items:center;justify-content:center;gap:8px">💬 <span id="wa-btn-label">Chat Directo por WhatsApp</span></a>
-<a id="email-link" href="mailto:maykel75122805321@gmail.com?subject=Solicitud%20de%20Asesoría%20de%20Viaje%20Privada" style="background:var(--card-bg,#1e1e22);border:1px solid var(--border-color,rgba(255,255,255,.2));color:var(--text-main,#fff);padding:12px;border-radius:6px;text-decoration:none;font-weight:600;font-size:.95rem;display:flex;align-items:center;justify-content:center;gap:8px">✉️ <span id="email-btn-label">Enviar Correo Electrónico</span></a>
-</div>
-<div class="tvid-curtain">
-<button class="tvid-curtain-toggle" onclick="toggleTvidWindow()" type="button">
-<span>⚡ <span id="tvid-float-label">Carga Rápida (TVid)</span></span>
-<span class="tvid-curtain-controls">
-<span id="tvid-curtain-arrow">＋</span>
-<span onclick="event.stopPropagation();toggleTvidLang()" id="tvid-lang-btn" class="tvid-lang-btn">ES</span>
-</span>
-</button>
-<div id="tvid-floating-window" class="tvid-modal-overlay" style="display:none">
-<div class="tvid-modal-container">
+<style>
+/* Estilos integrados para la cortina y ventana flotante TVid */
+.tvid-curtain{margin-top:16px;border-top:1px solid var(--border-color,rgba(255,255,255,.1));padding-top:12px}
+.tvid-curtain-toggle{width:100%;background:rgba(56,189,248,.1);border:1px solid var(--accent-color,#38bdf8);color:var(--text-main,#f3f4f6);padding:10px 14px;border-radius:8px;font-weight:600;font-size:.9rem;cursor:pointer;display:flex;justify-content:space-between;align-items:center;transition:all .2s ease}
+.tvid-curtain-toggle:hover{background:rgba(56,189,248,.2)}
+.tvid-curtain-controls{display:flex;align-items:center;gap:10px}
+.tvid-lang-btn{background:var(--bg-color);border:1px solid var(--border-color);padding:2px 6px;border-radius:4px;font-size:.75rem}
+.tvid-modal-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(11,15,25,.9);z-index:3000;display:flex;justify-content:center;align-items:center;padding:20px}
+.tvid-modal-container{background:var(--card-bg,#111827);border:1px solid var(--border-color,#1f2937);border-radius:12px;padding:20px;max-width:420px;width:100%;box-shadow:0 8px 24px rgba(0,0,0,.6);display:flex;flex-direction:column;gap:14px}
+.tvid-header{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border-color);padding-bottom:10px}
+.tvid-header h3{color:var(--accent-color,#38bdf8);font-size:1rem}
+.tvid-close-btn{background:none;border:none;color:var(--text-muted);font-size:1.1rem;cursor:pointer}
+.tvid-description{font-size:.85rem;color:var(--text-muted);line-height:1.4}
+.tvid-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:4px}
+.tvid-pillar-btn{background:var(--bg-color);border:1px solid var(--border-color);color:var(--text-main);padding:8px 10px;border-radius:6px;font-size:.8rem;cursor:pointer;text-align:left;display:flex;align-items:center;gap:6px;transition:border-color .2s}
+.tvid-pillar-btn:hover{border-color:var(--accent-color)}
+.tvid-response{background:var(--bg-color);border:1px solid var(--border-color);border-radius:6px;padding:12px;font-size:.85rem;color:var(--accent-color);min-height:70px;max-height:120px;overflow-y:auto;font-style:italic;margin-top:4px}
+</style>
 
+<script>
+let tvidLang='es';
+let tvidWindowOpen=false;
+
+function toggleTvidWindow(){
+const win=document.getElementById('tvid-floating-window');
+const arrow=document.getElementById('tvid-curtain-arrow');
+tvidWindowOpen=!tvidWindowOpen;
+win.style.display=tvidWindowOpen?'flex':'none';
+arrow.innerText=tvidWindowOpen?'－':'＋';
+}
+
+function toggleTvidLang(){
+tvidLang=tvidLang==='es'?'en':'es';
+document.getElementById('tvid-lang-btn').innerText=tvidLang.toUpperCase();
+if(tvidLang==='en'){
+document.getElementById('tvid-float-label').innerText='Quick Load (TVid)';
+document.getElementById('tvid-title').innerText='TVid Advisory - Quick Guide';
+document.getElementById('tvid-desc').innerText='Select a pillar of the methodology to obtain direct, concise, and high-impact operational instructions.';
+document.getElementById('tvid-p1').innerText='Technique of Good';
+document.getElementById('tvid-p2').innerText='Technique of Bad';
+document.getElementById('tvid-p3').innerText='Technique of Child';
+document.getElementById('tvid-p4').innerText='Technique of Father';
+document.getElementById('tvid-p5').innerText='Technique of Mother';
+}else{
+document.getElementById('tvid-float-label').innerText='Carga Rápida (TVid)';
+document.getElementById('tvid-title').innerText='Asesoría TVid - Guía Rápida';
+document.getElementById('tvid-desc').innerText='Selecciona un pilar de la metodología para obtener instrucciones directas, concisas y de alto impacto operativo.';
+document.getElementById('tvid-p1').innerText='Técnica del Bien';
+document.getElementById('tvid-p2').innerText='Técnica del Mal';
+document.getElementById('tvid-p3').innerText='Técnica del Niño';
+document.getElementById('tvid-p4').innerText='Técnica del Padre';
+document.getElementById('tvid-p5').innerText='Técnica de la Madre';
+}
+}
+
+function runTvidPillar(pillar){
+const box=document.getElementById('tvid-response-box');
+const responses={
+es:{
+bien:"Directriz óptima: Mantener el equilibrio operativo, verificar cumplimiento normativo sin fricción y asegurar estabilidad.",
+mal:"Alerta preventiva: Detectar puntos críticos, aislar riesgos operacionales y aplicar rectificación inmediata.",
+nino:"Instrucción directa: Simplificar procesos, mantener la flexibilidad y priorizar soluciones prácticas sin demoras.",
+padre:"Estrategia directiva: Aplicar control de calidad estricto, supervisar estándares regulatorios y mantener orden.",
+madre:"Soporte de contención: Proteger la operación, asegurar continuidad y brindar respaldo seguro ante imprevistos."
+},
+en:{
+bien:"Optimal guideline: Maintain operational balance, verify regulatory compliance without friction, and ensure stability.",
+mal:"Preventive alert: Detect critical points, isolate operational risks, and apply immediate rectification.",
+nino:"Direct instruction: Simplify processes, maintain flexibility, and prioritize practical solutions without delay.",
+padre:"Directive strategy: Apply strict quality control, supervise regulatory standards, and maintain order.",
+madre:"Containment support: Protect operations, ensure continuity, and provide secure backing for contingencies."
+}
+};
+const text=responses[tvidLang][pillar];
+box.innerText=text;
+speak(text);
+}
 <div class="tvid-header">
 <div style="display:flex;align-items:center;gap:8px">
 <span class="tvid-badge" id="tvid-badge-text">5-Min Recharge</span>
@@ -642,7 +513,6 @@ en:[
 {title:"💪 Father Technique — Calm strength",objective:"Remain firm without losing calm, respect, or good judgment.",steps:["Ground your feet and relax your jaw.","Inhale for 4 seconds feeling stability.","Hold for 2 seconds without rushing to respond.","Exhale for 6 seconds and choose a strong, calm, respectful response."]}
 ]
 },
-
 'Niño':{
 es:[
 {title:"🧒 Técnica del Niño — La mirada del niño",objective:"Recuperar curiosidad, imaginación y capacidad de descubrir lo cotidiano.",steps:["Mira a tu alrededor y elige un objeto cotidiano.","Inhala durante 4 segundos observándolo como si fuera la primera vez.","Mantén 2 segundos y encuentra algo curioso sobre él.","Exhala durante 6 segundos dejando espacio para una nueva pregunta o idea."]},
@@ -966,4 +836,4 @@ if(arrow)arrow.innerText='＋'
 </script>
 <script src="app.js"></script>
 </body>
-</html>
+</html>    
