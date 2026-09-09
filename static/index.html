@@ -1,6 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>MIRROR TO YOU</title>
+<style>
 // =====================================================================
 // 2. PASARELAS DE ACCESO PRIVADO (STRIPE Y LOGIN ADMINISTRATIVO)
 // =====================================================================
@@ -43,12 +47,7 @@ async function triggerStripePayment(tier) {
     } catch (e) {
         console.error("Error al conectar con la pasarela de Stripe.");
     }
-}
-    
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>MIRROR TO YOU</title>
-<style>
+}    
 :root{--bg-color:#0b0f19;--card-bg:#111827;--accent-color:#38bdf8;--text-main:#f3f4f6;--text-muted:#9ca3af;--border-color:#1f2937;--danger-color:#ef4444}
 *{box-sizing:border-box;margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
 body{background:var(--bg-color);color:var(--text-main);min-height:100vh;display:flex;flex-direction:column;justify-content:space-between;padding:20px}
