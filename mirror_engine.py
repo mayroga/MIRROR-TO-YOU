@@ -1,17 +1,40 @@
 import os
+import time
 import httpx
-from fastapi import FastAPI, HTTPException
+import stripe
+from fastapi import FastAPI, HTTPException, Request, Depends, status
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, JSONResponse
 from pydantic import BaseModel
-from typing import List
+from typing import List, Optional
 
+# Inicialización de la aplicación
 app = FastAPI(title="MIRROR TO YOU", version="1.0.0")
 
-VOLATILE_KERNEL = {}
-
+# Carga estricta de variables de entorno de Render
+ADMIN_USERNAME = os.getenv("ADMIN_USERNAME")
+ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+
+# Configuración de Stripe
+stripe.api_key = os.getenv("STRIPE_SECRET_KEY")
+STRIPE_WEBHOOK_SECRET = os.getenv("STRIPE_WEBHOOK_SECRET")
+STRIPE_PRICE_ID1 = os.getenv("STRIPE_PRICE_ID1")
+STRIPE_PRICE_ID2 = os.getenv("STRIPE_PRICE_ID2")
+
+# Núcleo Volátil en Memoria para control de estado sin base de datos
+# Estructura: {"session_active": bool, "expires_at": float, "last_directive": str}
+VOLATILE_KERNEL = {
+    "session_active": False,
+    "expires_at": 0.0,
+    "last_directive": None
+}
+
+# Modelos de Datos (Pydantic)
+class LoginRequest(BaseModel):
+    username: str
+    password: str
 
 class Message(BaseModel):
     role: str
@@ -25,19 +48,123 @@ class WellnessRequest(BaseModel):
     objective: str
     duration_seconds: int = 60
 
-@app.post("/api/chat")
+class StripeSessionRequest(BaseModel):
+    price_tier: int  # 1 o 2 para seleccionar el Price ID correspondiente
+
+# Dependencia de seguridad: Bloquea cualquier endpoint si la sesión no está activa o expiró
+def verify_active_session():
+    current_time = time.time()
+    if not VOLATILE_KERNEL["session_active"]:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Acceso denegado. No hay ninguna sesión activa o pagada."
+        )
+    if current_time > VOLATILE_KERNEL["expires_at"]:
+        # Cierre absoluto del sistema al expirar el tiempo
+        VOLATILE_KERNEL["session_active"] = False
+        VOLATILE_KERNEL["expires_at"] = 0.0
+        raise HTTPException(
+            status_code=status.HTTP_408_REQUEST_TIMEOUT,
+            detail="La sesión de 10 minutos ha expirado por completo. Todo el servicio queda bloqueado."
+        )
+
+# 1. Endpoint de Autenticación por Username y Password
+@app.post("/api/auth/login")
+async def admin_login(req: LoginRequest):
+    if req.username == ADMIN_USERNAME and req.password == ADMIN_PASSWORD:
+        # Activa la sesión inmediatamente por 10 minutos (600 segundos)
+        VOLATILE_KERNEL["session_active"] = True
+        VOLATILE_KERNEL["expires_at"] = time.time() + 600.0
+        return {
+            "status": "success",
+            "message": "Autenticación correcta. Sesión de 10 minutos iniciada.",
+            "expires_at": VOLATILE_KERNEL["expires_at"]
+        }
+    raise HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Credenciales incorrectas."
+    )
+
+# 2. Endpoints de Stripe: Creación de Checkout Session
+@app.post("/api/stripe/create-checkout")
+async def create_checkout_session(req: StripeSessionRequest, request: Request):
+    # Selección de Price ID según la opción del cliente
+    price_id = STRIPE_PRICE_ID1 if req.price_tier == 1 else STRIPE_PRICE_ID2
+    
+    if not price_id:
+        raise HTTPException(status_code=500, detail="ID de precio de Stripe no configurado en el servidor.")
+    
+    # Obtener el dominio base dinámicamente para soportar Render o localhost
+    origin = request.headers.get("origin") or f"http://{request.headers.get('host')}"
+    
+    try:
+        checkout_session = stripe.checkout.Session.create(
+            payment_method_types=['card'],
+            line_items=[{
+                'price': price_id,
+                'quantity': 1,
+            }],
+            mode='payment',
+            success_url=f"{origin}/?stripe_status=success",
+            cancel_url=f"{origin}/?stripe_status=cancel",
+        )
+        return {"url": checkout_session.url}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+# 3. Webhook de Stripe para autorizar el servicio tras el cobro efectivo
+@app.post("/api/stripe/webhook")
+async def stripe_webhook(request: Request):
+    payload = await request.body()
+    sig_header = request.headers.get("stripe-signature")
+    
+    try:
+        event = stripe.Webhook.construct_event(
+            payload, sig_header, STRIPE_WEBHOOK_SECRET
+        )
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Payload inválido")
+    except stripe.error.SignatureVerificationError:
+        raise HTTPException(status_code=400, detail="Firma de webhook inválida")
+        
+    # Si el pago se procesó de forma exitosa, se concede acceso al servicio
+    if event['type'] == 'checkout.session.completed':
+        VOLATILE_KERNEL["session_active"] = True
+        VOLATILE_KERNEL["expires_at"] = time.time() + 600.0  # 10 minutos exactos de reloj
+
+    return {"status": "success"}
+
+# 4. Verificación de Estado de la Sesión Actual (Utilizado por el frontend)
+@app.get("/api/auth/session-status")
+async def get_session_status():
+    current_time = time.time()
+    if VOLATILE_KERNEL["session_active"] and current_time <= VOLATILE_KERNEL["expires_at"]:
+        return {
+            "active": True,
+            "time_left": max(0, int(VOLATILE_KERNEL["expires_at"] - current_time))
+        }
+    # Asegura la limpieza si el tiempo ya pasó
+    VOLATILE_KERNEL["session_active"] = False
+    VOLATILE_KERNEL["expires_at"] = 0.0
+    return {"active": False, "time_left": 0}
+
+# =====================================================================
+# Endpoints Protegidos de la Aplicación (Requieren verify_active_session)
+# =====================================================================
+
+@app.post("/api/chat", dependencies=[Depends(verify_active_session)])
 async def process_chat_directive(req: ChatRequest):
-    global VOLATILE_KERNEL
     if req.messages:
         VOLATILE_KERNEL["last_directive"] = req.messages[-1].content
-
+    
     system_prompt = (
         "Eres un asesor experto de bienestar y estilo de vida. Mantén el hilo de la conversación, sé conciso, directo, empático y guía al usuario paso a paso sin perder la coherencia de las preguntas anteriores."
         if req.lang == "es"
         else "You are an expert wellness and lifestyle advisor. Maintain the conversation thread, be concise, direct, empathetic, and guide the user step-by-step without losing coherence from previous questions."
     )
-
+    
     async with httpx.AsyncClient(timeout=30.0) as client:
+        # Intento primario con Gemini
         try:
             formatted_contents = []
             for msg in req.messages:
@@ -46,8 +173,8 @@ async def process_chat_directive(req: ChatRequest):
                     "role": gemini_role,
                     "parts": [{"text": msg.content}]
                 })
-
-            gemini_url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={GEMINI_API_KEY}"
+            
+            gemini_url = f"https://googleapis.com{GEMINI_API_KEY}"
             payload = {
                 "system_instruction": {"parts": [{"text": system_prompt}]},
                 "contents": formatted_contents
@@ -59,13 +186,14 @@ async def process_chat_directive(req: ChatRequest):
                 return {"reply": reply, "provider": "gemini"}
             else:
                 raise Exception(f"Gemini status {response.status_code}")
-
-        except Exception as gemini_error:
+                
+        except Exception:
+            # Conmutación de contingencia automática a OpenAI
             try:
                 openai_messages = [{"role": "system", "content": system_prompt}]
                 for msg in req.messages:
                     openai_messages.append({"role": msg.role, "content": msg.content})
-
+                
                 openai_payload = {
                     "model": "gpt-4o-mini",
                     "messages": openai_messages,
@@ -75,19 +203,17 @@ async def process_chat_directive(req: ChatRequest):
                     "Authorization": f"Bearer {OPENAI_API_KEY}",
                     "Content-Type": "application/json"
                 }
-
-                openai_response = await client.post("https://api.openai.com/v1/chat/completions", json=openai_payload, headers=headers)
+                openai_response = await client.post("https://openai.com", json=openai_payload, headers=headers)
                 if openai_response.status_code == 200:
                     openai_data = openai_response.json()
                     reply = openai_data["choices"][0]["message"]["content"]
                     return {"reply": reply, "provider": "openai"}
                 else:
                     raise Exception(f"OpenAI status {openai_response.status_code}")
-
-            except Exception as openai_error:
+            except Exception:
                 raise HTTPException(status_code=500, detail="No se pudo procesar la respuesta con el motor de asesoría.")
 
-@app.post("/api/wellness")
+@app.post("/api/wellness", dependencies=[Depends(verify_active_session)])
 async def process_wellness_routine(req: WellnessRequest):
     return {
         "status": "active",
@@ -98,9 +224,11 @@ async def process_wellness_routine(req: WellnessRequest):
 
 @app.delete("/api/clear")
 async def clear_kernel_memory():
-    global VOLATILE_KERNEL
-    VOLATILE_KERNEL.clear()
+    VOLATILE_KERNEL["session_active"] = False
+    VOLATILE_KERNEL["expires_at"] = 0.0
+    VOLATILE_KERNEL["last_directive"] = None
     return {"status": "cleared", "memory": "zero"}
 
+# Montaje de la carpeta estática para servir el frontend
 if os.path.exists("static"):
     app.mount("/", StaticFiles(directory="static", html=True), name="static")
