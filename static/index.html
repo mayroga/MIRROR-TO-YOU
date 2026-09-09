@@ -5,16 +5,9 @@
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>MIRROR TO YOU</title>
 <style>
-  
-body { font-family: Arial, sans-serif; background: #f4f6f8; padding: 50px; text-align: center; }
-.card { background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); max-width: 400px; margin: auto; }
-input, button { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
-button { background: #0070f3; color: white; border: none; font-weight: bold; cursor: pointer; }
-button:hover { background: #0051a2; }
-  
 :root{--bg-color:#0b0f19;--card-bg:#111827;--accent-color:#38bdf8;--text-main:#f3f4f6;--text-muted:#9ca3af;--border-color:#1f2937;--danger-color:#ef4444}
 *{box-sizing:border-box;margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
-body{background:var(--bg-color);color:var(--text-main);min-height:100vh;display:flex;flex-direction:column;justify-content:space-between;padding:20px}
+body{background:var(--bg-color);color:var(--text-main);min-height:100vh;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:20px}
 #legal-gate{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(11,15,25,.98);display:flex;justify-content:center;align-items:center;z-index:2000;padding:20px}
 .legal-box{background:var(--card-bg);border:1px solid var(--border-color);border-radius:12px;padding:30px;max-width:600px;width:100%;display:flex;flex-direction:column;gap:16px;text-align:center}
 .legal-box h2{color:var(--accent-color);font-size:1.2rem;letter-spacing:1px}
@@ -22,33 +15,25 @@ body{background:var(--bg-color);color:var(--text-main);min-height:100vh;display:
 header{display:flex;justify-content:space-between;align-items:center;max-width:1000px;width:100%;margin:0 auto;padding-bottom:20px;border-bottom:1px solid var(--border-color)}
 .logo{font-size:1.25rem;font-weight:600;letter-spacing:2px;color:var(--accent-color)}
 .controls{display:flex;gap:10px}
-button{background:var(--card-bg);color:var(--text-main);border:1px solid var(--border-color);padding:8px 16px;border-radius:6px;cursor:pointer;font-size:.9rem;transition:all .2s ease}
-button:hover{border-color:var(--accent-color)}
-.btn-danger{color:var(--danger-color);border-color:rgba(239,68,68,.3)}
-.btn-danger:hover{border-color:var(--danger-color)}
-main{max-width:1000px;width:100%;margin:20px auto;display:grid;grid-template-columns:1fr 1fr;gap:20px}
-@media(max-width:768px){main{grid-template-columns:1fr}}
-.panel{background:var(--card-bg);border:1px solid var(--border-color);border-radius:12px;padding:24px;display:flex;flex-direction:column;gap:16px;position:relative}
-.panel h2{font-size:1.1rem;font-weight:500;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px}
-.breathing-container{display:flex;flex-direction:column;align-items:center;gap:12px}
-.breathing-circle{width:140px;height:140px;border:2px solid var(--accent-color);border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:transform 3s ease-in-out;font-size:.9rem;color:var(--accent-color);text-align:center;padding:10px}
-.dynamic-speech-box{background:var(--bg-color);border:1px solid var(--border-color);border-radius:6px;padding:10px;font-size:.9rem;color:var(--accent-color);text-align:center;min-height:55px;display:flex;align-items:center;justify-content:center;font-style:italic}
-.objective-info{background:var(--bg-color);border:1px solid var(--border-color);border-radius:6px;padding:10px;font-size:.85rem;color:var(--text-muted);width:100%;min-height:70px}
-.input-group{display:flex;flex-direction:column;gap:8px}
-textarea{width:100%;background:var(--bg-color);border:1px solid var(--border-color);border-radius:6px;padding:10px;color:var(--text-main);font-size:.95rem;resize:none}
-textarea:focus{outline:none;border-color:var(--accent-color)}
-.output-box{background:var(--bg-color);border:1px solid var(--border-color);border-radius:6px;padding:12px;min-height:140px;font-size:.9rem;color:var(--text-main);white-space:pre-line;overflow-y:auto;max-height:220px}
-.mortals-corner{position:absolute;top:15px;right:15px}
-.mortals-btn{background:var(--bg-color);border:1px solid var(--border-color);font-size:.75rem;padding:4px 8px;color:var(--text-muted)}
-.mortals-modal{display:none;position:absolute;top:35px;right:0;background:var(--bg-color);border:1px solid var(--border-color);border-radius:8px;padding:12px;width:260px;z-index:100;box-shadow:0 4px 12px rgba(0,0,0,.5)}
-.mortals-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px}
-.mortals-grid a,.mortals-grid button{background:var(--card-bg);border:1px solid var(--border-color);color:var(--text-main);font-size:.75rem;padding:6px;text-align:center;text-decoration:none;border-radius:4px;display:flex;align-items:center;justify-content:center;cursor:pointer}
-.mortals-grid a:hover,.mortals-grid button:hover{border-color:var(--accent-color)}
-footer{text-align:center;font-size:.8rem;color:var(--text-muted);padding-top:20px;border-top:1px solid var(--border-color);max-width:1000px;width:100%;margin:0 auto;display:flex;justify-content:space-between;align-items:center}
+input, button { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid var(--border-color); border-radius: 4px; box-sizing: border-box; background: var(--card-bg); color: var(--text-main); }
+button { background: #0070f3; color: white; border: none; font-weight: bold; cursor: pointer; }
+button:hover { background: #0051a2; }
+.card { background: var(--card-bg); padding: 30px; border-radius: 8px; border: 1px solid var(--border-color); box-shadow: 0 4px 6px rgba(0,0,0,0.1); max-width: 400px; width: 100%; margin: auto; text-align: center; }
 #shutdown-overlay{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:#0b0f19;z-index:3000;justify-content:center;align-items:center;text-align:center;padding:20px}
 </style>
 </head>
 <body>
+    <div id="legal-gate">
+        <div class="legal-box">
+            <h2 id="gate-title">AVISO LEGAL Y PROTECCIÓN</h2>
+            <div class="legal-text" id="gate-text">El acceso a esta plataforma implica la aceptación absoluta de nuestros términos de exención de responsabilidad. Este sistema opera exclusivamente como un facilitador de bienestar privado y orientación general de estilo de vida. No proporciona asesoría médica, legal ni financiera. Al presionar el botón de inicio, usted reconoce que utiliza este servicio bajo su propia discreción y soberanía.</div>
+            <div style="display:flex;gap:10px;justify-content:center;margin-top:10px">
+                <button onclick="switchGateLang()" id="gate-lang-btn" style="background:var(--bg-color)">EN / ES</button>
+                <button onclick="startSession()" id="gate-start-btn" style="background:var(--accent-color);color:var(--bg-color);font-weight:600;flex:1">Empezar / Start</button>
+            </div>
+        </div>
+    </div>
+
     <div class="card">
         <h2>Acceso Administrador</h2>
         <form method="POST" action="/login">
@@ -56,7 +41,7 @@ footer{text-align:center;font-size:.8rem;color:var(--text-muted);padding-top:20p
             <input type="password" name="password" placeholder="Password" required>
             <button type="submit">Entrar Gratis</button>
         </form>
-        <hr style="margin: 20px 0;">
+        <hr style="margin: 20px 0; border-color: var(--border-color);">
         <h2>Adquirir Servicio</h2>
         <form method="POST" action="/create-checkout-session">
             <input type="hidden" name="price_id" value="{{ price_id_1 }}">
@@ -67,25 +52,14 @@ footer{text-align:center;font-size:.8rem;color:var(--text-muted);padding-top:20p
             <button type="submit" style="background: #28a745;">Suscripción Mensual ($499)</button>
         </form>
     </div>
-</body>
-<div id="legal-gate">
-<div class="legal-box">
-<h2 id="gate-title">AVISO LEGAL Y PROTECCIÓN</h2>
-<div class="legal-text" id="gate-text">El acceso a esta plataforma implica la aceptación absoluta de nuestros términos de exención de responsabilidad. Este sistema opera exclusivamente como un facilitador de bienestar privado y orientación general de estilo de vida. No proporciona asesoría médica, legal ni financiera. Al presionar el botón de inicio, usted reconoce que utiliza este servicio bajo su propia discreción y soberanía.</div>
-<div style="display:flex;gap:10px;justify-content:center;margin-top:10px">
-<button onclick="switchGateLang()" id="gate-lang-btn" style="background:var(--bg-color)">EN / ES</button>
-<button onclick="startSession()" id="gate-start-btn" style="background:var(--accent-color);color:var(--bg-color);font-weight:600;flex:1">Empezar / Start</button>
-</div>
-</div>
-</div>
 
-<div id="shutdown-overlay">
-<div class="legal-box">
-<h2 id="shut-title">Sesión Finalizada</h2>
-<p id="shut-text" style="color:var(--text-muted);font-size:.9rem">El tiempo límite de 10 minutos ha concluido. La sesión se ha cerrado por seguridad.</p>
-<button onclick="location.reload()" id="shut-btn" style="background:var(--accent-color);color:var(--bg-color);font-weight:600;margin-top:10px">Reiniciar Sesión</button>
-</div>
-</div>
+    <div id="shutdown-overlay">
+        <div class="legal-box">
+            <h2 id="shut-title">Sesión Finalizada</h2>
+            <p id="shut-text" style="color:var(--text-muted);font-size:.9rem">El tiempo límite de 10 minutos ha concluido. La sesión se ha cerrado por seguridad.</p>
+            <button onclick="location.reload()" id="shut-btn" style="background:var(--accent-color);color:var(--bg-color);font-weight:600;margin-top:10px">Reiniciar Sesión</button>
+        </div>
+    </div>
 
 <header>
 <div class="logo" id="app-title">MIRROR TO YOU</div>
