@@ -169,4 +169,4 @@ async def clear_kernel_memory():
     return {"status": "cleared", "memory": "zero"}
 
 if os.path.exists("static"):
-    app.mount("/", StaticFiles(directory="static", html=True), name="static")
+    app.mount("/static", StaticFiles(directory="static"), name="static")
