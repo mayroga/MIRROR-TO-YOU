@@ -54,19 +54,20 @@ class StripeSessionRequest(BaseModel):
 # Dependencia de seguridad: Bloquea cualquier endpoint si la sesión no está activa o expiró
 def verify_active_session():
     current_time = time.time()
-    if not VOLATILE_KERNEL["session_active"]:
+    if not VOLATILE_KERNEL.get("session_active", False):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Acceso denegado. No hay ninguna sesión activa o pagada."
         )
-    if current_time > VOLATILE_KERNEL["expires_at"]:
-        # Cierre absoluto del sistema al expirar el tiempo
-        VOLATILE_KERNEL["session_active"] = False
-        VOLATILE_KERNEL["expires_at"] = 0.0
-        raise HTTPException(
-            status_code=status.HTTP_408_REQUEST_TIMEOUT,
-            detail="La sesión de 10 minutos ha expirado por completo. Todo el servicio queda bloqueado."
-        )
+    # Si NO es usuario premium ($499), evaluar estrictamente el límite de 10 minutos
+    if not VOLATILE_KERNEL.get("is_premium", False):
+        if current_time > VOLATILE_KERNEL.get("expires_at", 0.0):
+            VOLATILE_KERNEL["session_active"] = False
+            VOLATILE_KERNEL["expires_at"] = 0.0
+            raise HTTPException(
+                status_code=status.HTTP_408_REQUEST_TIMEOUT,
+                detail="La sesión de 10 minutos ha expirado por completo. Todo el servicio queda bloqueado."
+            )
 
 # 1. Endpoint de Autenticación por Username y Password
 @app.post("/api/auth/login")
@@ -74,6 +75,7 @@ async def admin_login(req: LoginRequest):
     if req.username == ADMIN_USERNAME and req.password == ADMIN_PASSWORD:
         # Activa la sesión inmediatamente por 10 minutos (600 segundos)
         VOLATILE_KERNEL["session_active"] = True
+        VOLATILE_KERNEL["is_premium"] = False
         VOLATILE_KERNEL["expires_at"] = time.time() + 600.0
         return {
             "status": "success",
@@ -90,13 +92,11 @@ async def admin_login(req: LoginRequest):
 async def create_checkout_session(req: StripeSessionRequest, request: Request):
     # Selección de Price ID según la opción del cliente
     price_id = STRIPE_PRICE_ID1 if req.price_tier == 1 else STRIPE_PRICE_ID2
-    
     if not price_id:
         raise HTTPException(status_code=500, detail="ID de precio de Stripe no configurado en el servidor.")
     
     # Obtener el dominio base dinámicamente para soportar Render o localhost
     origin = request.headers.get("origin") or f"http://{request.headers.get('host')}"
-    
     try:
         checkout_session = stripe.checkout.Session.create(
             payment_method_types=['card'],
@@ -107,6 +107,7 @@ async def create_checkout_session(req: StripeSessionRequest, request: Request):
             mode='payment',
             success_url=f"{origin}/?stripe_status=success",
             cancel_url=f"{origin}/?stripe_status=cancel",
+            metadata={"tier": str(req.price_tier)}  # Guardamos de forma segura el plan comprado
         )
         return {"url": checkout_session.url}
     except Exception as e:
@@ -117,7 +118,6 @@ async def create_checkout_session(req: StripeSessionRequest, request: Request):
 async def stripe_webhook(request: Request):
     payload = await request.body()
     sig_header = request.headers.get("stripe-signature")
-    
     try:
         event = stripe.Webhook.construct_event(
             payload, sig_header, STRIPE_WEBHOOK_SECRET
@@ -126,27 +126,46 @@ async def stripe_webhook(request: Request):
         raise HTTPException(status_code=400, detail="Payload inválido")
     except stripe.error.SignatureVerificationError:
         raise HTTPException(status_code=400, detail="Firma de webhook inválida")
-        
-    # Si el pago se procesó de forma exitosa, se concede acceso al servicio
+    
+    # Si el pago se procesó de forma exitosa, se concede acceso según los metadatos del tier comprado
     if event['type'] == 'checkout.session.completed':
+        session = event['data']['object']
+        tier = session.get('metadata', {}).get('tier', '1')
+        
         VOLATILE_KERNEL["session_active"] = True
-        VOLATILE_KERNEL["expires_at"] = time.time() + 600.0  # 10 minutos exactos de reloj
-
-    return {"status": "success"}
+        if tier == "2":
+            # Plan Premium de $499: Acceso ilimitado por 30 días (2592000 segundos)
+            VOLATILE_KERNEL["is_premium"] = True
+            VOLATILE_KERNEL["expires_at"] = time.time() + 2592000.0
+        else:
+            # Plan Estándar de $200: Acceso tradicional por 10 minutos
+            VOLATILE_KERNEL["is_premium"] = False
+            VOLATILE_KERNEL["expires_at"] = time.time() + 600.0
+            
+        return {"status": "success"}
 
 # 4. Verificación de Estado de la Sesión Actual (Utilizado por el frontend)
 @app.get("/api/auth/session-status")
 async def get_session_status():
     current_time = time.time()
-    if VOLATILE_KERNEL["session_active"] and current_time <= VOLATILE_KERNEL["expires_at"]:
+    session_active = VOLATILE_KERNEL.get("session_active", False)
+    is_premium = VOLATILE_KERNEL.get("is_premium", False)
+    expires_at = VOLATILE_KERNEL.get("expires_at", 0.0)
+    
+    # Si está activo y es Premium de 30 días, o si el pase de 10 minutos sigue vigente
+    if session_active and (is_premium or current_time <= expires_at):
+        time_left = max(0, int(expires_at - current_time)) if not is_premium else 2592000
         return {
             "active": True,
-            "time_left": max(0, int(VOLATILE_KERNEL["expires_at"] - current_time))
+            "is_premium": is_premium,
+            "time_left": time_left
         }
-    # Asegura la limpieza si el tiempo ya pasó
+    
+    # Asegura la limpieza total de estados si expiró el tiempo del pase corto
     VOLATILE_KERNEL["session_active"] = False
+    VOLATILE_KERNEL["is_premium"] = False
     VOLATILE_KERNEL["expires_at"] = 0.0
-    return {"active": False, "time_left": 0}
+    return {"active": False, "is_premium": False, "time_left": 0}
 
 # =====================================================================
 # Endpoints Protegidos de la Aplicación (Requieren verify_active_session)
