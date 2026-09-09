@@ -1,9 +1,12 @@
+// =====================================================================
+// 1. CONTROL DE ESTADO GLOBAL E INICIALIZACIÓN DE SEGURIDAD
+// =====================================================================
 let currentLang = 'es';
 let voiceEnabled = false;
 let currentModeInterval = null;
 let phraseInterval = null;
 let sessionTimer = null;
-let timeLeft = 600; // 10 minutos en segundos
+let timeLeft = 600; // 10 minutos
 let conversationMemory = [];
 const MAX_MEMORY_TURNS = 15;
 
@@ -15,21 +18,24 @@ const randomMapsLinks = [
     "https://google.com"
 ];
 
-// Al cargar la ventana, verifica si el usuario regresa de un pago exitoso de Stripe
-window.onload = async () => {
+// EJECUCIÓN INMEDIATA: Bloquea visualmente la pantalla antes de procesar el resto del script
+document.addEventListener("DOMContentLoaded", () => {
+    // Asegurar estados iniciales estrictos para evitar fugas de interfaz
+    document.getElementById('appInterface').style.display = 'none';
+    document.getElementById('shutdown-overlay').style.display = 'none';
+    document.getElementById('paywallModal').style.display = 'flex';
+    
+    // Validar si existe sesión previa activa en el servidor de Render
     const urlParams = new URLSearchParams(window.location.search);
     const stripeStatus = urlParams.get('stripe_status');
     
     if (stripeStatus === 'success') {
-        // Limpia la barra de direcciones para estética visual
         window.history.replaceState({}, document.title, "/");
-        await runLiveSessionVerification();
-    } else {
-        await runLiveSessionVerification();
     }
-};
+    runLiveSessionVerification();
+});
 
-// Monitoreo en tiempo real del estado de la sesión volátil en el backend
+// Verificación asíncrona de validez de sesión con el backend
 async function runLiveSessionVerification() {
     try {
         const response = await fetch('/api/auth/session-status');
@@ -38,20 +44,26 @@ async function runLiveSessionVerification() {
         if (status.active && status.time_left > 0) {
             timeLeft = status.time_left;
             document.getElementById('paywallModal').style.display = 'none';
+            document.getElementById('shutdown-overlay').style.display = 'none';
             document.getElementById('appInterface').style.display = 'flex';
             startSessionTimer();
         } else {
-            // Cierre estricto: Oculta la app y fuerza el muro de pago
-            document.getElementById('appInterface').style.display = 'none';
-            document.getElementById('paywallModal').style.display = 'flex';
+            forceAbsoluteLockout();
         }
     } catch (e) {
-        document.getElementById('appInterface').style.display = 'none';
-        document.getElementById('paywallModal').style.display = 'flex';
+        forceAbsoluteLockout();
     }
 }
 
-// Ejecución del login por credenciales administrativas
+function forceAbsoluteLockout() {
+    document.getElementById('appInterface').style.display = 'none';
+    document.getElementById('shutdown-overlay').style.display = 'none';
+    document.getElementById('paywallModal').style.display = 'flex';
+}
+
+// =====================================================================
+// 2. PASARELAS DE ACCESO PRIVADO (STRIPE Y LOGIN ADMINISTRATIVO)
+// =====================================================================
 async function executeAdminLogin() {
     const userIn = document.getElementById('loginUsername').value.trim();
     const passIn = document.getElementById('loginPassword').value.trim();
@@ -77,7 +89,6 @@ async function executeAdminLogin() {
     }
 }
 
-// Redirección segura hacia Checkout de Stripe
 async function triggerStripePayment(tier) {
     try {
         const response = await fetch('/api/stripe/create-checkout', {
@@ -94,6 +105,9 @@ async function triggerStripePayment(tier) {
     }
 }
 
+// =====================================================================
+// 3. CONTROL DE TIEMPO VOLÁTIL (TEMPORIZADORES DE CIERRE ABSOLUTO)
+// =====================================================================
 function startSessionTimer() {
     if (sessionTimer) clearInterval(sessionTimer);
     sessionTimer = setInterval(async () => {
@@ -102,11 +116,15 @@ function startSessionTimer() {
         let s = timeLeft % 60;
         document.getElementById('timer-display').innerText = `${m}:${s < 10 ? '0' : ''}${s}`;
         
-        // Cada 15 segundos valida el estado real con el backend para evitar alteraciones en el cliente
+        // Sincronizar el reloj del navegador de forma periódica con Render
         if (timeLeft % 15 === 0) {
-            const check = await fetch('/api/auth/session-status');
-            const data = await check.json();
-            if (!data.active) timeLeft = 0;
+            try {
+                const check = await fetch('/api/auth/session-status');
+                const data = await check.json();
+                if (!data.active) timeLeft = 0;
+            } catch (err) {
+                timeLeft = 0;
+            }
         }
 
         if (timeLeft <= 0) {
@@ -115,8 +133,9 @@ function startSessionTimer() {
             if (phraseInterval) clearInterval(phraseInterval);
             if ('speechSynthesis' in window) window.speechSynthesis.cancel();
             
-            // Cierre total instantáneo de la App
+            // Cierre total instantáneo e irreversible de funciones en pantalla
             document.getElementById('appInterface').style.display = 'none';
+            document.getElementById('paywallModal').style.display = 'none';
             document.getElementById('shutdown-overlay').style.display = 'flex';
         }
     }, 1000);
@@ -128,7 +147,9 @@ function closeSession() {
     });
 }
 
-// Código base de Mirror to You preservado de manera idéntica
+// =====================================================================
+// 4. FUNCIONALIDADES OPERATIVAS DE BIENESTAR Y NAVEGACIÓN PRIVADA
+// =====================================================================
 function updateMapsLink() {
     document.getElementById('m-maps').href = randomMapsLinks[Math.floor(Math.random() * randomMapsLinks.length)];
 }
@@ -154,7 +175,8 @@ const verifiedStreams = [
     "https://youtube.com",
     "https://youtube.com"
 ];
-let usedIndices = [], streamIndex = 0;
+let streamIndex = 0;
+let usedIndices = [];
 
 function getSmartPhrase() {
     const list = masterPhrases[currentLang];
@@ -191,10 +213,11 @@ function updateTexts() {
     document.getElementById('btn-help').innerText = currentLang === 'es' ? '🤝Ayúdame' : '🤝 Help Me';
     document.getElementById('btn-send').innerText = currentLang === 'es' ? 'Enviar Conversación' : 'Send Conversation';
 }
-
 function toggleVoiceGuide() {
     voiceEnabled = !voiceEnabled;
-    document.getElementById('audio-btn').innerText = voiceEnabled ? (currentLang === 'es' ? '🔊 Voz: ON' : '🔊 Voice: ON') : (currentLang === 'es' ? '🔊 Voz: OFF' : '🔊 Voice: OFF');
+    document.getElementById('audio-btn').innerText = voiceEnabled ? 
+        (currentLang === 'es' ? '🔊 Voz: ON' : '🔊 Voice: ON') : 
+        (currentLang === 'es' ? '🔊 Voz: OFF' : '🔊 Voice: OFF');
     if (voiceEnabled) speak(currentLang === 'es' ? 'Guía por voz activada.' : 'Voice guide activated.');
 }
 
@@ -210,7 +233,10 @@ function speak(text) {
 function setBreathingMode(mode) {
     if (currentModeInterval) clearInterval(currentModeInterval);
     if (phraseInterval) clearInterval(phraseInterval);
-    const speechBox = document.getElementById('dynamic-speech'), initialPhrase = getSmartPhrase();
+    
+    const speechBox = document.getElementById('dynamic-speech'),
+          initialPhrase = getSmartPhrase();
+          
     speechBox.innerText = initialPhrase;
     speak(initialPhrase);
     
@@ -220,38 +246,37 @@ function setBreathingMode(mode) {
         speak(nextPhrase);
     }, 15000);
     
-const circle = document.getElementById('b-circle'),
-      phase = document.getElementById('b-phase'),
-      counter = document.getElementById('b-counter');
-
-let step = 0;
-
-const sequence = [
-    { text: currentLang === 'es' ? 'Inhalar' : 'Inhale', scale: 'scale(1.3)', time: 4 },
-    { text: currentLang === 'es' ? 'Retener' : 'Hold', scale: 'scale(1.3)', time: 4 },
-    { text: currentLang === 'es' ? 'Exhalar' : 'Exhale', scale: 'scale(1)', time: 4 }
-];
-
-function runStep() {
-    if (timeLeft <= 0) return;
-    const current = sequence[step % sequence.length];
-    phase.innerText = current.text;
-    circle.style.transform = current.scale;
-    let t = current.time;
-    counter.innerText = `${t}s`;
+    const circle = document.getElementById('b-circle'),
+          phase = document.getElementById('b-phase'),
+          counter = document.getElementById('b-counter');
+          
+    let step = 0;
+    const sequence = [
+        { text: currentLang === 'es' ? 'Inhalar' : 'Inhale', scale: 'scale(1.3)', time: 4 },
+        { text: currentLang === 'es' ? 'Retener' : 'Hold', scale: 'scale(1.3)', time: 4 },
+        { text: currentLang === 'es' ? 'Exhalar' : 'Exhale', scale: 'scale(1)', time: 4 }
+    ];
     
-    currentModeInterval = setInterval(() => {
-        t--;
+    function runStep() {
+        if (timeLeft <= 0) return;
+        const current = sequence[step % sequence.length];
+        phase.innerText = current.text;
+        circle.style.transform = current.scale;
+        let t = current.time;
         counter.innerText = `${t}s`;
-        if (t <= 0) {
-            clearInterval(currentModeInterval);
-            step++;
-            runStep();
-        }
-    }, 1000);
+        
+        currentModeInterval = setInterval(() => {
+            t--;
+            counter.innerText = `${t}s`;
+            if (t <= 0) {
+                clearInterval(currentModeInterval);
+                step++;
+                runStep();
+            }
+        }, 1000);
+    }
+    runStep();
 }
-
-runStep();
 
 function startChallenge60() {
     if (currentModeInterval) clearInterval(currentModeInterval);
@@ -319,8 +344,6 @@ function handleNoIdea() {
     resolveTravelDirective();
 }
 
-// Corregido: Removida la llave huérfana de cierre que rompía el script aquí.
-
 function handleHelpMe() {
     const inputField = document.getElementById('travel-input');
     inputField.value = currentLang === 'es' ? "Ayúdame a encontrar la mejor opción de bienestar y estabilidad." : "Help me find the best wellness and stability option.";
@@ -377,3 +400,4 @@ function toggleMortalsDrawer() {
     drawer.style.display = drawer.style.display === 'block' ? 'none' : 'block';
     updateMapsLink();
 }
+
