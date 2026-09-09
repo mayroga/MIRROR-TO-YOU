@@ -88,6 +88,7 @@ async def admin_login(req: LoginRequest):
     )
 
 # 2. Endpoints de Stripe: Creación de Checkout Session
+# 2. Endpoints de Stripe: Creación de Checkout Session (Actualizado con modo Suscripción dinámico)
 @app.post("/api/stripe/create-checkout")
 async def create_checkout_session(req: StripeSessionRequest, request: Request):
     # Selección de Price ID según la opción del cliente
@@ -97,6 +98,10 @@ async def create_checkout_session(req: StripeSessionRequest, request: Request):
     
     # Obtener el dominio base dinámicamente para soportar Render o localhost
     origin = request.headers.get("origin") or f"http://{request.headers.get('host')}"
+    
+    # REGLA DE NEGOCIO: Si el tier es 1 es un Pago Único ('payment'). Si es tier 2 es Suscripción Mensual ('subscription').
+    stripe_mode = 'payment' if req.price_tier == 1 else 'subscription'
+    
     try:
         checkout_session = stripe.checkout.Session.create(
             payment_method_types=['card'],
@@ -104,7 +109,7 @@ async def create_checkout_session(req: StripeSessionRequest, request: Request):
                 'price': price_id,
                 'quantity': 1,
             }],
-            mode='payment',
+            mode=stripe_mode,  # <-- Configuración dinámica crucial para habilitar los $499
             success_url=f"{origin}/?stripe_status=success",
             cancel_url=f"{origin}/?stripe_status=cancel",
             metadata={"tier": str(req.price_tier)}  # Guardamos de forma segura el plan comprado
