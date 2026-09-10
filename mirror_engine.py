@@ -185,8 +185,12 @@ async def get_session_status():
 @app.post("/api/chat", dependencies=[Depends(verify_active_session)])
 async def process_chat_directive(req: ChatRequest):
     global VOLATILE_KERNEL
+    
+    # 1. Validación de seguridad e impresión de depuración en la consola de Render
     if req.messages:
         VOLATILE_KERNEL["last_directive"] = req.messages[-1].content
+    else:
+        raise HTTPException(status_code=400, detail="El historial de mensajes viene vacío.")
         
     system_prompt = (
         "Eres un asesor experto de bienestar y estilo de vida. Mantén el hilo de la conversación, sé conciso, directo, empático y guía al usuario paso a paso sin perder la coherencia de las preguntas anteriores."
@@ -195,40 +199,50 @@ async def process_chat_directive(req: ChatRequest):
     )
     
     async with httpx.AsyncClient(timeout=30.0) as client:
-        # Intento primario con Gemini
-        try:
-            formatted_contents = []
-            for msg in req.messages:
-                role_clean = str(msg.role).lower().strip()
-                gemini_role = "user" if role_clean in ["user", "usuario"] else "model"
-                formatted_contents.append({
-                    "role": gemini_role,
-                    "parts": [{"text": msg.content}]
-                })
-            
-            gemini_url = f"https://googleapis.com{GEMINI_API_KEY}"
-            payload = {
-                "system_instruction": {"parts": [{"text": system_prompt}]},
-                "contents": formatted_contents
-            }
-            
-            response = await client.post(gemini_url, json=payload)
-            if response.status_code == 200:
-                data = response.json()
-                # CORRECCIÓN DE EXTRACCIÓN CRÍTICA: Se vuelven a añadir los índices [0] correctos de la API de Google
-                reply = data["candidates"][0]["content"]["parts"][0]["text"]
-                return {"reply": reply, "provider": "gemini"}
-            else:
-                raise Exception(f"Gemini status {response.status_code}")
+        # -----------------------------------------------------------------
+        # INTENTO PRIMARIO: Google Gemini API (Estructura Blindada)
+        # -----------------------------------------------------------------
+        if GEMINI_API_KEY:
+            try:
+                formatted_contents = []
+                for msg in req.messages:
+                    role_clean = str(msg.role).lower().strip()
+                    # Regla estricta de Gemini: O es "user" o es "model"
+                    gemini_role = "user" if role_clean in ["user", "usuario"] else "model"
+                    formatted_contents.append({
+                        "role": gemini_role,
+                        "parts": [{"text": str(msg.content)}]
+                    })
                 
-        except Exception:
-            # Conmutación de contingencia automática a OpenAI si falla Gemini
+                gemini_url = f"https://googleapis.com{GEMINI_API_KEY}"
+                payload = {
+                    "system_instruction": {"parts": [{"text": system_prompt}]},
+                    "contents": formatted_contents
+                }
+                
+                response = await client.post(gemini_url, json=payload)
+                
+                if response.status_code == 200:
+                    data = response.json()
+                    # Extracción segura usando índices numéricos verificados de la API de Google
+                    reply = data["candidates"][0]["content"]["parts"][0]["text"]
+                    return {"reply": reply, "provider": "gemini"}
+                else:
+                    print(f"[REPORTE GEMINI] Error de servidor API externo. Código: {response.status_code}. Respuesta: {response.text}")
+            except Exception as e:
+                print(f"[REPORTE GEMINI] Error crítico interno en el procesamiento: {str(e)}")
+
+        # -----------------------------------------------------------------
+        # CONMUTACIÓN DE CONTINGENCIA: OpenAI GPT-4o-mini (Estructura Blindada)
+        # -----------------------------------------------------------------
+        if OPENAI_API_KEY:
             try:
                 openai_messages = [{"role": "system", "content": system_prompt}]
                 for msg in req.messages:
                     role_clean = str(msg.role).lower().strip()
+                    # Regla estricta de OpenAI: O es "user" o es "assistant"
                     openai_role = "user" if role_clean in ["user", "usuario"] else "assistant"
-                    openai_messages.append({"role": openai_role, "content": msg.content})
+                    openai_messages.append({"role": openai_role, "content": str(msg.content)})
                 
                 openai_payload = {
                     "model": "gpt-4o-mini",
@@ -248,10 +262,17 @@ async def process_chat_directive(req: ChatRequest):
                     reply = openai_data["choices"][0]["message"]["content"]
                     return {"reply": reply, "provider": "openai"}
                 else:
-                    raise Exception(f"OpenAI status {openai_response.status_code}")
-                    
-            except Exception:
-                raise HTTPException(status_code=500, detail="No se pudo procesar la respuesta con el motor de asesoría.")
+                    print(f"[REPORTE OPENAI] Error de servidor API externo. Código: {openai_response.status_code}. Respuesta: {openai_response.text}")
+            except Exception as e:
+                print(f"[REPORTE OPENAI] Error crítico interno en el procesamiento: {str(e)}")
+
+        # -----------------------------------------------------------------
+        # CIERRE DE SEGURIDAD EN CASO DE APAGÓN DE LLAVES DE IA
+        # -----------------------------------------------------------------
+        raise HTTPException(
+            status_code=500, 
+            detail="Fallo de conexión en ambos proveedores (Gemini/OpenAI). Verifica tus variables de entorno en Render."
+        )
 
 @app.post("/api/wellness", dependencies=[Depends(verify_active_session)])
 async def process_wellness_routine(req: WellnessRequest):
