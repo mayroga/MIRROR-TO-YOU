@@ -199,85 +199,49 @@ async def process_chat_directive(req: ChatRequest):
     
     # SEGUNDOS MÁXIMOS DE ESPERA ELEVADOS: Otorga un colchón masivo de procesamiento sin interrupciones
     async with httpx.AsyncClient(timeout=60.0) as client:
-        # -----------------------------------------------------------------
-        # INTENTO PRIMARIO: Google Gemini API (Estructura Fiel con Índices Correctos)
-        # -----------------------------------------------------------------
-        if GEMINI_API_KEY and str(GEMINI_API_KEY).strip() != "":
-            try:
-                formatted_contents = []
-                for msg in req.messages:
-                    # Normalización estricta para evitar que falle en inglés por variaciones de rol
-                    role_clean = str(msg.role).lower().strip()
-                    gemini_role = "user" if role_clean in ["user", "usuario"] else "model"
-                    formatted_contents.append({
-                        "role": gemini_role,
-                        "parts": [{"text": msg.content}]
-                    })
-                
-                # ENLACE OFICIAL FIJO: Dirección correcta para la API de Gemini
-                gemini_url = f"https://googleapis.com{GEMINI_API_KEY.strip()}"
-                payload = {
-                    "system_instruction": {"parts": [{"text": system_prompt}]},
-                    "contents": formatted_contents
-                }
-                
-                response = await client.post(gemini_url, json=payload)
-                if response.status_code == 200:
-                    data = response.json()
-                    # Extracción exacta usando tus índices numéricos de lista nativos de tu código funcional
-                    reply = data["candidates"][0]["content"]["parts"][0]["text"]
-                    # ANONIMATO ABSOLUTO: Se elimina la clave "provider" para ocultar la tecnología
-                    return {"reply": reply}
-                else:
-                    print(f"[REPORTE INTERNO] Código de respuesta de canal primario: {response.status_code}")
-            except Exception as e:
-                print(f"[REPORTE INTERNO] Excepción de canal primario: {str(e)}")
-
-        # -----------------------------------------------------------------
-        # CONMUTACIÓN DE CONTINGENCIA: OpenAI GPT-4o-mini (Estructura Fiel con Índices Correctos)
-        # -----------------------------------------------------------------
-        if OPENAI_API_KEY and str(OPENAI_API_KEY).strip() != "":
+        try:
+            formatted_contents = []
+            for msg in req.messages:
+                gemini_role = "user" if msg.role == "user" else "model"
+                formatted_contents.append({
+                    "role": gemini_role,
+                    "parts": [{"text": msg.content}]
+                })
+            gemini_url = f"https://googleapis.com{GEMINI_API_KEY}"
+            payload = {
+                "system_instruction": {"parts": [{"text": system_prompt}]},
+                "contents": formatted_contents
+            }
+            response = await client.post(gemini_url, json=payload)
+            if response.status_code == 200:
+                data = response.json()
+                reply = data["candidates"]["content"]["parts"]["text"]
+                return {"reply": reply}
+            else:
+                raise Exception(f"Gemini status {response.status_code}")
+        except Exception as gemini_error:
             try:
                 openai_messages = [{"role": "system", "content": system_prompt}]
                 for msg in req.messages:
-                    role_clean = str(msg.role).lower().strip()
-                    openai_role = "user" if role_clean in ["user", "usuario"] else "assistant"
-                    openai_messages.append({"role": openai_role, "content": msg.content})
-                
+                    openai_messages.append({"role": msg.role, "content": msg.content})
                 openai_payload = {
                     "model": "gpt-4o-mini",
                     "messages": openai_messages,
                     "temperature": 0.7
                 }
                 headers = {
-                    "Authorization": f"Bearer {OPENAI_API_KEY.strip()}",
+                    "Authorization": f"Bearer {OPENAI_API_KEY}",
                     "Content-Type": "application/json"
                 }
-                
-                # ENLACE OFICIAL FIJO: Dirección correcta para el endpoint de OpenAI
-                openai_url = "https://openai.com"
-                openai_response = await client.post(openai_url, json=openai_payload, headers=headers)
+                openai_response = await client.post("https://openai.com", json=openai_payload, headers=headers)
                 if openai_response.status_code == 200:
                     openai_data = openai_response.json()
-                    # Extracción exacta usando tus índices numéricos de lista nativos de tu código funcional
-                    reply = openai_data["choices"][0]["message"]["content"]
-                    # ANONIMATO ABSOLUTO: Se elimina la clave "provider" para que no quede rastro tecnológico
+                    reply = openai_data["choices"]["message"]["content"]
                     return {"reply": reply}
                 else:
-                    print(f"[REPORTE INTERNO] Código de respuesta de canal secundario: {openai_response.status_code}")
-            except Exception as e:
-                print(f"[REPORTE INTERNO] Excepción de canal secundario: {str(e)}")
-
-        # -----------------------------------------------------------------
-        # RETORNO HUMANO CONTROLADO: Sustituye el viejo raise HTTPException
-        # -----------------------------------------------------------------
-        # Si las APIs externas fallan o las llaves no tienen fondos, se devuelve cortesía en vez de romper el frontend
-        fallback_msg = (
-            "Estoy procesando la información de su perfil con el máximo nivel de detalle. Por favor, reenvíe su última consulta para asegurar una orientación estratégica completamente precisa."
-            if req.lang == "es"
-            else "I am currently processing your profile details with the utmost care. Please re-send your last message to ensure an entirely precise guidance."
-        )
-        return {"reply": fallback_msg}
+                    raise Exception(f"OpenAI status {openai_response.status_code}")
+            except Exception as openai_error:
+                raise HTTPException(status_code=500, detail="No se pudo procesar la respuesta con el motor de asesoría.")
 
 @app.post("/api/wellness", dependencies=[Depends(verify_active_session)])
 async def process_wellness_routine(req: WellnessRequest):
