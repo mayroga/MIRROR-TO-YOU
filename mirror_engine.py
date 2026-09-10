@@ -225,7 +225,7 @@ async def process_chat_directive(req: ChatRequest):
                 if response.status_code == 200:
                     data = response.json()
                     # Extracción exacta usando tus índices numéricos de lista nativos de tu código funcional
-                    reply = data["candidates"]["content"]["parts"]["text"]
+                    reply = data["candidates"][0]["content"]["parts"][0]["text"]
                     # ANONIMATO ABSOLUTO: Se elimina la clave "provider" para ocultar la tecnología
                     return {"reply": reply}
                 else:
@@ -260,8 +260,8 @@ async def process_chat_directive(req: ChatRequest):
                 if openai_response.status_code == 200:
                     openai_data = openai_response.json()
                     # Extracción exacta usando tus índices numéricos de lista nativos de tu código funcional
-                    reply = openai_data["choices"]["message"]["content"]
-                    # ANONIMATO ABSOLUTO: Se elimina la clave "provider" para ocultar la tecnología
+                    reply = openai_data["choices"][0]["message"]["content"]
+                    # ANONIMATO ABSOLUTO: Se elimina la clave "provider" para que no quede rastro tecnológico
                     return {"reply": reply}
                 else:
                     print(f"[REPORTE INTERNO] Código de respuesta de canal secundario: {openai_response.status_code}")
