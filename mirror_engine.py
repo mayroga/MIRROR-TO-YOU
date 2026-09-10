@@ -6,15 +6,10 @@ from fastapi import FastAPI, HTTPException, Request, Depends, status
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 from typing import List
-
 app = FastAPI(title="MIRROR TO YOU", version="2.2.0")
-
 # =========================================================
-
 # CONFIGURACIÓN
-
 # =========================================================
-
 ADMIN_USERNAME = os.getenv("ADMIN_USERNAME")
 ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD")
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
@@ -24,26 +19,18 @@ stripe.api_key = os.getenv("STRIPE_SECRET_KEY")
 STRIPE_WEBHOOK_SECRET = os.getenv("STRIPE_WEBHOOK_SECRET")
 STRIPE_PRICE_ID1 = os.getenv("STRIPE_PRICE_ID1")
 STRIPE_PRICE_ID2 = os.getenv("STRIPE_PRICE_ID2")
-
 # =========================================================
-
 # KERNEL DE SESIÓN EN MEMORIA
-
-# =========================================================
-
+# ========================================================
 VOLATILE_KERNEL = {
 "session_active": False,
 "expires_at": 0.0,
 "is_premium": False,
 "last_directive": None
 }
-
 # =========================================================
-
 # MODELOS
-
 # =========================================================
-
 class LoginRequest(BaseModel):
 username: str
 password: str
@@ -62,17 +49,13 @@ duration_seconds: int = 60
 
 class StripeSessionRequest(BaseModel):
 price_tier: int
-
 # =========================================================
-
 # SEGURIDAD DE SESIÓN
-
 # =========================================================
 
 def verify_active_session():
 now = time.time()
 
-```
 if not VOLATILE_KERNEL.get("session_active"):
     raise HTTPException(
         status_code=status.HTTP_403_FORBIDDEN,
@@ -90,12 +73,8 @@ if not VOLATILE_KERNEL.get("is_premium"):
             status_code=status.HTTP_408_REQUEST_TIMEOUT,
             detail="The 10-minute session has expired."
         )
-```
-
 # =========================================================
-
 # ADMIN LOGIN
-
 # =========================================================
 
 @app.post("/api/auth/login")
@@ -113,17 +92,12 @@ return {
 "expires_at": VOLATILE_KERNEL["expires_at"]
 }
 
-```
 raise HTTPException(
     status_code=status.HTTP_401_UNAUTHORIZED,
     detail="Invalid credentials."
 )
-```
-
 # =========================================================
-
 # STRIPE CHECKOUT
-
 # =========================================================
 
 @app.post("/api/stripe/create-checkout")
@@ -134,7 +108,6 @@ request: Request
 if req.price_tier not in (1, 2):
 raise HTTPException(status_code=400, detail="Invalid price tier.")
 
-```
 price_id = STRIPE_PRICE_ID1 if req.price_tier == 1 else STRIPE_PRICE_ID2
 
 if not price_id:
@@ -170,12 +143,8 @@ except Exception as e:
         status_code=500,
         detail="Unable to create Stripe checkout session."
     )
-```
-
 # =========================================================
-
 # STRIPE WEBHOOK
-
 # =========================================================
 
 @app.post("/api/stripe/webhook")
@@ -183,7 +152,6 @@ async def stripe_webhook(request: Request):
 payload = await request.body()
 signature = request.headers.get("stripe-signature")
 
-```
 try:
     event = stripe.Webhook.construct_event(
         payload,
@@ -212,12 +180,8 @@ if event["type"] == "checkout.session.completed":
     return {"status": "success"}
 
 return {"status": "event_unhandled"}
-```
-
 # =========================================================
-
 # ESTADO DE SESIÓN
-
 # =========================================================
 
 @app.get("/api/auth/session-status")
@@ -227,7 +191,6 @@ active = VOLATILE_KERNEL.get("session_active", False)
 premium = VOLATILE_KERNEL.get("is_premium", False)
 expires = VOLATILE_KERNEL.get("expires_at", 0.0)
 
-```
 if active and (premium or now <= expires):
     return {
         "active": True,
@@ -246,12 +209,8 @@ return {
     "is_premium": False,
     "time_left": 0
 }
-```
-
 # =========================================================
-
 # GEMINI — ÚNICO MOTOR DE IA
-
 # =========================================================
 
 @app.post("/api/chat", dependencies=[Depends(verify_active_session)])
@@ -262,7 +221,6 @@ status_code=400,
 detail="The message history is empty."
 )
 
-```
 VOLATILE_KERNEL["last_directive"] = req.messages[-1].content
 
 system_prompt = (
@@ -348,12 +306,8 @@ except Exception as e:
             "I am processing your request. Please try again."
         )
     }
-```
-
 # =========================================================
-
 # WELLNESS
-
 # =========================================================
 
 @app.post("/api/wellness", dependencies=[Depends(verify_active_session)])
@@ -364,11 +318,8 @@ return {
 "rhythm": "synchronized",
 "message": "Volatile anti-stress routine initiated."
 }
-
 # =========================================================
-
 # LIMPIAR SESIÓN
-
 # =========================================================
 
 @app.delete("/api/clear")
@@ -383,11 +334,8 @@ return {
 "status": "cleared",
 "memory": "zero"
 }
-
 # =========================================================
-
 # FRONTEND
-
 # =========================================================
 
 if os.path.exists("static"):
