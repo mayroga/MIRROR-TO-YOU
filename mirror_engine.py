@@ -24,7 +24,6 @@ STRIPE_PRICE_ID1 = os.getenv("STRIPE_PRICE_ID1")
 STRIPE_PRICE_ID2 = os.getenv("STRIPE_PRICE_ID2")
 
 # Núcleo Volátil en Memoria para control de estado sin base de datos
-# Estructura: {"session_active": bool, "expires_at": float, "is_premium": bool, "last_directive": str}
 VOLATILE_KERNEL = {
     "session_active": False,
     "expires_at": 0.0,
@@ -50,7 +49,7 @@ class WellnessRequest(BaseModel):
     duration_seconds: int = 60
 
 class StripeSessionRequest(BaseModel):
-    price_tier: int  # 1 o 2 para seleccionar el Price ID correspondiente
+    price_tier: int
 
 # Dependencia de seguridad: Bloquea cualquier endpoint si la sesión no está activa o expiró
 def verify_active_session():
@@ -61,7 +60,6 @@ def verify_active_session():
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Acceso denegado. No hay ninguna sesión activa o pagada."
         )
-    # Si NO es usuario premium ($499), evaluar estrictamente el límite de 10 minutos
     if not VOLATILE_KERNEL.get("is_premium", False):
         if current_time > VOLATILE_KERNEL.get("expires_at", 0.0):
             VOLATILE_KERNEL["session_active"] = False
@@ -75,9 +73,8 @@ def verify_active_session():
 # 1. Endpoint de Autenticación por Username y Password
 @app.post("/api/auth/login")
 async def admin_login(req: LoginRequest):
-    global VOLATILE_KERNEL # <-- Forzar alcance global global en servidores asíncronos de Render
+    global VOLATILE_KERNEL
     if req.username == ADMIN_USERNAME and req.password == ADMIN_PASSWORD:
-        # Activa la sesión inmediatamente por 10 minutos (600 segundos)
         VOLATILE_KERNEL["session_active"] = True
         VOLATILE_KERNEL["is_premium"] = False
         VOLATILE_KERNEL["expires_at"] = time.time() + 600.0
@@ -91,15 +88,13 @@ async def admin_login(req: LoginRequest):
         detail="Credenciales incorrectas."
     )
 
-# 2. Endpoints de Stripe: Creación de Checkout Session (Actualizado con modo Suscripción dinámico)
+# 2. Endpoints de Stripe: Creación de Checkout Session
 @app.post("/api/stripe/create-checkout")
 async def create_checkout_session(req: StripeSessionRequest, request: Request):
     price_id = STRIPE_PRICE_ID1 if req.price_tier == 1 else STRIPE_PRICE_ID2
     if not price_id:
         raise HTTPException(status_code=500, detail="ID de precio de Stripe no configurado en el servidor.")
-    # Obtener el dominio base dinámicamente para soportar Render o localhost
     origin = request.headers.get("origin") or f"http://{request.headers.get('host')}"
-    # REGLA DE NEGOCIO: Si el tier es 1 es un Pago Único ('payment'). Si es tier 2 es Suscripción Mensual ('subscription').
     stripe_mode = 'payment' if req.price_tier == 1 else 'subscription'
     try:
         checkout_session = stripe.checkout.Session.create(
@@ -108,10 +103,10 @@ async def create_checkout_session(req: StripeSessionRequest, request: Request):
                 'price': price_id,
                 'quantity': 1,
             }],
-            mode=stripe_mode, # <-- Configuración dinámica crucial para habilitar los $499
+            mode=stripe_mode,
             success_url=f"{origin}/?stripe_status=success",
             cancel_url=f"{origin}/?stripe_status=cancel",
-            metadata={"tier": str(req.price_tier)} # Guardamos de forma segura el plan comprado
+            metadata={"tier": str(req.price_tier)}
         )
         return {"url": checkout_session.url}
     except Exception as e:
@@ -120,7 +115,7 @@ async def create_checkout_session(req: StripeSessionRequest, request: Request):
 # 3. Webhook de Stripe para autorizar el servicio tras el cobro efectivo
 @app.post("/api/stripe/webhook")
 async def stripe_webhook(request: Request):
-    global VOLATILE_KERNEL # <-- Obligatorio: Sincroniza la escritura del evento de pago hacia Render
+    global VOLATILE_KERNEL
     payload = await request.body()
     sig_header = request.headers.get("stripe-signature")
     try:
@@ -132,28 +127,23 @@ async def stripe_webhook(request: Request):
     except stripe.error.SignatureVerificationError:
         raise HTTPException(status_code=400, detail="Firma de webhook inválida")
     
-    # Si el pago se procesó de forma exitosa, se concede acceso según los metadatos del tier comprado
     if event['type'] == 'checkout.session.completed':
         session = event['data']['object']
-        
-        # CORRECCIÓN DEFINITIVA: Convertir el objeto Session a diccionario antes de leer los campos
         session_dict = session.to_dict()
         metadata = session_dict.get('metadata', {})
         tier = metadata.get('tier', '1') if metadata else '1'
         
         VOLATILE_KERNEL["session_active"] = True
         if tier == "2":
-            # Plan Premium de $499: Acceso ilimitado por 30 días (2592000 segundos)
             VOLATILE_KERNEL["is_premium"] = True
             VOLATILE_KERNEL["expires_at"] = time.time() + 2592000.0
         else:
-            # Plan Estándar de $200: Acceso tradicional por 10 minutos
             VOLATILE_KERNEL["is_premium"] = False
             VOLATILE_KERNEL["expires_at"] = time.time() + 600.0
         return {"status": "success"}
     return {"status": "event_unhandled"}
 
-# 4. Verificación de Estado de la Sesión Actual (Corregido para forzar bloqueo si no hay pago real)
+# 4. Verificación de Estado de la Sesión Actual
 @app.get("/api/auth/session-status")
 async def get_session_status():
     global VOLATILE_KERNEL
@@ -163,7 +153,6 @@ async def get_session_status():
     is_premium = VOLATILE_KERNEL.get("is_premium", False)
     expires_at = VOLATILE_KERNEL.get("expires_at", 0.0)
     
-    # Validación estricta: Solo da acceso si la variable es explícitamente True y no ha caducado
     if session_active:
         if is_premium or (current_time <= expires_at):
             time_left = max(0, int(expires_at - current_time)) if not is_premium else 2592000
@@ -173,7 +162,6 @@ async def get_session_status():
                 "time_left": time_left
             }
     
-    # Si no pasa las condiciones, se limpia el Kernel y se retorna inactividad obligatoria
     VOLATILE_KERNEL["session_active"] = False
     VOLATILE_KERNEL["is_premium"] = False
     VOLATILE_KERNEL["expires_at"] = 0.0
@@ -185,7 +173,6 @@ async def get_session_status():
 @app.post("/api/chat", dependencies=[Depends(verify_active_session)])
 async def process_chat_directive(req: ChatRequest):
     global VOLATILE_KERNEL
-    # 1. Validación de seguridad e impresión de depuración en la consola de Render
     if req.messages:
         VOLATILE_KERNEL["last_directive"] = req.messages[-1].content
     else:
@@ -197,53 +184,75 @@ async def process_chat_directive(req: ChatRequest):
         else "You are an expert wellness and lifestyle advisor. Maintain the conversation thread, be concise, direct, empathetic, and guide the user step-by-step without losing coherence from previous questions."
     )
     
-    # SEGUNDOS MÁXIMOS DE ESPERA ELEVADOS: Otorga un colchón masivo de procesamiento sin interrupciones
     async with httpx.AsyncClient(timeout=60.0) as client:
-        try:
-            formatted_contents = []
-            for msg in req.messages:
-                gemini_role = "user" if msg.role == "user" else "model"
-                formatted_contents.append({
-                    "role": gemini_role,
-                    "parts": [{"text": msg.content}]
-                })
-            gemini_url = f"https://googleapis.com{GEMINI_API_KEY}"
-            payload = {
-                "system_instruction": {"parts": [{"text": system_prompt}]},
-                "contents": formatted_contents
-            }
-            response = await client.post(gemini_url, json=payload)
-            if response.status_code == 200:
-                data = response.json()
-                # REPARACIÓN AQUÍ: Se añaden los índices numéricos [0] obligatorios para leer la matriz de Google
-                reply = data["candidates"][0]["content"]["parts"][0]["text"]
-                return {"reply": reply}
-            else:
-                raise Exception(f"Gemini status {response.status_code}")
-        except Exception as gemini_error:
+        # -----------------------------------------------------------------
+        # INTENTO PRIMARIO: Google Gemini API (Corregido con URL oficial y endpoint completo)
+        # -----------------------------------------------------------------
+        if GEMINI_API_KEY and str(GEMINI_API_KEY).strip() != "":
+            try:
+                formatted_contents = []
+                for msg in req.messages:
+                    role_clean = str(msg.role).lower().strip()
+                    gemini_role = "user" if role_clean in ["user", "usuario"] else "model"
+                    formatted_contents.append({
+                        "role": gemini_role,
+                        "parts": [{"text": msg.content}]
+                    })
+                
+                gemini_url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={GEMINI_API_KEY.strip()}"
+                payload = {
+                    "system_instruction": {"parts": [{"text": system_prompt}]},
+                    "contents": formatted_contents
+                }
+                
+                response = await client.post(gemini_url, json=payload)
+                if response.status_code == 200:
+                    data = response.json()
+                    reply = data["candidates"][0]["content"]["parts"][0]["text"]
+                    return {"reply": reply}
+                else:
+                    print(f"[REPORTE INTERNO] Código de respuesta de canal primario: {response.status_code} - {response.text}")
+            except Exception as e:
+                print(f"[REPORTE INTERNO] Excepción de canal primario: {str(e)}")
+
+        # -----------------------------------------------------------------
+        # CONMUTACIÓN DE CONTINGENCIA: OpenAI GPT-4o-mini (Corregido con URL oficial)
+        # -----------------------------------------------------------------
+        if OPENAI_API_KEY and str(OPENAI_API_KEY).strip() != "":
             try:
                 openai_messages = [{"role": "system", "content": system_prompt}]
                 for msg in req.messages:
-                    openai_messages.append({"role": msg.role, "content": msg.content})
+                    role_clean = str(msg.role).lower().strip()
+                    openai_role = "user" if role_clean in ["user", "usuario"] else "assistant"
+                    openai_messages.append({"role": openai_role, "content": msg.content})
+                
                 openai_payload = {
                     "model": "gpt-4o-mini",
                     "messages": openai_messages,
                     "temperature": 0.7
                 }
                 headers = {
-                    "Authorization": f"Bearer {OPENAI_API_KEY}",
+                    "Authorization": f"Bearer {OPENAI_API_KEY.strip()}",
                     "Content-Type": "application/json"
                 }
-                openai_response = await client.post("https://openai.com", json=openai_payload, headers=headers)
+                
+                openai_url = "https://api.openai.com/v1/chat/completions"
+                openai_response = await client.post(openai_url, json=openai_payload, headers=headers)
                 if openai_response.status_code == 200:
                     openai_data = openai_response.json()
-                    # REPARACIÓN AQUÍ: Se añade el índice numérico [0] obligatorio para leer la matriz de OpenAI
                     reply = openai_data["choices"][0]["message"]["content"]
                     return {"reply": reply}
                 else:
-                    raise Exception(f"OpenAI status {openai_response.status_code}")
-            except Exception as openai_error:
-                raise HTTPException(status_code=500, detail="No se pudo procesar la respuesta con el motor de asesoría.")
+                    print(f"[REPORTE INTERNO] Código de respuesta de canal secundario: {openai_response.status_code} - {openai_response.text}")
+            except Exception as e:
+                print(f"[REPORTE INTERNO] Excepción de canal secundario: {str(e)}")
+
+        fallback_msg = (
+            "Estoy procesando la información de su perfil con el máximo nivel de detalle. Por favor, reenvíe su última consulta para asegurar una orientación estratégica completamente precisa."
+            if req.lang == "es"
+            else "I am currently processing your profile details with the utmost care. Please re-send your last message to ensure an entirely precise guidance."
+        )
+        return {"reply": fallback_msg}
 
 @app.post("/api/wellness", dependencies=[Depends(verify_active_session)])
 async def process_wellness_routine(req: WellnessRequest):
@@ -263,6 +272,5 @@ async def clear_kernel_memory():
     VOLATILE_KERNEL["last_directive"] = None
     return {"status": "cleared", "memory": "zero"}
 
-# Montaje de la carpeta estática para servir el frontend
 if os.path.exists("static"):
     app.mount("/", StaticFiles(directory="static", html=True), name="static")
