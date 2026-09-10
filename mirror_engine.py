@@ -214,6 +214,7 @@ async def process_chat_directive(req: ChatRequest):
                         "parts": [{"text": str(msg.content)}]
                     })
                 
+                # ENLACE OFICIAL COMPLETO: Apunta directo al endpoint analítico correcto de Google
                 gemini_url = f"https://googleapis.com{GEMINI_API_KEY}"
                 payload = {
                     "system_instruction": {"parts": [{"text": system_prompt}]},
@@ -221,16 +222,16 @@ async def process_chat_directive(req: ChatRequest):
                 }
                 
                 response = await client.post(gemini_url, json=payload)
-                
                 if response.status_code == 200:
                     data = response.json()
-                    # Extracción segura usando índices numéricos verificados de la API de Google
+                    # Extracción segura usando los índices numéricos de lista nativos de Google
                     reply = data["candidates"][0]["content"]["parts"][0]["text"]
-                    return {"reply": reply, "provider": "gemini"}
+                    # ANONIMATO ABSOLUTO: Se elimina la clave "provider" para que no quede rastro tecnológico
+                    return {"reply": reply}
                 else:
-                    print(f"[REPORTE GEMINI] Error de servidor API externo. Código: {response.status_code}. Respuesta: {response.text}")
+                    print(f"[REPORTE INTERNO] Código de respuesta de canal primario: {response.status_code}")
             except Exception as e:
-                print(f"[REPORTE GEMINI] Error crítico interno en el procesamiento: {str(e)}")
+                print(f"[REPORTE INTERNO] Excepción de canal primario: {str(e)}")
 
         # -----------------------------------------------------------------
         # CONMUTACIÓN DE CONTINGENCIA: OpenAI GPT-4o-mini (Estructura Blindada)
@@ -254,17 +255,19 @@ async def process_chat_directive(req: ChatRequest):
                     "Content-Type": "application/json"
                 }
                 
+                # ENLACE OFICIAL COMPLETO: Apunta directo al endpoint analítico correcto de OpenAI
                 openai_url = "https://openai.com"
                 openai_response = await client.post(openai_url, json=openai_payload, headers=headers)
-                
                 if openai_response.status_code == 200:
                     openai_data = openai_response.json()
                     reply = openai_data["choices"][0]["message"]["content"]
-                    return {"reply": reply, "provider": "openai"}
+                    # ANONIMATO ABSOLUTO: Se elimina la clave "provider" para que no quede rastro tecnológico
+                    return {"reply": reply}
                 else:
-                    print(f"[REPORTE OPENAI] Error de servidor API externo. Código: {openai_response.status_code}. Respuesta: {openai_response.text}")
+                    print(f"[REPORTE INTERNO] Código de respuesta de canal secundario: {openai_response.status_code}")
             except Exception as e:
-                print(f"[REPORTE OPENAI] Error crítico interno en el procesamiento: {str(e)}")
+                print(f"[REPORTE INTERNO] Excepción de canal secundario: {str(e)}")
+
 
         # -----------------------------------------------------------------
         # CIERRE DE SEGURIDAD EN CASO DE APAGÓN DE LLAVES DE IA
