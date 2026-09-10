@@ -7,3 +7,4 @@ stripe
 httpx
 itsdangerous
 python-multipart
+google-genai
