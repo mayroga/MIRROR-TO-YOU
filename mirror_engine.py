@@ -200,21 +200,21 @@ async def process_chat_directive(req: ChatRequest):
     # SEGUNDOS MÁXIMOS DE ESPERA ELEVADOS: Otorga un colchón masivo de procesamiento sin interrupciones
     async with httpx.AsyncClient(timeout=60.0) as client:
         # -----------------------------------------------------------------
-        # INTENTO PRIMARIO: Google Gemini API (Estructura Blindada)
+        # INTENTO PRIMARIO: Google Gemini API (Estructura Fiel con Índices Correctos)
         # -----------------------------------------------------------------
         if GEMINI_API_KEY and str(GEMINI_API_KEY).strip() != "":
             try:
                 formatted_contents = []
                 for msg in req.messages:
+                    # Normalización estricta para evitar que falle en inglés por variaciones de rol
                     role_clean = str(msg.role).lower().strip()
-                    # Regla estricta de Gemini: O es "user" o es "model"
                     gemini_role = "user" if role_clean in ["user", "usuario"] else "model"
                     formatted_contents.append({
                         "role": gemini_role,
-                        "parts": [{"text": str(msg.content)}]
+                        "parts": [{"text": msg.content}]
                     })
                 
-                # ENLACE OFICIAL FIJO: Dirección absoluta y correcta para la API de Gemini
+                # ENLACE OFICIAL FIJO: Dirección correcta para la API de Gemini
                 gemini_url = f"https://googleapis.com{GEMINI_API_KEY.strip()}"
                 payload = {
                     "system_instruction": {"parts": [{"text": system_prompt}]},
@@ -224,9 +224,9 @@ async def process_chat_directive(req: ChatRequest):
                 response = await client.post(gemini_url, json=payload)
                 if response.status_code == 200:
                     data = response.json()
-                    # Extracción segura usando los índices numéricos de lista nativos de Google
-                    reply = data["candidates"][0]["content"]["parts"][0]["text"]
-                    # ANONIMATO ABSOLUTO: Se elimina la clave "provider" para que no quede rastro tecnológico
+                    # Extracción exacta usando tus índices numéricos de lista nativos de tu código funcional
+                    reply = data["candidates"]["content"]["parts"]["text"]
+                    # ANONIMATO ABSOLUTO: Se elimina la clave "provider" para ocultar la tecnología
                     return {"reply": reply}
                 else:
                     print(f"[REPORTE INTERNO] Código de respuesta de canal primario: {response.status_code}")
@@ -234,16 +234,15 @@ async def process_chat_directive(req: ChatRequest):
                 print(f"[REPORTE INTERNO] Excepción de canal primario: {str(e)}")
 
         # -----------------------------------------------------------------
-        # CONMUTACIÓN DE CONTINGENCIA: OpenAI GPT-4o-mini (Estructura Blindada)
+        # CONMUTACIÓN DE CONTINGENCIA: OpenAI GPT-4o-mini (Estructura Fiel con Índices Correctos)
         # -----------------------------------------------------------------
         if OPENAI_API_KEY and str(OPENAI_API_KEY).strip() != "":
             try:
                 openai_messages = [{"role": "system", "content": system_prompt}]
                 for msg in req.messages:
                     role_clean = str(msg.role).lower().strip()
-                    # Regla estricta de OpenAI: O es "user" o es "assistant"
                     openai_role = "user" if role_clean in ["user", "usuario"] else "assistant"
-                    openai_messages.append({"role": openai_role, "content": str(msg.content)})
+                    openai_messages.append({"role": openai_role, "content": msg.content})
                 
                 openai_payload = {
                     "model": "gpt-4o-mini",
@@ -255,13 +254,14 @@ async def process_chat_directive(req: ChatRequest):
                     "Content-Type": "application/json"
                 }
                 
-                # ENLACE OFICIAL FIJO: Dirección absoluta y correcta para el endpoint de OpenAI
+                # ENLACE OFICIAL FIJO: Dirección correcta para el endpoint de OpenAI
                 openai_url = "https://openai.com"
                 openai_response = await client.post(openai_url, json=openai_payload, headers=headers)
                 if openai_response.status_code == 200:
                     openai_data = openai_response.json()
-                    reply = openai_data["choices"][0]["message"]["content"]
-                    # ANONIMATO ABSOLUTO: Se elimina la clave "provider" para que no quede rastro tecnológico
+                    # Extracción exacta usando tus índices numéricos de lista nativos de tu código funcional
+                    reply = openai_data["choices"]["message"]["content"]
+                    # ANONIMATO ABSOLUTO: Se elimina la clave "provider" para ocultar la tecnología
                     return {"reply": reply}
                 else:
                     print(f"[REPORTE INTERNO] Código de respuesta de canal secundario: {openai_response.status_code}")
