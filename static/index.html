@@ -46,8 +46,19 @@ footer{text-align:center;font-size:.8rem;color:var(--text-muted);padding-top:20p
 <div id="paywallModal" style="position: fixed; inset: 0; width: 100vw; height: 100vh; background: rgba(11, 15, 25, 0.98); display: flex; justify-content: center; align-items: center; z-index: 99999; padding: 20px; box-sizing: border-box;">
     <div class="paywall-card" style="background-color: #111827; border: 1px solid #1f2937; border-radius: 12px; padding: 32px 24px; width: min(420px, 100%); text-align: center; box-shadow: 0 18px 50px rgba(0,0,0,.45); display: flex; flex-direction: column; gap: 16px; position: relative;">
         
-        <!-- selector dinámico de idioma para el Muro de Pago -->
-        <button onclick="toggleLanguage()" id="pw-lang-btn" style="position: absolute; top: 12px; right: 12px; background: #0b0f19; border: 1px solid #1f2937; font-size: 0.75rem; padding: 4px 8px; color: #9ca3af; border-radius: 4px;">EN / ES</button>
+        <!-- Selector dinámico de idioma con motor de traducción nativo integrado -->
+        <button onclick="(() => {
+            currentLang = (currentLang === 'es') ? 'en' : 'es';
+            if (typeof updateTexts === 'function') updateTexts();
+            document.getElementById('pw-subtitle').innerText = (currentLang === 'es') ? 'Selecciona una opción de acceso privado para activar el servicio corporativo.' : 'Select a private access option to activate the corporate service.';
+            document.getElementById('stripe-btn-p1').innerText = (currentLang === 'es') ? 'Pase Único Bienestar' : 'One-Time Wellness Pass';
+            document.getElementById('stripe-btn-p2').innerText = (currentLang === 'es') ? 'Acceso Premium ilimitado' : 'Unlimited Premium Access';
+            document.getElementById('pw-divider').innerText = (currentLang === 'es') ? 'ó' : 'or';
+            document.getElementById('loginUsername').placeholder = (currentLang === 'es') ? 'Nombre de usuario' : 'Username';
+            document.getElementById('loginPassword').placeholder = (currentLang === 'es') ? 'Contraseña de acceso' : 'Access Password';
+            document.getElementById('pw-login-btn').innerText = (currentLang === 'es') ? 'Ingresar con Credenciales' : 'Login with Credentials';
+            document.getElementById('loginError').innerText = (currentLang === 'es') ? 'Acceso denegado. Intente nuevamente.' : 'Access denied. Please try again.';
+        })()" id="pw-lang-btn" style="position: absolute; top: 12px; right: 12px; background: #0b0f19; border: 1px solid #1f2937; font-size: 0.75rem; padding: 4px 8px; color: #9ca3af; border-radius: 4px; cursor: pointer;">EN / ES</button>
 
         <div class="brand-title" style="font-size: 1.4rem; font-weight: 600; letter-spacing: 2px; color: #38bdf8; margin-top: 10px;">MIRROR TO YOU</div>
         <div class="brand-subtitle" id="pw-subtitle" style="font-size: 0.9rem; color: #9ca3af; margin-bottom: 8px;">Selecciona una opción de acceso privado para activar el servicio corporativo.</div>
@@ -64,13 +75,13 @@ footer{text-align:center;font-size:.8rem;color:var(--text-muted);padding-top:20p
             </button>
         </div>
         
-        <div class="divider" style="font-size: 0.85rem; color: #9ca3af; margin: 8px 0; text-transform: uppercase; letter-spacing: 1px;">ó</div>
+        <div id="pw-divider" class="divider" style="font-size: 0.85rem; color: #9ca3af; margin: 8px 0; text-transform: uppercase; letter-spacing: 1px;">ó</div>
         
         <!-- Formulario de Acceso por Credenciales Administrativas -->
         <div class="login-form" style="display: flex; flex-direction: column; gap: 10px;">
             <input type="text" id="loginUsername" class="login-input" placeholder="Nombre de usuario" style="width: 100%; background-color: #0b0f19; border: 1px solid #1f2937; border-radius: 6px; padding: 12px; color: #f3f4f6; font-size: 0.95rem; box-sizing: border-box;">
             <input type="password" id="loginPassword" class="login-input" placeholder="Contraseña de acceso" style="width: 100%; background-color: #0b0f19; border: 1px solid #1f2937; border-radius: 6px; padding: 12px; color: #f3f4f6; font-size: 0.95rem; box-sizing: border-box;">
-            <button class="login-btn" onclick="executeAdminLogin()" style="background-color: #10b981; color: #fff; border: none; padding: 12px; border-radius: 6px; font-weight: 600; cursor: pointer;">Ingresar con Credenciales</button>
+            <button id="pw-login-btn" class="login-btn" onclick="executeAdminLogin()" style="background-color: #10b981; color: #fff; border: none; padding: 12px; border-radius: 6px; font-weight: 600; cursor: pointer;">Ingresar con Credenciales</button>
             <div class="error-msg" id="loginError" style="color: #ef4444; font-size: 0.85rem; display: none; margin-top: 4px; text-align: center;">Acceso denegado. Intente nuevamente.</div>
         </div>
     </div>
