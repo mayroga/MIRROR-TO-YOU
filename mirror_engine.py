@@ -5,7 +5,7 @@ import stripe
 from fastapi import FastAPI, HTTPException, Request, Depends, status
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
-from typing import List
+from typing import List, Dict, Any
 from google import genai
 
 app = FastAPI(title="MIRROR TO YOU", version="2.2.0")
@@ -51,7 +51,7 @@ class Message(BaseModel):
     content: str
 
 class ChatRequest(BaseModel):
-    messages: List
+    messages: List[Dict[str, Any]]
     lang: str = "en"
 
 class WellnessRequest(BaseModel):
@@ -219,7 +219,9 @@ async def process_chat_directive(req: ChatRequest):
             detail="The message history is empty."
         )
 
-    VOLATILE_KERNEL["last_directive"] = req.messages[-1].content
+    last_msg = req.messages[-1]
+    last_content = last_msg.get("content") if isinstance(last_msg, dict) else getattr(last_msg, "content", "")
+    VOLATILE_KERNEL["last_directive"] = last_content
 
     if req.lang == "es":
         system_prompt = (
@@ -248,11 +250,17 @@ async def process_chat_directive(req: ChatRequest):
 
     contents = []
     for msg in req.messages:
-        role = str(msg.role).lower().strip()
+        if isinstance(msg, dict):
+            role = str(msg.get("role", "user")).lower().strip()
+            content = msg.get("content", "")
+        else:
+            role = str(getattr(msg, "role", "user")).lower().strip()
+            content = getattr(msg, "content", "")
+
         gemini_role = "user" if role in ("user", "usuario") else "model"
         contents.append({
             "role": gemini_role,
-            "parts": [{"text": msg.content}]
+            "parts": [{"text": content}]
         })
 
     def blocking_call():
