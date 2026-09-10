@@ -4,262 +4,395 @@ import httpx
 import stripe
 from fastapi import FastAPI, HTTPException, Request, Depends, status
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse, JSONResponse
 from pydantic import BaseModel
-from typing import List, Optional
+from typing import List
 
-# Inicialización de la aplicación
-app = FastAPI(title="MIRROR TO YOU", version="1.0.0")
+app = FastAPI(title="MIRROR TO YOU", version="2.2.0")
 
-# Carga estricta de variables de entorno de Render
+# =========================================================
+
+# CONFIGURACIÓN
+
+# =========================================================
+
 ADMIN_USERNAME = os.getenv("ADMIN_USERNAME")
 ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD")
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
 
-# Configuración de Stripe
 stripe.api_key = os.getenv("STRIPE_SECRET_KEY")
 STRIPE_WEBHOOK_SECRET = os.getenv("STRIPE_WEBHOOK_SECRET")
 STRIPE_PRICE_ID1 = os.getenv("STRIPE_PRICE_ID1")
 STRIPE_PRICE_ID2 = os.getenv("STRIPE_PRICE_ID2")
 
-# Núcleo Volátil en Memoria para control de estado sin base de datos
-# Estructura: {"session_active": bool, "expires_at": float, "is_premium": bool, "last_directive": str}
+# =========================================================
+
+# KERNEL DE SESIÓN EN MEMORIA
+
+# =========================================================
+
 VOLATILE_KERNEL = {
-    "session_active": False,
-    "expires_at": 0.0,
-    "is_premium": False,
-    "last_directive": None
+"session_active": False,
+"expires_at": 0.0,
+"is_premium": False,
+"last_directive": None
 }
 
-# Modelos de Datos (Pydantic)
+# =========================================================
+
+# MODELOS
+
+# =========================================================
+
 class LoginRequest(BaseModel):
-    username: str
-    password: str
+username: str
+password: str
 
 class Message(BaseModel):
-    role: str
-    content: str
+role: str
+content: str
 
 class ChatRequest(BaseModel):
-    messages: List[Message]
-    lang: str = "en"
+messages: List[Message]
+lang: str = "en"
 
 class WellnessRequest(BaseModel):
-    objective: str
-    duration_seconds: int = 60
+objective: str
+duration_seconds: int = 60
 
 class StripeSessionRequest(BaseModel):
-    price_tier: int  # 1 o 2 para seleccionar el Price ID correspondiente
+price_tier: int
 
-# Dependencia de seguridad: Bloquea cualquier endpoint si la sesión no está activa o expiró
+# =========================================================
+
+# SEGURIDAD DE SESIÓN
+
+# =========================================================
+
 def verify_active_session():
-    global VOLATILE_KERNEL
-    current_time = time.time()
-    if not VOLATILE_KERNEL.get("session_active", False):
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Acceso denegado. No hay ninguna sesión activa o pagada."
-        )
-    # Si NO es usuario premium ($499), evaluar estrictamente el límite de 10 minutos
-    if not VOLATILE_KERNEL.get("is_premium", False):
-        if current_time > VOLATILE_KERNEL.get("expires_at", 0.0):
-            VOLATILE_KERNEL["session_active"] = False
-            VOLATILE_KERNEL["is_premium"] = False
-            VOLATILE_KERNEL["expires_at"] = 0.0
-            raise HTTPException(
-                status_code=status.HTTP_408_REQUEST_TIMEOUT,
-                detail="La sesión de 10 minutos ha expirado por completo. Todo el servicio queda bloqueado."
-            )
+now = time.time()
 
-# 1. Endpoint de Autenticación por Username y Password
-@app.post("/api/auth/login")
-async def admin_login(req: LoginRequest):
-    global VOLATILE_KERNEL # <-- Forzar alcance global global en servidores asíncronos de Render
-    if req.username == ADMIN_USERNAME and req.password == ADMIN_PASSWORD:
-        # Activa la sesión inmediatamente por 10 minutos (600 segundos)
-        VOLATILE_KERNEL["session_active"] = True
-        VOLATILE_KERNEL["is_premium"] = False
-        VOLATILE_KERNEL["expires_at"] = time.time() + 600.0
-        return {
-            "status": "success",
-            "message": "Autenticación correcta. Sesión de 10 minutos iniciada.",
-            "expires_at": VOLATILE_KERNEL["expires_at"]
-        }
+```
+if not VOLATILE_KERNEL.get("session_active"):
     raise HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Credenciales incorrectas."
+        status_code=status.HTTP_403_FORBIDDEN,
+        detail="Access denied. No active or paid session."
     )
 
-# 2. Endpoints de Stripe: Creación de Checkout Session (Actualizado con modo Suscripción dinámico)
-@app.post("/api/stripe/create-checkout")
-async def create_checkout_session(req: StripeSessionRequest, request: Request):
-    price_id = STRIPE_PRICE_ID1 if req.price_tier == 1 else STRIPE_PRICE_ID2
-    if not price_id:
-        raise HTTPException(status_code=500, detail="ID de precio de Stripe no configurado en el servidor.")
-    # Obtener el dominio base dinámicamente para soportar Render o localhost
-    origin = request.headers.get("origin") or f"http://{request.headers.get('host')}"
-    # REGLA DE NEGOCIO: Si el tier es 1 es un Pago Único ('payment'). Si es tier 2 es Suscripción Mensual ('subscription').
-    stripe_mode = 'payment' if req.price_tier == 1 else 'subscription'
-    try:
-        checkout_session = stripe.checkout.Session.create(
-            payment_method_types=['card'],
-            line_items=[{
-                'price': price_id,
-                'quantity': 1,
-            }],
-            mode=stripe_mode, # <-- Configuración dinámica crucial para habilitar los $499
-            success_url=f"{origin}/?stripe_status=success",
-            cancel_url=f"{origin}/?stripe_status=cancel",
-            metadata={"tier": str(req.price_tier)} # Guardamos de forma segura el plan comprado
+if not VOLATILE_KERNEL.get("is_premium"):
+    if now > VOLATILE_KERNEL.get("expires_at", 0):
+        VOLATILE_KERNEL.update(
+            session_active=False,
+            is_premium=False,
+            expires_at=0.0
         )
-        return {"url": checkout_session.url}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(
+            status_code=status.HTTP_408_REQUEST_TIMEOUT,
+            detail="The 10-minute session has expired."
+        )
+```
 
-# 3. Webhook de Stripe para autorizar el servicio tras el cobro efectivo
+# =========================================================
+
+# ADMIN LOGIN
+
+# =========================================================
+
+@app.post("/api/auth/login")
+async def admin_login(req: LoginRequest):
+if req.username == ADMIN_USERNAME and req.password == ADMIN_PASSWORD:
+VOLATILE_KERNEL.update(
+session_active=True,
+is_premium=False,
+expires_at=time.time() + 600.0,
+last_directive=None
+)
+return {
+"status": "success",
+"message": "Authentication successful. 10-minute session started.",
+"expires_at": VOLATILE_KERNEL["expires_at"]
+}
+
+```
+raise HTTPException(
+    status_code=status.HTTP_401_UNAUTHORIZED,
+    detail="Invalid credentials."
+)
+```
+
+# =========================================================
+
+# STRIPE CHECKOUT
+
+# =========================================================
+
+@app.post("/api/stripe/create-checkout")
+async def create_checkout_session(
+req: StripeSessionRequest,
+request: Request
+):
+if req.price_tier not in (1, 2):
+raise HTTPException(status_code=400, detail="Invalid price tier.")
+
+```
+price_id = STRIPE_PRICE_ID1 if req.price_tier == 1 else STRIPE_PRICE_ID2
+
+if not price_id:
+    raise HTTPException(
+        status_code=500,
+        detail="Stripe Price ID is not configured."
+    )
+
+origin = request.headers.get("origin")
+if not origin:
+    host = request.headers.get("host")
+    origin = f"http://{host}" if host else "https://mirror-to-you.onrender.com"
+
+mode = "payment" if req.price_tier == 1 else "subscription"
+
+try:
+    session = stripe.checkout.Session.create(
+        payment_method_types=["card"],
+        line_items=[{
+            "price": price_id,
+            "quantity": 1
+        }],
+        mode=mode,
+        success_url=f"{origin}/?stripe_status=success",
+        cancel_url=f"{origin}/?stripe_status=cancel",
+        metadata={"tier": str(req.price_tier)}
+    )
+    return {"url": session.url}
+
+except Exception as e:
+    print(f"[STRIPE ERROR] {e}")
+    raise HTTPException(
+        status_code=500,
+        detail="Unable to create Stripe checkout session."
+    )
+```
+
+# =========================================================
+
+# STRIPE WEBHOOK
+
+# =========================================================
+
 @app.post("/api/stripe/webhook")
 async def stripe_webhook(request: Request):
-    global VOLATILE_KERNEL # <-- Obligatorio: Sincroniza la escritura del evento de pago hacia Render
-    payload = await request.body()
-    sig_header = request.headers.get("stripe-signature")
-    try:
-        event = stripe.Webhook.construct_event(
-            payload, sig_header, STRIPE_WEBHOOK_SECRET
-        )
-    except ValueError:
-        raise HTTPException(status_code=400, detail="Payload inválido")
-    except stripe.error.SignatureVerificationError:
-        raise HTTPException(status_code=400, detail="Firma de webhook inválida")
-   
-    # Si el pago se procesó de forma exitosa, se concede acceso según los metadatos del tier comprado
-    if event['type'] == 'checkout.session.completed':
-        session = event['data']['object']
-       
-        # CORRECCIÓN DEFINITIVA: Convertir el objeto Session a diccionario antes de leer los campos
-        session_dict = session.to_dict()
-        metadata = session_dict.get('metadata', {})
-        tier = metadata.get('tier', '1') if metadata else '1'
-       
-        VOLATILE_KERNEL["session_active"] = True
-        if tier == "2":
-            # Plan Premium de $499: Acceso ilimitado por 30 días (2592000 segundos)
-            VOLATILE_KERNEL["is_premium"] = True
-            VOLATILE_KERNEL["expires_at"] = time.time() + 2592000.0
-        else:
-            # Plan Estándar de $200: Acceso tradicional por 10 minutos
-            VOLATILE_KERNEL["is_premium"] = False
-            VOLATILE_KERNEL["expires_at"] = time.time() + 600.0
-        return {"status": "success"}
-    return {"status": "event_unhandled"}
+payload = await request.body()
+signature = request.headers.get("stripe-signature")
 
-# 4. Verificación de Estado de la Sesión Actual (Corregido para forzar bloqueo si no hay pago real)
+```
+try:
+    event = stripe.Webhook.construct_event(
+        payload,
+        signature,
+        STRIPE_WEBHOOK_SECRET
+    )
+except ValueError:
+    raise HTTPException(status_code=400, detail="Invalid payload.")
+except stripe.error.SignatureVerificationError:
+    raise HTTPException(status_code=400, detail="Invalid webhook signature.")
+
+if event["type"] == "checkout.session.completed":
+    session = event["data"]["object"]
+    metadata = session.get("metadata", {})
+    tier = metadata.get("tier", "1")
+
+    VOLATILE_KERNEL["session_active"] = True
+
+    if tier == "2":
+        VOLATILE_KERNEL["is_premium"] = True
+        VOLATILE_KERNEL["expires_at"] = time.time() + 2592000.0
+    else:
+        VOLATILE_KERNEL["is_premium"] = False
+        VOLATILE_KERNEL["expires_at"] = time.time() + 600.0
+
+    return {"status": "success"}
+
+return {"status": "event_unhandled"}
+```
+
+# =========================================================
+
+# ESTADO DE SESIÓN
+
+# =========================================================
+
 @app.get("/api/auth/session-status")
 async def get_session_status():
-    global VOLATILE_KERNEL
-    current_time = time.time()
-   
-    session_active = VOLATILE_KERNEL.get("session_active", False)
-    is_premium = VOLATILE_KERNEL.get("is_premium", False)
-    expires_at = VOLATILE_KERNEL.get("expires_at", 0.0)
-   
-    # Validación estricta: Solo da acceso si la variable es explícitamente True y no ha caducado
-    if session_active:
-        if is_premium or (current_time <= expires_at):
-            time_left = max(0, int(expires_at - current_time)) if not is_premium else 2592000
-            return {
-                "active": True,
-                "is_premium": is_premium,
-                "time_left": time_left
-            }
-   
-    # Si no pasa las condiciones, se limpia el Kernel y se retorna inactividad obligatoria
-    VOLATILE_KERNEL["session_active"] = False
-    VOLATILE_KERNEL["is_premium"] = False
-    VOLATILE_KERNEL["expires_at"] = 0.0
-    return {"active": False, "is_premium": False, "time_left": 0}
+now = time.time()
+active = VOLATILE_KERNEL.get("session_active", False)
+premium = VOLATILE_KERNEL.get("is_premium", False)
+expires = VOLATILE_KERNEL.get("expires_at", 0.0)
 
-# =====================================================================
-# Endpoints Protegidos de la Aplicación (Requieren verify_active_session)
-# =====================================================================
+```
+if active and (premium or now <= expires):
+    return {
+        "active": True,
+        "is_premium": premium,
+        "time_left": 2592000 if premium else max(0, int(expires - now))
+    }
+
+VOLATILE_KERNEL.update(
+    session_active=False,
+    is_premium=False,
+    expires_at=0.0
+)
+
+return {
+    "active": False,
+    "is_premium": False,
+    "time_left": 0
+}
+```
+
+# =========================================================
+
+# GEMINI — ÚNICO MOTOR DE IA
+
+# =========================================================
 
 @app.post("/api/chat", dependencies=[Depends(verify_active_session)])
 async def process_chat_directive(req: ChatRequest):
-    if req.messages:
-        VOLATILE_KERNEL["last_directive"] = req.messages[-1].content
-   
-    system_prompt = (
-        "Eres un asesor experto de bienestar y estilo de vida. Mantén el hilo de la conversación, sé conciso, directo, empático y guía al usuario paso a paso sin perder la coherencia de las preguntas anteriores."
-        if req.lang == "es"
-        else "You are an expert wellness and lifestyle advisor. Maintain the conversation thread, be concise, direct, empathetic, and guide the user step-by-step without losing coherence from previous questions."
-    )
-   
-    async with httpx.AsyncClient(timeout=30.0) as client:
-        # Intento primario con Gemini
-        try:
-            formatted_contents = []
-            for msg in req.messages:
-                gemini_role = "user" if msg.role == "user" else "model"
-                formatted_contents.append({
-                    "role": gemini_role,
-                    "parts": [{"text": msg.content}]
-                })
-           
-            gemini_url = f"https://googleapis.com{GEMINI_API_KEY}"
-            payload = {
-                "system_instruction": {"parts": [{"text": system_prompt}]},
-                "contents": formatted_contents
-            }
-            response = await client.post(gemini_url, json=payload)
-            if response.status_code == 200:
-                data = response.json()
-                reply = data["candidates"][0]["content"]["parts"][0]["text"]
-                return {"reply": reply, "provider": "gemini"}
-            else:
-                raise Exception(f"Gemini status {response.status_code}")
-               
-        except Exception:
-            # Conmutación de contingencia automática a OpenAI
-            try:
-                openai_messages = [{"role": "system", "content": system_prompt}]
-                for msg in req.messages:
-                    openai_messages.append({"role": msg.role, "content": msg.content})
-               
-                openai_payload = {
-                    "model": "gpt-4o-mini",
-                    "messages": openai_messages,
-                    "temperature": 0.7
-                }
-                headers = {
-                    "Authorization": f"Bearer {OPENAI_API_KEY}",
-                    "Content-Type": "application/json"
-                }
-                openai_response = await client.post("https://openai.com", json=openai_payload, headers=headers)
-                if openai_response.status_code == 200:
-                    openai_data = openai_response.json()
-                    reply = openai_data["choices"][0]["message"]["content"]
-                    return {"reply": reply, "provider": "openai"}
-                else:
-                    raise Exception(f"OpenAI status {openai_response.status_code}")
-            except Exception:
-                raise HTTPException(status_code=500, detail="No se pudo procesar la respuesta con el motor de asesoría.")
+if not req.messages:
+raise HTTPException(
+status_code=400,
+detail="The message history is empty."
+)
+
+```
+VOLATILE_KERNEL["last_directive"] = req.messages[-1].content
+
+system_prompt = (
+    "Eres MIRROR TO YOU, un asesor privado de bienestar y estilo de vida. "
+    "Mantén siempre el hilo completo de la conversación. "
+    "Sé conciso, directo, empático y personalizado. "
+    "Guía al usuario paso a paso y evita respuestas genéricas."
+    if req.lang == "es"
+    else
+    "You are MIRROR TO YOU, a private wellness and lifestyle advisor. "
+    "Always maintain the complete conversation thread. "
+    "Be concise, direct, empathetic and personalized. "
+    "Guide the user step by step and avoid generic responses."
+)
+
+contents = []
+
+for msg in req.messages:
+    role = str(msg.role).lower().strip()
+    gemini_role = "user" if role in ("user", "usuario") else "model"
+
+    contents.append({
+        "role": gemini_role,
+        "parts": [{"text": msg.content}]
+    })
+
+if not GEMINI_API_KEY:
+    return {
+        "reply": (
+            "El servicio de inteligencia no está disponible en este momento."
+            if req.lang == "es"
+            else
+            "The intelligence service is not available at this moment."
+        )
+    }
+
+url = (
+    f"https://generativelanguage.googleapis.com/"
+    f"v1beta/models/{GEMINI_MODEL}:generateContent"
+    f"?key={GEMINI_API_KEY.strip()}"
+)
+
+payload = {
+    "system_instruction": {
+        "parts": [{"text": system_prompt}]
+    },
+    "contents": contents,
+    "generationConfig": {
+        "temperature": 0.7
+    }
+}
+
+try:
+    async with httpx.AsyncClient(timeout=60.0) as client:
+        response = await client.post(url, json=payload)
+
+    if response.status_code != 200:
+        print(
+            f"[GEMINI ERROR] {response.status_code}: "
+            f"{response.text[:500]}"
+        )
+        return {
+            "reply": (
+                "Estoy procesando tu solicitud. Inténtalo nuevamente."
+                if req.lang == "es"
+                else
+                "I am processing your request. Please try again."
+            )
+        }
+
+    data = response.json()
+    reply = data["candidates"][0]["content"]["parts"][0]["text"]
+
+    return {"reply": reply}
+
+except Exception as e:
+    print(f"[GEMINI EXCEPTION] {e}")
+    return {
+        "reply": (
+            "Estoy procesando tu solicitud. Inténtalo nuevamente."
+            if req.lang == "es"
+            else
+            "I am processing your request. Please try again."
+        )
+    }
+```
+
+# =========================================================
+
+# WELLNESS
+
+# =========================================================
 
 @app.post("/api/wellness", dependencies=[Depends(verify_active_session)])
 async def process_wellness_routine(req: WellnessRequest):
-    return {
-        "status": "active",
-        "objective": req.objective,
-        "rhythm": "synchronized",
-        "message": "Volatile anti-stress routine initiated."
-    }
+return {
+"status": "active",
+"objective": req.objective,
+"rhythm": "synchronized",
+"message": "Volatile anti-stress routine initiated."
+}
+
+# =========================================================
+
+# LIMPIAR SESIÓN
+
+# =========================================================
 
 @app.delete("/api/clear")
 async def clear_kernel_memory():
-    VOLATILE_KERNEL["session_active"] = False
-    VOLATILE_KERNEL["expires_at"] = 0.0
-    VOLATILE_KERNEL["last_directive"] = None
-    return {"status": "cleared", "memory": "zero"}
+VOLATILE_KERNEL.update(
+session_active=False,
+is_premium=False,
+expires_at=0.0,
+last_directive=None
+)
+return {
+"status": "cleared",
+"memory": "zero"
+}
 
-# Montaje de la carpeta estática para servir el frontend
+# =========================================================
+
+# FRONTEND
+
+# =========================================================
+
 if os.path.exists("static"):
-    app.mount("/", StaticFiles(directory="static", html=True), name="static")
+app.mount(
+"/",
+StaticFiles(directory="static", html=True),
+name="static"
+)
