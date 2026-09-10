@@ -42,32 +42,36 @@ footer{text-align:center;font-size:.8rem;color:var(--text-muted);padding-top:20p
 </style>
 </head>
 <body>
-<!-- Paywall Interceptador Obligatorio en Inglés Fijo (Aparece antes de todo el servicio) -->
+<!-- Paywall Interceptador Obligatorio (Aparece antes de todo el servicio) -->
 <div id="paywallModal" style="position: fixed; inset: 0; width: 100vw; height: 100vh; background: rgba(11, 15, 25, 0.98); display: flex; justify-content: center; align-items: center; z-index: 99999; padding: 20px; box-sizing: border-box;">
-    <div class="paywall-card" style="background-color: #111827; border: 1px solid #1f2937; border-radius: 12px; padding: 32px 24px; width: min(420px, 100%); text-align: center; box-shadow: 0 18px 50px rgba(0,0,0,.45); display: flex; flex-direction: column; gap: 16px;">
-        <div class="brand-title" style="font-size: 1.4rem; font-weight: 600; letter-spacing: 2px; color: #38bdf8;">MIRROR TO YOU</div>
-        <div class="brand-subtitle" style="font-size: 0.9rem; color: #9ca3af; margin-bottom: 8px;">Select a private access option to activate the corporate service.</div>
+    <div class="paywall-card" style="background-color: #111827; border: 1px solid #1f2937; border-radius: 12px; padding: 32px 24px; width: min(420px, 100%); text-align: center; box-shadow: 0 18px 50px rgba(0,0,0,.45); display: flex; flex-direction: column; gap: 16px; position: relative;">
+        
+        <!-- selector dinámico de idioma para el Muro de Pago -->
+        <button onclick="toggleLanguage()" id="pw-lang-btn" style="position: absolute; top: 12px; right: 12px; background: #0b0f19; border: 1px solid #1f2937; font-size: 0.75rem; padding: 4px 8px; color: #9ca3af; border-radius: 4px;">EN / ES</button>
+
+        <div class="brand-title" style="font-size: 1.4rem; font-weight: 600; letter-spacing: 2px; color: #38bdf8; margin-top: 10px;">MIRROR TO YOU</div>
+        <div class="brand-subtitle" id="pw-subtitle" style="font-size: 0.9rem; color: #9ca3af; margin-bottom: 8px;">Selecciona una opción de acceso privado para activar el servicio corporativo.</div>
         
         <!-- Opciones de Cobro con Stripe de $200 y $499 -->
         <div class="pricing-options" style="display: flex; flex-direction: column; gap: 10px;">
             <button class="price-btn" onclick="triggerStripePayment(1)" style="background: linear-gradient(135deg, #635bff 0%, #4f46e5 100%); color: #fff; border: none; display: flex; justify-content: space-between; align-items: center; padding: 14px 18px; border-radius: 8px; font-weight: 600; font-size: 0.95rem; cursor: pointer;">
-                <span>One-Time Wellness Pass</span>
+                <span id="stripe-btn-p1">Pase Único Bienestar</span>
                 <span class="price" style="background: rgba(255, 255, 255, 0.2); padding: 4px 10px; border-radius: 6px; font-size: 0.9rem;">$200</span>
             </button>
             <button class="price-btn" onclick="triggerStripePayment(2)" style="background: linear-gradient(135deg, #635bff 0%, #4f46e5 100%); color: #fff; border: none; display: flex; justify-content: space-between; align-items: center; padding: 14px 18px; border-radius: 8px; font-weight: 600; font-size: 0.95rem; cursor: pointer;">
-                <span>Unlimited Premium Access</span>
+                <span id="stripe-btn-p2">Acceso Premium ilimitado</span>
                 <span class="price" style="background: rgba(255, 255, 255, 0.2); padding: 4px 10px; border-radius: 6px; font-size: 0.9rem;">$499</span>
             </button>
         </div>
         
-        <div class="divider" style="font-size: 0.85rem; color: #9ca3af; margin: 8px 0; text-transform: uppercase; letter-spacing: 1px;">or</div>
+        <div class="divider" style="font-size: 0.85rem; color: #9ca3af; margin: 8px 0; text-transform: uppercase; letter-spacing: 1px;">ó</div>
         
         <!-- Formulario de Acceso por Credenciales Administrativas -->
         <div class="login-form" style="display: flex; flex-direction: column; gap: 10px;">
-            <input type="text" id="loginUsername" class="login-input" placeholder="Username" style="width: 100%; background-color: #0b0f19; border: 1px solid #1f2937; border-radius: 6px; padding: 12px; color: #f3f4f6; font-size: 0.95rem; box-sizing: border-box;">
-            <input type="password" id="loginPassword" class="login-input" placeholder="Access Password" style="width: 100%; background-color: #0b0f19; border: 1px solid #1f2937; border-radius: 6px; padding: 12px; color: #f3f4f6; font-size: 0.95rem; box-sizing: border-box;">
-            <button class="login-btn" onclick="executeAdminLogin()" style="background-color: #10b981; color: #fff; border: none; padding: 12px; border-radius: 6px; font-weight: 600; cursor: pointer;">Login with Credentials</button>
-            <div class="error-msg" id="loginError" style="color: #ef4444; font-size: 0.85rem; display: none; margin-top: 4px; text-align: center;">Access denied. Please try again.</div>
+            <input type="text" id="loginUsername" class="login-input" placeholder="Nombre de usuario" style="width: 100%; background-color: #0b0f19; border: 1px solid #1f2937; border-radius: 6px; padding: 12px; color: #f3f4f6; font-size: 0.95rem; box-sizing: border-box;">
+            <input type="password" id="loginPassword" class="login-input" placeholder="Contraseña de acceso" style="width: 100%; background-color: #0b0f19; border: 1px solid #1f2937; border-radius: 6px; padding: 12px; color: #f3f4f6; font-size: 0.95rem; box-sizing: border-box;">
+            <button class="login-btn" onclick="executeAdminLogin()" style="background-color: #10b981; color: #fff; border: none; padding: 12px; border-radius: 6px; font-weight: 600; cursor: pointer;">Ingresar con Credenciales</button>
+            <div class="error-msg" id="loginError" style="color: #ef4444; font-size: 0.85rem; display: none; margin-top: 4px; text-align: center;">Acceso denegado. Intente nuevamente.</div>
         </div>
     </div>
 </div>
