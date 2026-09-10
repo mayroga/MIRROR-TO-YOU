@@ -199,7 +199,6 @@ async def process_chat_directive(req: ChatRequest):
         try:
             formatted_contents = []
             for msg in req.messages:
-                # Limpieza y normalización estricta de roles para evitar bloqueos de la API de Google
                 role_clean = str(msg.role).lower().strip()
                 gemini_role = "user" if role_clean in ["user", "usuario"] else "model"
                 formatted_contents.append({
@@ -207,7 +206,6 @@ async def process_chat_directive(req: ChatRequest):
                     "parts": [{"text": msg.content}]
                 })
             
-            # CORRECCIÓN DE URL: Enlace oficial completo de la API de Gemini
             gemini_url = f"https://googleapis.com{GEMINI_API_KEY}"
             payload = {
                 "system_instruction": {"parts": [{"text": system_prompt}]},
@@ -217,6 +215,7 @@ async def process_chat_directive(req: ChatRequest):
             response = await client.post(gemini_url, json=payload)
             if response.status_code == 200:
                 data = response.json()
+                # CORRECCIÓN DE EXTRACCIÓN CRÍTICA: Se vuelven a añadir los índices [0] correctos de la API de Google
                 reply = data["candidates"][0]["content"]["parts"][0]["text"]
                 return {"reply": reply, "provider": "gemini"}
             else:
@@ -228,7 +227,6 @@ async def process_chat_directive(req: ChatRequest):
                 openai_messages = [{"role": "system", "content": system_prompt}]
                 for msg in req.messages:
                     role_clean = str(msg.role).lower().strip()
-                    # Normalización obligatoria de roles para la API estructurada de OpenAI
                     openai_role = "user" if role_clean in ["user", "usuario"] else "assistant"
                     openai_messages.append({"role": openai_role, "content": msg.content})
                 
@@ -242,7 +240,6 @@ async def process_chat_directive(req: ChatRequest):
                     "Content-Type": "application/json"
                 }
                 
-                # CORRECCIÓN DE URL: Enlace oficial completo del endpoint de chat de OpenAI
                 openai_url = "https://openai.com"
                 openai_response = await client.post(openai_url, json=openai_payload, headers=headers)
                 
