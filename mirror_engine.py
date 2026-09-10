@@ -176,19 +176,25 @@ async def get_session_status():
     return {"active": False, "is_premium": False, "time_left": 0}
 
 # =====================================================================
-# 5. Tu Motor de Chat Inteligente Original Protegido
+# Endpoints Protegidos de la Aplicación (Requieren verify_active_session)
 # =====================================================================
 @app.post("/api/chat", dependencies=[Depends(verify_active_session)])
 async def process_chat_directive(req: ChatRequest):
     global VOLATILE_KERNEL
+    # 1. Validación de seguridad e impresión de depuración en la consola de Render
     if req.messages:
         VOLATILE_KERNEL["last_directive"] = req.messages[-1].content
+    else:
+        raise HTTPException(status_code=400, detail="El historial de mensajes viene vacío.")
+        
     system_prompt = (
         "Eres un asesor experto de bienestar y estilo de vida. Mantén el hilo de la conversación, sé conciso, directo, empático y guía al usuario paso a paso sin perder la coherencia de las preguntas anteriores."
         if req.lang == "es"
         else "You are an expert wellness and lifestyle advisor. Maintain the conversation thread, be concise, direct, empathetic, and guide the user step-by-step without losing coherence from previous questions."
     )
-    async with httpx.AsyncClient(timeout=30.0) as client:
+    
+    # SEGUNDOS MÁXIMOS DE ESPERA ELEVADOS: Otorga un colchón masivo de procesamiento sin interrupciones
+    async with httpx.AsyncClient(timeout=60.0) as client:
         try:
             formatted_contents = []
             for msg in req.messages:
@@ -197,7 +203,7 @@ async def process_chat_directive(req: ChatRequest):
                     "role": gemini_role,
                     "parts": [{"text": msg.content}]
                 })
-            gemini_url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={GEMINI_API_KEY}"
+            gemini_url = f"https://googleapis.com{GEMINI_API_KEY}"
             payload = {
                 "system_instruction": {"parts": [{"text": system_prompt}]},
                 "contents": formatted_contents
@@ -205,7 +211,7 @@ async def process_chat_directive(req: ChatRequest):
             response = await client.post(gemini_url, json=payload)
             if response.status_code == 200:
                 data = response.json()
-                reply = data["candidates"][0]["content"]["parts"][0]["text"]
+                reply = data["candidates"]["content"]["parts"]["text"]
                 return {"reply": reply}
             else:
                 raise Exception(f"Gemini status {response.status_code}")
@@ -223,12 +229,13 @@ async def process_chat_directive(req: ChatRequest):
                     "Authorization": f"Bearer {OPENAI_API_KEY}",
                     "Content-Type": "application/json"
                 }
-                openai_response = await client.post("https://api.openai.com/v1/chat/completions", json=openai_payload, headers=headers)
+                openai_response = await client.post("https://openai.com", json=openai_payload, headers=headers)
                 if openai_response.status_code == 200:
                     openai_data = openai_response.json()
-                    reply = openai_data["choices"][0]["message"]["content"]
+                    reply = openai_data["choices"]["message"]["content"]
                     return {"reply": reply}
                 else:
+                    raise Exception(f"OpenAI status {openai_response.status_code}")
             except Exception as openai_error:
                 raise HTTPException(status_code=500, detail="No se pudo procesar la respuesta con el motor de asesoría.")
 
