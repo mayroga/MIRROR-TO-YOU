@@ -200,24 +200,25 @@ function updateTexts() {
     document.getElementById('close-btn').innerText = currentLang === 'es' ? 'Cerrar' : 'Close';
     document.getElementById('travel-input').placeholder = currentLang === 'es' ? 'Escriba su consulta o use los botones de asistencia...' : 'Type your query or use assistance buttons...';
     document.getElementById('objective-desc').innerText = currentLang === 'es' ? 'Opciones cognitivas sin repetición y streams verificados.' : 'Unrepeated cognitive options and verified streams.';
-    document.getElementById('audio-btn').innerText = voiceEnabled ? (currentLang === 'es' ? '🔊 Voz: ON' : '🔊 Voice: ON') : (currentLang === 'es' ? '🔊 Voz: OFF' : '🔊 Voice: OFF');
+    document.getElementById('audio-btn').innerText = voiceEnabled ? (currentLang === 'es' ? ' Voz: ON' : ' Voice: ON') : (currentLang === 'es' ? ' Voz: OFF' : ' Voice: OFF');
     document.getElementById('mortals-label').innerText = currentLang === 'es' ? 'Uso para mortales' : 'Standard Access';
     document.getElementById('mortals-sub').innerText = currentLang === 'es' ? 'Enlaces externos' : 'External links';
     document.getElementById('btn-p1').innerText = currentLang === 'es' ? 'Protocolo Antipánico' : 'Anti-Panic Protocol';
     document.getElementById('btn-p2').innerText = currentLang === 'es' ? 'Enfoque Ejecutivo' : 'Executive Focus';
     document.getElementById('btn-p3').innerText = currentLang === 'es' ? 'Restauración Profunda' : 'Deep Restoration';
     document.getElementById('btn-p4').innerText = currentLang === 'es' ? 'Impulso Antifatiga' : 'Anti-Fatigue Boost';
-    document.getElementById('btn-p5').innerText = currentLang === 'es' ? '⚡ Reto Vital 60s' : '⚡ 60s Vitality Challenge';
-    document.getElementById('btn-p6').innerText = currentLang === 'es' ? '🎵 Frecuencias Antiestrés' : '🎵Anti-Stress Frequencies';
-    document.getElementById('btn-no').innerText = currentLang === 'es' ? '❓ No sé' : '❓ No Idea';
-    document.getElementById('btn-help').innerText = currentLang === 'es' ? '🤝Ayúdame' : '🤝 Help Me';
+    document.getElementById('btn-p5').innerText = currentLang === 'es' ? ' Reto Vital 60s' : ' 60s Vitality Challenge';
+    document.getElementById('btn-p6').innerText = currentLang === 'es' ? ' Frecuencias Antiestrés' : 'Anti-Stress Frequencies';
+    document.getElementById('btn-no').innerText = currentLang === 'es' ? ' No sé' : ' No Idea';
+    document.getElementById('btn-help').innerText = currentLang === 'es' ? 'Ayúdame' : ' Help Me';
     document.getElementById('btn-send').innerText = currentLang === 'es' ? 'Enviar Conversación' : 'Send Conversation';
 }
+
 function toggleVoiceGuide() {
     voiceEnabled = !voiceEnabled;
     document.getElementById('audio-btn').innerText = voiceEnabled ?
-        (currentLang === 'es' ? '🔊 Voz: ON' : '🔊 Voice: ON') :
-        (currentLang === 'es' ? '🔊 Voz: OFF' : '🔊 Voice: OFF');
+        (currentLang === 'es' ? ' Voz: ON' : ' Voice: ON') :
+        (currentLang === 'es' ? ' Voz: OFF' : ' Voice: OFF');
     if (voiceEnabled) speak(currentLang === 'es' ? 'Guía por voz activada.' : 'Voice guide activated.');
 }
 
