@@ -1,11 +1,12 @@
 import os
 import time
-import httpx
+import asyncio
 import stripe
 from fastapi import FastAPI, HTTPException, Request, Depends, status
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 from typing import List
+from google import genai
 
 app = FastAPI(title="MIRROR TO YOU", version="2.2.0")
 
@@ -20,6 +21,15 @@ stripe.api_key = os.getenv("STRIPE_SECRET_KEY")
 STRIPE_WEBHOOK_SECRET = os.getenv("STRIPE_WEBHOOK_SECRET")
 STRIPE_PRICE_ID1 = os.getenv("STRIPE_PRICE_ID1")
 STRIPE_PRICE_ID2 = os.getenv("STRIPE_PRICE_ID2")
+
+# INICIALIZACIÓN OFICIAL DEL CLIENTE DE GEMINI
+
+gemini_client = None
+if GEMINI_API_KEY:
+    try:
+        gemini_client = genai.Client(api_key=GEMINI_API_KEY.strip())
+    except Exception as e:
+        print(f"[GEMINI INIT ERROR] {e}")
 
 # KERNEL DE SESIÓN
 
@@ -199,7 +209,7 @@ async def get_session_status():
         "time_left": 0
     }
 
-# GEMINI — ÚNICO MOTOR DE IA
+# GEMINI — ÚNICO MOTOR DE IA (SDK OFICIAL)
 
 @app.post("/api/chat", dependencies=[Depends(verify_active_session)])
 async def process_chat_directive(req: ChatRequest):
@@ -226,17 +236,7 @@ async def process_chat_directive(req: ChatRequest):
             "Guide the user step by step and avoid generic responses."
         )
 
-    contents = []
-
-    for msg in req.messages:
-        role = str(msg.role).lower().strip()
-        gemini_role = "user" if role in ("user", "usuario") else "model"
-        contents.append({
-            "role": gemini_role,
-            "parts": [{"text": msg.content}]
-        })
-
-    if not GEMINI_API_KEY:
+    if not gemini_client:
         return {
             "reply": (
                 "El servicio de inteligencia no está disponible en este momento."
@@ -246,35 +246,28 @@ async def process_chat_directive(req: ChatRequest):
             )
         }
 
-    url = (
-        "https://generativelanguage.googleapis.com/"
-        f"v1beta/models/{GEMINI_MODEL}:generateContent"
-        f"?key={GEMINI_API_KEY.strip()}"
-    )
+    contents = []
+    for msg in req.messages:
+        role = str(msg.role).lower().strip()
+        gemini_role = "user" if role in ("user", "usuario") else "model"
+        contents.append({
+            "role": gemini_role,
+            "parts": [{"text": msg.content}]
+        })
 
-    payload = {
-        "system_instruction": {"parts": [{"text": system_prompt}]},
-        "contents": contents,
-        "generationConfig": {"temperature": 0.7}
-    }
+    def blocking_call():
+        response = gemini_client.models.generate_content(
+            model=GEMINI_MODEL,
+            contents=contents,
+            config=dict(
+                system_instruction=system_prompt,
+                temperature=0.7
+            )
+        )
+        return response.text
 
     try:
-        async with httpx.AsyncClient(timeout=60.0) as client:
-            response = await client.post(url, json=payload)
-
-        if response.status_code != 200:
-            print(f"[GEMINI ERROR] {response.status_code}: {response.text[:500]}")
-            return {
-                "reply": (
-                    "Estoy procesando tu solicitud. Inténtalo nuevamente."
-                    if req.lang == "es"
-                    else
-                    "I am processing your request. Please try again."
-                )
-            }
-
-        data = response.json()
-        reply = data["candidates"][0]["content"]["parts"][0]["text"]
+        reply = await asyncio.to_thread(blocking_call)
         return {"reply": reply}
 
     except Exception as e:
