@@ -153,23 +153,27 @@ async def stripe_webhook(request: Request):
         return {"status": "success"}
     return {"status": "event_unhandled"}
 
-# 4. Verificación de Estado de la Sesión Actual (Utilizado por el frontend)
+# 4. Verificación de Estado de la Sesión Actual (Corregido para forzar bloqueo si no hay pago real)
 @app.get("/api/auth/session-status")
 async def get_session_status():
-    global VOLATILE_KERNEL # <-- Obligatorio: Sincroniza la lectura en tiempo real del estado de compra
+    global VOLATILE_KERNEL
     current_time = time.time()
+    
     session_active = VOLATILE_KERNEL.get("session_active", False)
     is_premium = VOLATILE_KERNEL.get("is_premium", False)
     expires_at = VOLATILE_KERNEL.get("expires_at", 0.0)
-    # Si está activo y es Premium de 30 días, o si el pase de 10 minutos sigue vigente
-    if session_active and (is_premium or current_time <= expires_at):
-        time_left = max(0, int(expires_at - current_time)) if not is_premium else 2592000
-        return {
-            "active": True,
-            "is_premium": is_premium,
-            "time_left": time_left
-        }
-    # Asegura la limpieza total de estados si expiró el tiempo del pase corto o no hay pago válido
+    
+    # Validación estricta: Solo da acceso si la variable es explícitamente True y no ha caducado
+    if session_active:
+        if is_premium or (current_time <= expires_at):
+            time_left = max(0, int(expires_at - current_time)) if not is_premium else 2592000
+            return {
+                "active": True,
+                "is_premium": is_premium,
+                "time_left": time_left
+            }
+    
+    # Si no pasa las condiciones, se limpia el Kernel y se retorna inactividad obligatoria
     VOLATILE_KERNEL["session_active"] = False
     VOLATILE_KERNEL["is_premium"] = False
     VOLATILE_KERNEL["expires_at"] = 0.0
