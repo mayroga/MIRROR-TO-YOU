@@ -24,10 +24,11 @@ STRIPE_PRICE_ID1 = os.getenv("STRIPE_PRICE_ID1")
 STRIPE_PRICE_ID2 = os.getenv("STRIPE_PRICE_ID2")
 
 # Núcleo Volátil en Memoria para control de estado sin base de datos
-# Estructura: {"session_active": bool, "expires_at": float, "last_directive": str}
+# Estructura: {"session_active": bool, "expires_at": float, "is_premium": bool, "last_directive": str}
 VOLATILE_KERNEL = {
     "session_active": False,
     "expires_at": 0.0,
+    "is_premium": False,
     "last_directive": None
 }
 
@@ -53,6 +54,7 @@ class StripeSessionRequest(BaseModel):
 
 # Dependencia de seguridad: Bloquea cualquier endpoint si la sesión no está activa o expiró
 def verify_active_session():
+    global VOLATILE_KERNEL
     current_time = time.time()
     if not VOLATILE_KERNEL.get("session_active", False):
         raise HTTPException(
@@ -63,6 +65,7 @@ def verify_active_session():
     if not VOLATILE_KERNEL.get("is_premium", False):
         if current_time > VOLATILE_KERNEL.get("expires_at", 0.0):
             VOLATILE_KERNEL["session_active"] = False
+            VOLATILE_KERNEL["is_premium"] = False
             VOLATILE_KERNEL["expires_at"] = 0.0
             raise HTTPException(
                 status_code=status.HTTP_408_REQUEST_TIMEOUT,
@@ -72,6 +75,7 @@ def verify_active_session():
 # 1. Endpoint de Autenticación por Username y Password
 @app.post("/api/auth/login")
 async def admin_login(req: LoginRequest):
+    global VOLATILE_KERNEL  # <-- Forzar alcance global global en servidores asíncronos de Render
     if req.username == ADMIN_USERNAME and req.password == ADMIN_PASSWORD:
         # Activa la sesión inmediatamente por 10 minutos (600 segundos)
         VOLATILE_KERNEL["session_active"] = True
@@ -87,11 +91,9 @@ async def admin_login(req: LoginRequest):
         detail="Credenciales incorrectas."
     )
 
-# 2. Endpoints de Stripe: Creación de Checkout Session
 # 2. Endpoints de Stripe: Creación de Checkout Session (Actualizado con modo Suscripción dinámico)
 @app.post("/api/stripe/create-checkout")
 async def create_checkout_session(req: StripeSessionRequest, request: Request):
-    # Selección de Price ID según la opción del cliente
     price_id = STRIPE_PRICE_ID1 if req.price_tier == 1 else STRIPE_PRICE_ID2
     if not price_id:
         raise HTTPException(status_code=500, detail="ID de precio de Stripe no configurado en el servidor.")
@@ -101,7 +103,6 @@ async def create_checkout_session(req: StripeSessionRequest, request: Request):
     
     # REGLA DE NEGOCIO: Si el tier es 1 es un Pago Único ('payment'). Si es tier 2 es Suscripción Mensual ('subscription').
     stripe_mode = 'payment' if req.price_tier == 1 else 'subscription'
-    
     try:
         checkout_session = stripe.checkout.Session.create(
             payment_method_types=['card'],
@@ -121,6 +122,7 @@ async def create_checkout_session(req: StripeSessionRequest, request: Request):
 # 3. Webhook de Stripe para autorizar el servicio tras el cobro efectivo
 @app.post("/api/stripe/webhook")
 async def stripe_webhook(request: Request):
+    global VOLATILE_KERNEL  # <-- Obligatorio: Sincroniza la escritura del evento de pago hacia Render
     payload = await request.body()
     sig_header = request.headers.get("stripe-signature")
     try:
@@ -146,12 +148,13 @@ async def stripe_webhook(request: Request):
             # Plan Estándar de $200: Acceso tradicional por 10 minutos
             VOLATILE_KERNEL["is_premium"] = False
             VOLATILE_KERNEL["expires_at"] = time.time() + 600.0
-            
         return {"status": "success"}
+    return {"status": "event_unhandled"}
 
 # 4. Verificación de Estado de la Sesión Actual (Utilizado por el frontend)
 @app.get("/api/auth/session-status")
 async def get_session_status():
+    global VOLATILE_KERNEL  # <-- Obligatorio: Sincroniza la lectura en tiempo real del estado de compra
     current_time = time.time()
     session_active = VOLATILE_KERNEL.get("session_active", False)
     is_premium = VOLATILE_KERNEL.get("is_premium", False)
@@ -166,7 +169,7 @@ async def get_session_status():
             "time_left": time_left
         }
     
-    # Asegura la limpieza total de estados si expiró el tiempo del pase corto
+    # Asegura la limpieza total de estados si expiró el tiempo del pase corto o no hay pago válido
     VOLATILE_KERNEL["session_active"] = False
     VOLATILE_KERNEL["is_premium"] = False
     VOLATILE_KERNEL["expires_at"] = 0.0
