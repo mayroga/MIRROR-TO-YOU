@@ -131,16 +131,16 @@ async def stripe_webhook(request: Request):
         raise HTTPException(status_code=400, detail="Payload inválido")
     except stripe.error.SignatureVerificationError:
         raise HTTPException(status_code=400, detail="Firma de webhook inválida")
-    
+   
     # Si el pago se procesó de forma exitosa, se concede acceso según los metadatos del tier comprado
     if event['type'] == 'checkout.session.completed':
         session = event['data']['object']
-        
+       
         # CORRECCIÓN DEFINITIVA: Convertir el objeto Session a diccionario antes de leer los campos
         session_dict = session.to_dict()
         metadata = session_dict.get('metadata', {})
         tier = metadata.get('tier', '1') if metadata else '1'
-        
+       
         VOLATILE_KERNEL["session_active"] = True
         if tier == "2":
             # Plan Premium de $499: Acceso ilimitado por 30 días (2592000 segundos)
@@ -158,11 +158,11 @@ async def stripe_webhook(request: Request):
 async def get_session_status():
     global VOLATILE_KERNEL
     current_time = time.time()
-    
+   
     session_active = VOLATILE_KERNEL.get("session_active", False)
     is_premium = VOLATILE_KERNEL.get("is_premium", False)
     expires_at = VOLATILE_KERNEL.get("expires_at", 0.0)
-    
+   
     # Validación estricta: Solo da acceso si la variable es explícitamente True y no ha caducado
     if session_active:
         if is_premium or (current_time <= expires_at):
@@ -172,7 +172,7 @@ async def get_session_status():
                 "is_premium": is_premium,
                 "time_left": time_left
             }
-    
+   
     # Si no pasa las condiciones, se limpia el Kernel y se retorna inactividad obligatoria
     VOLATILE_KERNEL["session_active"] = False
     VOLATILE_KERNEL["is_premium"] = False
@@ -182,102 +182,67 @@ async def get_session_status():
 # =====================================================================
 # Endpoints Protegidos de la Aplicación (Requieren verify_active_session)
 # =====================================================================
+
 @app.post("/api/chat", dependencies=[Depends(verify_active_session)])
 async def process_chat_directive(req: ChatRequest):
-    global VOLATILE_KERNEL
-    # 1. Validación de seguridad e impresión de depuración en la consola de Render
     if req.messages:
         VOLATILE_KERNEL["last_directive"] = req.messages[-1].content
-    else:
-        raise HTTPException(status_code=400, detail="El historial de mensajes viene vacío.")
-        
+   
     system_prompt = (
         "Eres un asesor experto de bienestar y estilo de vida. Mantén el hilo de la conversación, sé conciso, directo, empático y guía al usuario paso a paso sin perder la coherencia de las preguntas anteriores."
         if req.lang == "es"
         else "You are an expert wellness and lifestyle advisor. Maintain the conversation thread, be concise, direct, empathetic, and guide the user step-by-step without losing coherence from previous questions."
     )
-    
-    # SEGUNDOS MÁXIMOS DE ESPERA ELEVADOS: Otorga un colchón masivo de procesamiento sin interrupciones
-    async with httpx.AsyncClient(timeout=60.0) as client:
-        # -----------------------------------------------------------------
-        # INTENTO PRIMARIO: Google Gemini API (Estructura Fiel con Índices Correctos)
-        # -----------------------------------------------------------------
-        if GEMINI_API_KEY and str(GEMINI_API_KEY).strip() != "":
-            try:
-                formatted_contents = []
-                for msg in req.messages:
-                    # Normalización estricta para evitar que falle en inglés por variaciones de rol
-                    role_clean = str(msg.role).lower().strip()
-                    gemini_role = "user" if role_clean in ["user", "usuario"] else "model"
-                    formatted_contents.append({
-                        "role": gemini_role,
-                        "parts": [{"text": msg.content}]
-                    })
-                
-                # ENLACE OFICIAL FIJO: Dirección correcta para la API de Gemini
-                gemini_url = f"https://googleapis.com{GEMINI_API_KEY.strip()}"
-                payload = {
-                    "system_instruction": {"parts": [{"text": system_prompt}]},
-                    "contents": formatted_contents
-                }
-                
-                response = await client.post(gemini_url, json=payload)
-                if response.status_code == 200:
-                    data = response.json()
-                    # Extracción exacta usando tus índices numéricos de lista nativos de tu código funcional
-                    reply = data["candidates"][0]["content"]["parts"][0]["text"]
-                    # ANONIMATO ABSOLUTO: Se elimina la clave "provider" para ocultar la tecnología
-                    return {"reply": reply}
-                else:
-                    print(f"[REPORTE INTERNO] Código de respuesta de canal primario: {response.status_code}")
-            except Exception as e:
-                print(f"[REPORTE INTERNO] Excepción de canal primario: {str(e)}")
-
-        # -----------------------------------------------------------------
-        # CONMUTACIÓN DE CONTINGENCIA: OpenAI GPT-4o-mini (Estructura Fiel con Índices Correctos)
-        # -----------------------------------------------------------------
-        if OPENAI_API_KEY and str(OPENAI_API_KEY).strip() != "":
+   
+    async with httpx.AsyncClient(timeout=30.0) as client:
+        # Intento primario con Gemini
+        try:
+            formatted_contents = []
+            for msg in req.messages:
+                gemini_role = "user" if msg.role == "user" else "model"
+                formatted_contents.append({
+                    "role": gemini_role,
+                    "parts": [{"text": msg.content}]
+                })
+           
+            gemini_url = f"https://googleapis.com{GEMINI_API_KEY}"
+            payload = {
+                "system_instruction": {"parts": [{"text": system_prompt}]},
+                "contents": formatted_contents
+            }
+            response = await client.post(gemini_url, json=payload)
+            if response.status_code == 200:
+                data = response.json()
+                reply = data["candidates"][0]["content"]["parts"][0]["text"]
+                return {"reply": reply, "provider": "gemini"}
+            else:
+                raise Exception(f"Gemini status {response.status_code}")
+               
+        except Exception:
+            # Conmutación de contingencia automática a OpenAI
             try:
                 openai_messages = [{"role": "system", "content": system_prompt}]
                 for msg in req.messages:
-                    role_clean = str(msg.role).lower().strip()
-                    openai_role = "user" if role_clean in ["user", "usuario"] else "assistant"
-                    openai_messages.append({"role": openai_role, "content": msg.content})
-                
+                    openai_messages.append({"role": msg.role, "content": msg.content})
+               
                 openai_payload = {
                     "model": "gpt-4o-mini",
                     "messages": openai_messages,
                     "temperature": 0.7
                 }
                 headers = {
-                    "Authorization": f"Bearer {OPENAI_API_KEY.strip()}",
+                    "Authorization": f"Bearer {OPENAI_API_KEY}",
                     "Content-Type": "application/json"
                 }
-                
-                # ENLACE OFICIAL FIJO: Dirección correcta para el endpoint de OpenAI
-                openai_url = "https://openai.com"
-                openai_response = await client.post(openai_url, json=openai_payload, headers=headers)
+                openai_response = await client.post("https://openai.com", json=openai_payload, headers=headers)
                 if openai_response.status_code == 200:
                     openai_data = openai_response.json()
-                    # Extracción exacta usando tus índices numéricos de lista nativos de tu código funcional
                     reply = openai_data["choices"][0]["message"]["content"]
-                    # ANONIMATO ABSOLUTO: Se elimina la clave "provider" para que no quede rastro tecnológico
-                    return {"reply": reply}
+                    return {"reply": reply, "provider": "openai"}
                 else:
-                    print(f"[REPORTE INTERNO] Código de respuesta de canal secundario: {openai_response.status_code}")
-            except Exception as e:
-                print(f"[REPORTE INTERNO] Excepción de canal secundario: {str(e)}")
-
-        # -----------------------------------------------------------------
-        # RETORNO HUMANO CONTROLADO: Sustituye el viejo raise HTTPException
-        # -----------------------------------------------------------------
-        # Si las APIs externas fallan o las llaves no tienen fondos, se devuelve cortesía en vez de romper el frontend
-        fallback_msg = (
-            "Estoy procesando la información de su perfil con el máximo nivel de detalle. Por favor, reenvíe su última consulta para asegurar una orientación estratégica completamente precisa."
-            if req.lang == "es"
-            else "I am currently processing your profile details with the utmost care. Please re-send your last message to ensure an entirely precise guidance."
-        )
-        return {"reply": fallback_msg}
+                    raise Exception(f"OpenAI status {openai_response.status_code}")
+            except Exception:
+                raise HTTPException(status_code=500, detail="No se pudo procesar la respuesta con el motor de asesoría.")
 
 @app.post("/api/wellness", dependencies=[Depends(verify_active_session)])
 async def process_wellness_routine(req: WellnessRequest):
@@ -290,9 +255,7 @@ async def process_wellness_routine(req: WellnessRequest):
 
 @app.delete("/api/clear")
 async def clear_kernel_memory():
-    global VOLATILE_KERNEL
     VOLATILE_KERNEL["session_active"] = False
-    VOLATILE_KERNEL["is_premium"] = False
     VOLATILE_KERNEL["expires_at"] = 0.0
     VOLATILE_KERNEL["last_directive"] = None
     return {"status": "cleared", "memory": "zero"}
