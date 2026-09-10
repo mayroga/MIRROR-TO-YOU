@@ -215,7 +215,8 @@ async def process_chat_directive(req: ChatRequest):
             response = await client.post(gemini_url, json=payload)
             if response.status_code == 200:
                 data = response.json()
-                reply = data["candidates"]["content"]["parts"]["text"]
+                # REPARACIÓN AQUÍ: Se añaden los índices numéricos [0] obligatorios para leer la matriz de Google
+                reply = data["candidates"][0]["content"]["parts"][0]["text"]
                 return {"reply": reply}
             else:
                 raise Exception(f"Gemini status {response.status_code}")
@@ -236,7 +237,8 @@ async def process_chat_directive(req: ChatRequest):
                 openai_response = await client.post("https://openai.com", json=openai_payload, headers=headers)
                 if openai_response.status_code == 200:
                     openai_data = openai_response.json()
-                    reply = openai_data["choices"]["message"]["content"]
+                    # REPARACIÓN AQUÍ: Se añade el índice numérico [0] obligatorio para leer la matriz de OpenAI
+                    reply = openai_data["choices"][0]["message"]["content"]
                     return {"reply": reply}
                 else:
                     raise Exception(f"OpenAI status {openai_response.status_code}")
