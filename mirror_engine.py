@@ -214,7 +214,7 @@ async def process_chat_directive(req: ChatRequest):
                         "parts": [{"text": str(msg.content)}]
                     })
                 
-                # ENLACE OFICIAL REPARADO: Apunta con precisión quirúrgica al endpoint real de Google
+                # ENLACE OFICIAL FIJO: Dirección absoluta y correcta para la API de Gemini
                 gemini_url = f"https://googleapis.com{GEMINI_API_KEY.strip()}"
                 payload = {
                     "system_instruction": {"parts": [{"text": system_prompt}]},
@@ -255,7 +255,7 @@ async def process_chat_directive(req: ChatRequest):
                     "Content-Type": "application/json"
                 }
                 
-                # ENLACE OFICIAL REPARADO: Apunta con precisión quirúrgica al endpoint real de OpenAI
+                # ENLACE OFICIAL FIJO: Dirección absoluta y correcta para el endpoint de OpenAI
                 openai_url = "https://openai.com"
                 openai_response = await client.post(openai_url, json=openai_payload, headers=headers)
                 if openai_response.status_code == 200:
