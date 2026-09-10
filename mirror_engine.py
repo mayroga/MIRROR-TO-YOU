@@ -182,12 +182,12 @@ async def get_session_status():
 # =====================================================================
 # Endpoints Protegidos de la Aplicación (Requieren verify_active_session)
 # =====================================================================
-
 @app.post("/api/chat", dependencies=[Depends(verify_active_session)])
 async def process_chat_directive(req: ChatRequest):
+    global VOLATILE_KERNEL
     if req.messages:
         VOLATILE_KERNEL["last_directive"] = req.messages[-1].content
-    
+        
     system_prompt = (
         "Eres un asesor experto de bienestar y estilo de vida. Mantén el hilo de la conversación, sé conciso, directo, empático y guía al usuario paso a paso sin perder la coherencia de las preguntas anteriores."
         if req.lang == "es"
@@ -199,17 +199,21 @@ async def process_chat_directive(req: ChatRequest):
         try:
             formatted_contents = []
             for msg in req.messages:
-                gemini_role = "user" if msg.role == "user" else "model"
+                # Limpieza y normalización estricta de roles para evitar bloqueos de la API de Google
+                role_clean = str(msg.role).lower().strip()
+                gemini_role = "user" if role_clean in ["user", "usuario"] else "model"
                 formatted_contents.append({
                     "role": gemini_role,
                     "parts": [{"text": msg.content}]
                 })
             
+            # CORRECCIÓN DE URL: Enlace oficial completo de la API de Gemini
             gemini_url = f"https://googleapis.com{GEMINI_API_KEY}"
             payload = {
                 "system_instruction": {"parts": [{"text": system_prompt}]},
                 "contents": formatted_contents
             }
+            
             response = await client.post(gemini_url, json=payload)
             if response.status_code == 200:
                 data = response.json()
@@ -219,11 +223,14 @@ async def process_chat_directive(req: ChatRequest):
                 raise Exception(f"Gemini status {response.status_code}")
                 
         except Exception:
-            # Conmutación de contingencia automática a OpenAI
+            # Conmutación de contingencia automática a OpenAI si falla Gemini
             try:
                 openai_messages = [{"role": "system", "content": system_prompt}]
                 for msg in req.messages:
-                    openai_messages.append({"role": msg.role, "content": msg.content})
+                    role_clean = str(msg.role).lower().strip()
+                    # Normalización obligatoria de roles para la API estructurada de OpenAI
+                    openai_role = "user" if role_clean in ["user", "usuario"] else "assistant"
+                    openai_messages.append({"role": openai_role, "content": msg.content})
                 
                 openai_payload = {
                     "model": "gpt-4o-mini",
@@ -234,13 +241,18 @@ async def process_chat_directive(req: ChatRequest):
                     "Authorization": f"Bearer {OPENAI_API_KEY}",
                     "Content-Type": "application/json"
                 }
-                openai_response = await client.post("https://openai.com", json=openai_payload, headers=headers)
+                
+                # CORRECCIÓN DE URL: Enlace oficial completo del endpoint de chat de OpenAI
+                openai_url = "https://openai.com"
+                openai_response = await client.post(openai_url, json=openai_payload, headers=headers)
+                
                 if openai_response.status_code == 200:
                     openai_data = openai_response.json()
                     reply = openai_data["choices"][0]["message"]["content"]
                     return {"reply": reply, "provider": "openai"}
                 else:
                     raise Exception(f"OpenAI status {openai_response.status_code}")
+                    
             except Exception:
                 raise HTTPException(status_code=500, detail="No se pudo procesar la respuesta con el motor de asesoría.")
 
