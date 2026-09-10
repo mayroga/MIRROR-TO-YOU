@@ -186,7 +186,7 @@ async def process_chat_directive(req: ChatRequest):
     
     async with httpx.AsyncClient(timeout=60.0) as client:
         # -----------------------------------------------------------------
-        # INTENTO PRIMARIO: Google Gemini API (Corregido con URL oficial y endpoint completo)
+        # INTENTO PRIMARIO: Google Gemini API (Actualizado a la versión v1 oficial)
         # -----------------------------------------------------------------
         if GEMINI_API_KEY and str(GEMINI_API_KEY).strip() != "":
             try:
@@ -199,7 +199,7 @@ async def process_chat_directive(req: ChatRequest):
                         "parts": [{"text": msg.content}]
                     })
                 
-                gemini_url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={GEMINI_API_KEY.strip()}"
+                gemini_url = f"https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key={GEMINI_API_KEY.strip()}"
                 payload = {
                     "system_instruction": {"parts": [{"text": system_prompt}]},
                     "contents": formatted_contents
@@ -216,7 +216,7 @@ async def process_chat_directive(req: ChatRequest):
                 print(f"[REPORTE INTERNO] Excepción de canal primario: {str(e)}")
 
         # -----------------------------------------------------------------
-        # CONMUTACIÓN DE CONTINGENCIA: OpenAI GPT-4o-mini (Corregido con URL oficial)
+        # CONMUTACIÓN DE CONTINGENCIA: OpenAI GPT-4o-mini
         # -----------------------------------------------------------------
         if OPENAI_API_KEY and str(OPENAI_API_KEY).strip() != "":
             try:
