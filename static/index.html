@@ -42,7 +42,7 @@ footer{text-align:center;font-size:.8rem;color:var(--text-muted);padding-top:20p
 </style>
 </head>
 <body>
-<!-- Paywall Interceptador Obligatorio (Aparece antes de todo el servicio) -->
+<!-- Paywall Interceptador Obligatorio (Stripe y Credenciales) -->
 <div id="paywallModal" style="position: fixed; inset: 0; width: 100vw; height: 100vh; background: rgba(11, 15, 25, 0.98); display: flex; justify-content: center; align-items: center; z-index: 99999; padding: 20px; box-sizing: border-box;">
     <div class="paywall-card" style="background-color: #111827; border: 1px solid #1f2937; border-radius: 12px; padding: 32px 24px; width: min(420px, 100%); text-align: center; box-shadow: 0 18px 50px rgba(0,0,0,.45); display: flex; flex-direction: column; gap: 16px;">
         <div class="brand-title" style="font-size: 1.4rem; font-weight: 600; letter-spacing: 2px; color: #38bdf8;">MIRROR TO YOU</div>
@@ -71,37 +71,38 @@ footer{text-align:center;font-size:.8rem;color:var(--text-muted);padding-top:20p
         </div>
     </div>
 </div>
-<!-- IMPORTANTE: Envuelve toda tu aplicación original (desde el div del legal-gate hasta el final) dentro de este contenedor oculto -->
+
+<!-- Compuerta Legal Original Intacta (Fuera de appInterface por seguridad) -->
+<div id="legal-gate" style="position: fixed; inset: 0; width: 100vw; height: 100vh; background: rgba(11, 15, 25, 0.98); display: flex; justify-content: center; align-items: center; z-index: 2000; padding: 20px; box-sizing: border-box;">
+    <div class="legal-box">
+        <h2 id="gate-title">AVISO LEGAL Y PROTECCIÓN</h2>
+        <div class="legal-text" id="gate-text">El acceso a esta plataforma implica la aceptación absoluta de nuestros términos de exención de responsabilidad. Este sistema opera exclusivamente como un facilitador de bienestar privado y orientación general de estilo de vida. No proporciona asesoría médica, legal ni financiera. Al presionar el botón de inicio, usted reconoce que utiliza este servicio bajo su propia discreción y soberanía.</div>
+        <div style="display:flex;gap:10px;justify-content:center;margin-top:10px">
+            <button onclick="switchGateLang()" id="gate-lang-btn" style="background:var(--bg-color)">EN / ES</button>
+            <button onclick="startSession()" id="gate-start-btn" style="background:var(--accent-color);color:var(--bg-color);font-weight:600;flex:1">Empezar / Start</button>
+        </div>
+    </div>
+</div>
+
+<!-- Pantalla de Cierre Forzado Original Intacta -->
+<div id="shutdown-overlay" style="display: none; position: fixed; inset: 0; width: 100vw; height: 100vh; background: #0b0f19; z-index: 3000; justify-content: center; align-items: center; text-align: center; padding: 20px;">
+    <div class="legal-box">
+        <h2 id="shut-title">Sesión Finalizada</h2>
+        <p id="shut-text" style="color:var(--text-muted);font-size:.9rem">El tiempo límite de 10 minutos ha concluido. La sesión se ha cerrado por seguridad.</p>
+        <button onclick="location.reload()" id="shut-btn" style="background:var(--accent-color);color:var(--bg-color);font-weight:600;margin-top:10px">Reiniciar Sesión</button>
+    </div>
+</div>
+
+<!-- IMPORTANTE: Este contenedor envuelve ÚNICAMENTE la interfaz operativa del servicio a partir del header -->
 <div id="appInterface" style="display: none; flex-direction: column; flex: 1; width: 100%;">
-
-
-<div id="legal-gate">
-<div class="legal-box">
-<h2 id="gate-title">AVISO LEGAL Y PROTECCIÓN</h2>
-<div class="legal-text" id="gate-text">El acceso a esta plataforma implica la aceptación absoluta de nuestros términos de exención de responsabilidad. Este sistema opera exclusivamente como un facilitador de bienestar privado y orientación general de estilo de vida. No proporciona asesoría médica, legal ni financiera. Al presionar el botón de inicio, usted reconoce que utiliza este servicio bajo su propia discreción y soberanía.</div>
-<div style="display:flex;gap:10px;justify-content:center;margin-top:10px">
-<button onclick="switchGateLang()" id="gate-lang-btn" style="background:var(--bg-color)">EN / ES</button>
-<button onclick="startSession()" id="gate-start-btn" style="background:var(--accent-color);color:var(--bg-color);font-weight:600;flex:1">Empezar / Start</button>
-</div>
-</div>
-</div>
-
-<div id="shutdown-overlay">
-<div class="legal-box">
-<h2 id="shut-title">Sesión Finalizada</h2>
-<p id="shut-text" style="color:var(--text-muted);font-size:.9rem">El tiempo límite de 10 minutos ha concluido. La sesión se ha cerrado por seguridad.</p>
-<button onclick="location.reload()" id="shut-btn" style="background:var(--accent-color);color:var(--bg-color);font-weight:600;margin-top:10px">Reiniciar Sesión</button>
-</div>
-</div>
-
-<header>
-<div class="logo" id="app-title">MIRROR TO YOU</div>
-<div class="controls">
-<button id="lang-btn" onclick="toggleLanguage()">ES</button>
-<button id="audio-btn" onclick="toggleVoiceGuide()">🔊 Voz: OFF</button>
-<button class="btn-danger" id="close-btn" onclick="closeSession()">Cerrar</button>
-</div>
-</header>
+    <header>
+        <div class="logo" id="app-title">MIRROR TO YOU</div>
+        <div class="controls">
+            <button id="lang-btn" onclick="toggleLanguage()">ES</button>
+            <button id="audio-btn" onclick="toggleVoiceGuide()">🔊 Voz: OFF</button>
+            <button class="btn-danger" id="close-btn" onclick="closeSession()">Cerrar</button>
+        </div>
+    </header>
 
 <main>
 <div class="panel">
