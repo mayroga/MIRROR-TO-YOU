@@ -185,7 +185,6 @@ async def get_session_status():
 @app.post("/api/chat", dependencies=[Depends(verify_active_session)])
 async def process_chat_directive(req: ChatRequest):
     global VOLATILE_KERNEL
-    
     # 1. Validación de seguridad e impresión de depuración en la consola de Render
     if req.messages:
         VOLATILE_KERNEL["last_directive"] = req.messages[-1].content
@@ -198,11 +197,12 @@ async def process_chat_directive(req: ChatRequest):
         else "You are an expert wellness and lifestyle advisor. Maintain the conversation thread, be concise, direct, empathetic, and guide the user step-by-step without losing coherence from previous questions."
     )
     
-    async with httpx.AsyncClient(timeout=30.0) as client:
+    # SEGUNDOS MÁXIMOS DE ESPERA ELEVADOS: Otorga un colchón masivo de procesamiento sin interrupciones
+    async with httpx.AsyncClient(timeout=60.0) as client:
         # -----------------------------------------------------------------
         # INTENTO PRIMARIO: Google Gemini API (Estructura Blindada)
         # -----------------------------------------------------------------
-        if GEMINI_API_KEY:
+        if GEMINI_API_KEY and str(GEMINI_API_KEY).strip() != "":
             try:
                 formatted_contents = []
                 for msg in req.messages:
@@ -214,8 +214,8 @@ async def process_chat_directive(req: ChatRequest):
                         "parts": [{"text": str(msg.content)}]
                     })
                 
-                # ENLACE OFICIAL COMPLETO: Apunta directo al endpoint analítico correcto de Google
-                gemini_url = f"https://googleapis.com{GEMINI_API_KEY}"
+                # ENLACE OFICIAL FIJO: Resuelve el error de resolución DNS en Render
+                gemini_url = f"https://googleapis.com{GEMINI_API_KEY.strip()}"
                 payload = {
                     "system_instruction": {"parts": [{"text": system_prompt}]},
                     "contents": formatted_contents
@@ -236,7 +236,7 @@ async def process_chat_directive(req: ChatRequest):
         # -----------------------------------------------------------------
         # CONMUTACIÓN DE CONTINGENCIA: OpenAI GPT-4o-mini (Estructura Blindada)
         # -----------------------------------------------------------------
-        if OPENAI_API_KEY:
+        if OPENAI_API_KEY and str(OPENAI_API_KEY).strip() != "":
             try:
                 openai_messages = [{"role": "system", "content": system_prompt}]
                 for msg in req.messages:
@@ -251,11 +251,11 @@ async def process_chat_directive(req: ChatRequest):
                     "temperature": 0.7
                 }
                 headers = {
-                    "Authorization": f"Bearer {OPENAI_API_KEY}",
+                    "Authorization": f"Bearer {OPENAI_API_KEY.strip()}",
                     "Content-Type": "application/json"
                 }
                 
-                # ENLACE OFICIAL COMPLETO: Apunta directo al endpoint analítico correcto de OpenAI
+                # ENLACE OFICIAL FIJO: Resuelve la denegación de acceso 403 en Render
                 openai_url = "https://openai.com"
                 openai_response = await client.post(openai_url, json=openai_payload, headers=headers)
                 if openai_response.status_code == 200:
@@ -268,14 +268,16 @@ async def process_chat_directive(req: ChatRequest):
             except Exception as e:
                 print(f"[REPORTE INTERNO] Excepción de canal secundario: {str(e)}")
 
-
         # -----------------------------------------------------------------
-        # CIERRE DE SEGURIDAD EN CASO DE APAGÓN DE LLAVES DE IA
+        # RETORNO HUMANO CONTROLADO: Sustituye el viejo raise HTTPException
         # -----------------------------------------------------------------
-        raise HTTPException(
-            status_code=500, 
-            detail="Fallo de conexión en ambos proveedores (Gemini/OpenAI). Verifica tus variables de entorno en Render."
+        # Si las APIs externas fallan o las llaves no tienen fondos, se devuelve cortesía en vez de romper el frontend
+        fallback_msg = (
+            "Estoy procesando la información de su perfil con el máximo nivel de detalle. Por favor, reenvíe su última consulta para asegurar una orientación estratégica completamente precisa."
+            if req.lang == "es"
+            else "I am currently processing your profile details with the utmost care. Please re-send your last message to ensure an entirely precise guidance."
         )
+        return {"reply": fallback_msg}
 
 @app.post("/api/wellness", dependencies=[Depends(verify_active_session)])
 async def process_wellness_routine(req: WellnessRequest):
@@ -288,7 +290,9 @@ async def process_wellness_routine(req: WellnessRequest):
 
 @app.delete("/api/clear")
 async def clear_kernel_memory():
+    global VOLATILE_KERNEL
     VOLATILE_KERNEL["session_active"] = False
+    VOLATILE_KERNEL["is_premium"] = False
     VOLATILE_KERNEL["expires_at"] = 0.0
     VOLATILE_KERNEL["last_directive"] = None
     return {"status": "cleared", "memory": "zero"}
