@@ -1,6 +1,7 @@
 import os
 import time
 import asyncio
+import re  # <-- PASO 1: Importar expresiones regulares para limpiar el texto
 import stripe
 from fastapi import FastAPI, HTTPException, Request, Depends, status
 from fastapi.staticfiles import StaticFiles
@@ -39,6 +40,16 @@ VOLATILE_KERNEL = {
     "is_premium": False,
     "last_directive": None
 }
+
+# PASO 2: Función para limpiar el texto y que la voz suene natural (sin asteriscos, corchetes, etc.)
+def clean_text_for_speech(text: str) -> str:
+    if not text:
+        return ""
+    # Eliminar asteriscos, corchetes, almohadillas y otros símbolos de formato markdown/texto
+    cleaned = re.sub(r'[\*\#\_\[\]\{\}\(\)\`\~]+', '', text)
+    # Normalizar espacios múltiples dejados por la eliminación
+    cleaned = re.sub(r'\s+', ' ', cleaned).strip()
+    return cleaned
 
 # MODELOS
 
@@ -239,14 +250,12 @@ async def process_chat_directive(req: ChatRequest):
         )
 
     if not gemini_client:
-        return {
-            "reply": (
-                "El servicio de inteligencia no está disponible en este momento."
-                if req.lang == "es"
-                else
-                "The intelligence service is not available at this moment."
-            )
-        }
+        fallback_no_client = (
+            "El servicio de inteligencia no está disponible en este momento."
+            if req.lang == "es"
+            else "The intelligence service is not available at this moment."
+        )
+        return {"reply": clean_text_for_speech(fallback_no_client)}
 
     contents = []
     for msg in req.messages:
@@ -276,18 +285,19 @@ async def process_chat_directive(req: ChatRequest):
 
     try:
         reply = await asyncio.to_thread(blocking_call)
-        return {"reply": reply}
+        
+        # PASO 3: Limpiar el texto antes de entregarlo para que la voz no lea símbolos
+        cleaned_reply = clean_text_for_speech(reply)
+        return {"reply": cleaned_reply}
 
     except Exception as e:
         print(f"[GEMINI EXCEPTION] {e}")
-        return {
-            "reply": (
-                "Estoy procesando tu solicitud. Inténtalo nuevamente."
-                if req.lang == "es"
-                else
-                "I am processing your request. Please try again."
-            )
-        }
+        fallback_msg = (
+            "Estoy procesando tu solicitud. Inténtalo nuevamente."
+            if req.lang == "es"
+            else "I am processing your request. Please try again."
+        )
+        return {"reply": clean_text_for_speech(fallback_msg)}
 
 # WELLNESS
 
