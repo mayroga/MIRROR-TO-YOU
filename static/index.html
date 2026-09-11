@@ -255,16 +255,38 @@ es:[
 };
 
 const verifiedStreams=[
-"https://www.youtube.com/embed/1ZYbU82GVz4?autoplay=1",
-"https://www.youtube.com/embed/WPni755-Krg?autoplay=1",
-"https://www.youtube.com/embed/1le4k-9PdP4?autoplay=1",  
-"https://www.youtube.com/embed/4JVLhmas1SQ?autoplay=1",
-"https://www.youtube.com/embed/pj3iV9OjCgM?autoplay=1",
-"https://www.youtube.com/embed/42JbW5b1m5Y?autoplay=1",
-"https://www.youtube.com/embed/1Ef9CAZ3OrQ?autoplay=1"    
+"https://youtube.com",
+"https://youtube.com",
+"https://youtube.com",  
+"https://youtube.com",
+"https://youtube.com",
+"https://youtube.com",
+"https://youtube.com"    
 ];
 
-let streamIndex = Math.floor(Math.random() * verifiedStreams.length);
+// FUNCIÓN ACTUALIZADA: Garantiza 0% repeticiones guardando el historial en el navegador
+function getAbsoluteSmartStream() {
+    let played = JSON.parse(localStorage.getItem('playedStreams')) || [];
+    let available = verifiedStreams.filter(stream => !played.includes(stream));
+    
+    if (available.length === 0) {
+        played = [];
+        available = [...verifiedStreams];
+    }
+    
+    const randomIndex = Math.floor(Math.random() * available.length);
+    const chosenStream = available[randomIndex];
+    
+    played.push(chosenStream);
+    localStorage.setItem('playedStreams', JSON.stringify(played));
+    
+    return verifiedStreams.indexOf(chosenStream);
+}
+
+// Asignación inteligente sin repetición consecutiva
+let streamIndex = getAbsoluteSmartStream();
+
+let usedIndices=[];
 
 function getSmartPhrase(){
 const list=masterPhrases[currentLang];
@@ -274,6 +296,7 @@ do{idx=Math.floor(Math.random()*list.length)}while(usedIndices.includes(idx));
 usedIndices.push(idx);
 return list[idx]
 }
+// TERMINA AQUI VIDEOS DE ARRIBA: Garantiza 0% repeticiones guardando el historial en el navegador
 
 function toggleLanguage(){
 currentLang=currentLang==='en'?'es':'en';
