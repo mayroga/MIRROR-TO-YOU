@@ -263,7 +263,7 @@ const verifiedStreams=[
 "https://www.youtube.com/embed/1Ef9CAZ3OrQ?autoplay=1"    
 ];
 
-let usedIndices=[],streamIndex=0;
+let streamIndex = Math.floor(Math.random() * verifiedStreams.length);
 
 function getSmartPhrase(){
 const list=masterPhrases[currentLang];
