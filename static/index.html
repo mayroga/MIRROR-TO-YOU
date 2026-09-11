@@ -196,11 +196,70 @@ const randomMapsLinks=[
 "https://maps.google.com/?q=Aspen+Mountain+Ski+Resort",
 "https://maps.google.com/?q=Grace+Bay+Turks+and+Caicos",
 "https://maps.google.com/?q=Key+West+Florida",
-"https://maps.google.com/?q=Yellowstone+National+Park"
+"https://maps.google.com/?q=Yellowstone+National+Park",
+"https://maps.google.com/?q=St+Barts+Saint+Barthelemy",
+"https://maps.google.com/?q=Monaco",
+"https://maps.google.com/?q=French+Riviera+France",
+"https://maps.google.com/?q=Lake+Como+Italy",
+"https://maps.google.com/?q=Porto+Cervo+Sardinia+Italy",
+"https://maps.google.com/?q=Courchevel+1850+France",
+"https://maps.google.com/?q=St+Moritz+Switzerland",
+"https://maps.google.com/?q=Gstaad+Switzerland",
+"https://maps.google.com/?q=Aspen+Colorado",
+"https://maps.google.com/?q=Maldives",
+"https://maps.google.com/?q=Turks+and+Caicos",
+"https://maps.google.com/?q=Canouan+Saint+Vincent+and+the+Grenadines",
+"https://maps.google.com/?q=Bora+Bora+French+Polynesia",
+"https://maps.google.com/?q=Seychelles",
+"https://maps.google.com/?q=Dubai+United+Arab+Emirates",
+"https://maps.google.com/?q=Mykonos+Greece",
+"https://maps.google.com/?q=Amalfi+Coast+Italy",
+"https://maps.google.com/?q=Tuscany+Italy",
+"https://maps.google.com/?q=Kyoto+Japan",
+"https://maps.google.com/?q=Queenstown+New+Zealand",
+"https://maps.google.com/?q=Soho+New+York",
+"https://maps.google.com/?q=Greenwich+Village+New+York",
+"https://maps.google.com/?q=Shibuya+Tokyo",
+"https://maps.google.com/?q=Le+Marais+Paris",
+"https://maps.google.com/?q=Trastevere+Rome",
+"https://maps.google.com/?q=El+Born+Barcelona",
+"https://maps.google.com/?q=Gracia+Barcelona",
+"https://maps.google.com/?q=Notting+Hill+London",
+"https://maps.google.com/?q=Montmartre+Paris",
+"https://maps.google.com/?q=Kreuzberg+Berlin",
+"https://maps.google.com/?q=Malibu+California",
+"https://maps.google.com/?q=Napa+Valley+California",
+"https://maps.google.com/?q=Jackson+Hole+Wyoming",
+"https://maps.google.com/?q=Telluride+Colorado",
+"https://maps.google.com/?q=Vail+Colorado",
+"https://maps.google.com/?q=Miami+Beach+Florida",
+"https://maps.google.com/?q=Palm+Beach+Florida",
+"https://maps.google.com/?q=The+Hamptons+New+York",
+"https://maps.google.com/?q=Newport+Rhode+Island",
+"https://maps.google.com/?q=Charleston+South+Carolina",
+"https://maps.google.com/?q=Vancouver+British+Columbia",
+"https://maps.google.com/?q=Whistler+British+Columbia",
+"https://maps.google.com/?q=Banff+Alberta+Canada",
+"https://maps.google.com/?q=Lake+Louise+Alberta+Canada",
+"https://maps.google.com/?q=Los+Cabos+Mexico",
+"https://maps.google.com/?q=Punta+Mita+Mexico",
+"https://maps.google.com/?q=Cartagena+Colombia",
+"https://maps.google.com/?q=Buenos+Aires+Argentina",
+"https://maps.google.com/?q=Cape+Town+South+Africa",
+"https://maps.google.com/?q=Zanzibar+Tanzania"    
 ];
 
+// Memoria para recordar qué mapas ya se mostraron en la sesión activa
+let usedMapsIndices = [];
+
 function updateMapsLink(){
-document.getElementById('m-maps').href=randomMapsLinks[Math.floor(Math.random()*randomMapsLinks.length)]
+if(usedMapsIndices.length >= randomMapsLinks.length) usedMapsIndices = [];
+let idx;
+do {
+idx = Math.floor(Math.random() * randomMapsLinks.length);
+} while(usedMapsIndices.includes(idx));
+usedMapsIndices.push(idx);
+document.getElementById('m-maps').href = randomMapsLinks[idx];
 }
 
 function switchGateLang(){
@@ -236,7 +295,7 @@ document.getElementById('shutdown-overlay').style.display='flex';
 document.getElementById('shut-title').innerText=currentLang==='es'?'Sesión Cerrada':'Session Closed';
 document.getElementById('shut-text').innerText=currentLang==='es'?'La sesión ha sido cerrada manualmente por el usuario.':'Session manually closed by user.'
 }
-
+    
 const masterPhrases={
 en:[
 "Release every ounce of shoulder tension right now.",
@@ -256,11 +315,16 @@ es:[
 
 const verifiedStreams=[
 "https://www.youtube.com/embed/1ZYbU82GVz4?autoplay=1",
+"https://www.youtube.com/embed/g_6FvRNW-mc?autoplay=1",    
 "https://www.youtube.com/embed/WPni755-Krg?autoplay=1",
+"https://www.youtube.com/embed/M09A0pmGGVo?autoplay=1",    
 "https://www.youtube.com/embed/1le4k-9PdP4?autoplay=1",  
 "https://www.youtube.com/embed/4JVLhmas1SQ?autoplay=1",
+"https://www.youtube.com/embed/aPyTzGgeE8M?autoplay=1",    
 "https://www.youtube.com/embed/pj3iV9OjCgM?autoplay=1",
+"https://www.youtube.com/embed/Sj3mr2T_djk?autoplay=1",    
 "https://www.youtube.com/embed/42JbW5b1m5Y?autoplay=1",
+"https://www.youtube.com/embed/0g78eByBg-c?autoplay=1",    
 "https://www.youtube.com/embed/1Ef9CAZ3OrQ?autoplay=1"    
 ];
 
