@@ -283,6 +283,11 @@ document.getElementById('timer-display').innerText=`${m}:${s<10?'0':''}${s}`;
 if(timeLeft<=0){
 clearInterval(sessionTimer);
 stopTvidTimers();
+
+// APAGÓN AUTOMÁTICO: Detiene de inmediato cualquier video de YouTube al expirar el tiempo
+const iframeVideo = document.querySelector('iframe');
+if(iframeVideo) iframeVideo.src = "";
+
 document.getElementById('shutdown-overlay').style.display='flex'
 }
 },1000)
@@ -291,6 +296,11 @@ document.getElementById('shutdown-overlay').style.display='flex'
 function closeSession(){
 if(sessionTimer)clearInterval(sessionTimer);
 stopTvidTimers();
+
+// APAGÓN MANUAL: Corta la transmisión de YouTube al instante que el usuario cierra sesión
+const iframeVideo = document.querySelector('iframe');
+if(iframeVideo) iframeVideo.src = "";
+
 document.getElementById('shutdown-overlay').style.display='flex';
 document.getElementById('shut-title').innerText=currentLang==='es'?'Sesión Cerrada':'Session Closed';
 document.getElementById('shut-text').innerText=currentLang==='es'?'La sesión ha sido cerrada manualmente por el usuario.':'Session manually closed by user.'
