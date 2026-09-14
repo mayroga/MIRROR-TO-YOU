@@ -1117,10 +1117,22 @@ window.speechSynthesis.cancel();
 const utterance=new SpeechSynthesisUtterance(textToSpeak);
 utterance.lang=tvidLang==='es'?'es-ES':'en-US';
 utterance.rate=.95;
+
+// Reducción automática de la música de fondo al hablar
+if(typeof player !== 'undefined' && player.setVolume){
+    player.setVolume(15);
+}
+
+// Restauración del volumen original al terminar la locución
+utterance.onend = function() {
+    if(typeof player !== 'undefined' && player.setVolume){
+        player.setVolume(100);
+    }
+};
+
 window.speechSynthesis.speak(utterance)
 }
 }
-
 function startBreathCycle(){
 const circle=document.getElementById('tvid-breath-circle');
 const label=document.getElementById('tvid-breath-label');
