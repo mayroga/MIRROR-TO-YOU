@@ -322,6 +322,14 @@ async def clear_kernel_memory():
     )
     return {"status": "cleared", "memory": "zero"}
 
+
+# HEALTH CHECK — NO GEMINI / NO STRIPE / NO SESIÓN
+
+@app.get("/health")
+async def health():
+    return {"status": "ok"}
+
+
 # FRONTEND
 
 if os.path.exists("static"):
